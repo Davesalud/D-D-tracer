@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Death's Armada - Expanded Heroes</title>
+    <title>Death's Armada - RPG Inventory Edition</title>
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,600;1,700&family=MedievalSharp&display=swap" rel="stylesheet">
     <style>
         :root { 
             --gold: #c5a059; --bg: #0a0a0c; --card: #121214; --accent: #8b0000; 
-            --danger: #ff4444; --success: #2d5a27; --text: #d1d1d1;
+            --danger: #ff4444; --text: #d1d1d1; --slot-bg: #1a1a1e;
         }
         
         * { box-sizing: border-box; }
@@ -17,144 +17,166 @@
             margin: 0; padding: 10px; background-image: radial-gradient(circle at center, #1a1a1e 0%, #0a0a0c 100%);
         }
 
-        #landing-page {
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            height: 100vh; text-align: center; padding: 20px;
-        }
-
+        /* --- KEZDŐOLDAL --- */
+        #landing-page { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; text-align: center; padding: 20px; }
         .welcome-title { font-family: 'MedievalSharp', cursive; font-size: 3.5em; color: var(--accent); margin-bottom: 10px; text-shadow: 0 0 20px rgba(139, 0, 0, 0.5); }
-        .welcome-sub { font-style: italic; color: var(--gold); margin-bottom: 40px; font-size: 1.2em; }
+        .menu-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; width: 100%; max-width: 700px; }
+        .menu-card { background: var(--card); border: 1px solid #2a2a2e; padding: 20px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
+        .menu-card:hover { border-color: var(--gold); transform: translateY(-3px); }
 
-        .menu-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; width: 100%; max-width: 800px; }
-        .menu-card { 
-            background: var(--card); border: 1px solid #2a2a2e; padding: 30px; border-radius: 8px;
-            cursor: pointer; transition: 0.3s; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-        .menu-card:hover { border-color: var(--gold); transform: translateY(-5px); }
-        .menu-card h3 { font-family: 'MedievalSharp', cursive; color: var(--gold); margin-top: 0; }
-        
-        #player-creator .card { width: 350px; border: 1px solid var(--gold); max-width: 95%; }
-        
-        .container { max-width: 900px; margin: auto; padding: 20px; }
-        .main-header { text-align: center; margin-bottom: 20px; padding: 10px; border-bottom: 1px dashed var(--accent); }
-        .main-header h1 { font-family: 'MedievalSharp', cursive; font-size: 2.5em; color: var(--accent); margin: 0; }
+        /* --- DASHBOARD --- */
+        .container { max-width: 1000px; margin: auto; padding: 10px; }
+        .main-header { text-align: center; border-bottom: 1px dashed var(--accent); margin-bottom: 20px; }
+        .main-header h1 { font-family: 'MedievalSharp', cursive; color: var(--accent); font-size: 2.2em; margin: 10px 0; }
 
-        .role-selector { background: var(--card); padding: 8px; border-radius: 4px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; border: 1px solid var(--accent); }
+        .role-selector { background: var(--card); padding: 10px; border-radius: 4px; margin-bottom: 15px; display: flex; align-items: center; border: 1px solid var(--accent); }
 
-        .dashboard { display: grid; grid-template-columns: 1fr 320px; gap: 15px; }
+        .dashboard { display: grid; grid-template-columns: 1fr 340px; gap: 20px; }
         @media (max-width: 900px) { .dashboard { grid-template-columns: 1fr; } }
 
-        .card { background: var(--card); border: 1px solid #2a2a2e; border-radius: 4px; padding: 12px; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        h2 { font-family: 'MedievalSharp', cursive; color: var(--gold); border-bottom: 1px solid #2a2a2e; padding-bottom: 8px; margin-top: 0; }
+        .card { background: var(--card); border: 1px solid #2a2a2e; border-radius: 6px; padding: 15px; margin-bottom: 15px; }
+        h2 { font-family: 'MedievalSharp', cursive; color: var(--gold); border-bottom: 1px solid #2a2a2e; padding-bottom: 5px; margin-top: 0; font-size: 1.2em; }
 
-        .char-card { border: 1px solid #2a2a2e; padding: 12px; margin-bottom: 12px; background: #08080a; position: relative; transition: 0.3s; }
-        .char-card.unlocked { border: 1px solid var(--gold); }
+        /* --- KARAKTER KÁRTYA --- */
+        .char-card { border: 1px solid #2a2a2e; padding: 15px; margin-bottom: 20px; background: #08080a; position: relative; border-radius: 4px; }
+        .char-card.unlocked { border: 1px solid var(--gold); box-shadow: 0 0 15px rgba(197, 160, 89, 0.1); }
         
-        .char-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .lock-status { cursor: pointer; }
+        .char-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .lock-status { cursor: pointer; font-size: 1.2em; }
 
-        .stats-container { display: flex; flex-direction: column; gap: 5px; }
-        .stat-line { display: grid; grid-template-columns: 1fr 80px; gap: 5px; align-items: center; }
+        /* Stat Sávok Javítása */
+        .stats-box { margin-bottom: 15px; }
+        .stat-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+        .bar-container { flex-grow: 1; height: 20px; background: #000; border-radius: 3px; position: relative; border: 1px solid #333; overflow: hidden; }
+        .bar-fill { height: 100%; transition: 0.4s ease-out; }
+        .hp-bar { background: linear-gradient(90deg, #8b0000, #ff4444); }
+        .mp-bar { background: linear-gradient(90deg, #00448b, #44aaff); }
+        .bar-label { position: absolute; width: 100%; text-align: center; font-size: 11px; font-weight: bold; line-height: 18px; color: #fff; text-shadow: 1px 1px 2px #000; z-index: 2; }
 
-        .bar-bg { height: 14px; background: #1a1a1e; border-radius: 2px; overflow: hidden; position: relative; border: 1px solid #333; }
-        .hp-fill { height: 100%; background: linear-gradient(90deg, #8b0000, #ff4444); transition: 0.5s; }
-        .mp-fill { height: 100%; background: linear-gradient(90deg, #00448b, #44aaff); transition: 0.5s; }
-        .bar-text { position: absolute; width: 100%; text-align: center; font-size: 9px; line-height: 14px; font-weight: bold; color: #fff; text-shadow: 1px 1px 2px #000; }
+        .btn-group { display: flex; gap: 4px; }
+        .mod-btn { background: #1a1a1e; border: 1px solid #444; color: #fff; padding: 2px 8px; cursor: pointer; font-family: 'MedievalSharp'; font-size: 12px; }
+        .mod-btn:hover { background: #333; }
+        .mod-btn.minus { color: var(--danger); }
+        .mod-btn.plus { color: #44ff44; }
 
-        .mini-btn-group { display: flex; gap: 2px; }
-        .mini-btn { font-family: 'MedievalSharp', cursive; cursor: pointer; border: 1px solid #444; background: #1a1a1e; color: #fff; font-size: 9px; padding: 2px 5px; }
-
-        .inventory-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; margin-top: 8px; border-top: 1px solid #2a2a2e; padding-top: 8px; }
-        .slot { background: #121214; border: 1px solid #2a2a2e; padding: 4px; height: 20px; }
-        .slot input { background: transparent; border: none; color: #666; width: 100%; font-size: 10px; outline: none; font-family: 'Crimson Text', serif; }
-
-        .log-box { background: #050505; height: 250px; overflow-y: auto; padding: 8px; font-size: 12px; border: 1px solid #2a2a2e; }
-        
-        input[type="text"], input[type="password"], select { 
-            background: #1a1a1e; border: 1px solid #333; color: white; padding: 8px; 
-            width: 100%; margin-bottom: 10px; font-family: 'Crimson Text'; font-size: 12px;
-            box-sizing: border-box;
+        /* --- RPG INVENTORY GRID --- */
+        .inventory-title { font-size: 0.8em; color: var(--gold); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
+        .inventory-grid { 
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr); 
+            gap: 8px; 
+            background: #050505; 
+            padding: 10px; 
+            border-radius: 4px;
+            border: 1px inset #222;
         }
-        button { cursor: pointer; font-family: 'MedievalSharp'; }
+        .inv-slot { 
+            aspect-ratio: 1 / 1; 
+            background: var(--slot-bg); 
+            border: 1px solid #333; 
+            display: flex; 
+            flex-direction: column;
+            align-items: center; 
+            justify-content: center;
+            position: relative;
+            padding: 2px;
+        }
+        .inv-slot input { 
+            width: 100%; 
+            background: transparent; 
+            border: none; 
+            color: #aaa; 
+            text-align: center; 
+            font-size: 10px; 
+            font-family: 'Crimson Text';
+            outline: none;
+        }
+        .inv-slot::before {
+            content: "⚔️"; /* Alapértelmezett ikon dekoráció */
+            font-size: 10px;
+            opacity: 0.2;
+            margin-bottom: 2px;
+        }
+
+        .log-box { background: #050505; height: 300px; overflow-y: auto; padding: 10px; font-size: 13px; border: 1px solid #2a2a2e; color: #aaa; }
+        
+        input[type="text"], input[type="password"], select { background: #1a1a1e; border: 1px solid #333; color: white; padding: 8px; width: 100%; margin-bottom: 10px; font-family: 'Crimson Text'; box-sizing: border-box; }
         
         .hidden { display: none !important; }
-        .del-btn { color: #555; font-size: 10px; border: none; background: none; cursor: pointer; }
+        .del-btn { color: #444; border: none; background: none; cursor: pointer; font-weight: bold; }
+        .del-btn:hover { color: var(--danger); }
     </style>
 </head>
 <body>
 
 <div id="landing-page">
     <h1 class="welcome-title">Death's Armada</h1>
-    <p class="welcome-sub">Válaszd ki a sorsodat, vándor...</p>
+    <p style="color: var(--gold); font-style: italic;">A sorsod a kezedben van...</p>
     <div class="menu-grid">
         <div class="menu-card" onclick="showCreatePlayer()">
             <h3>✨ Új Hős Idézése</h3>
-            <p>Hozd létre saját karakteredet.</p>
+            <p>Készítsd el karakteredet az utazáshoz.</p>
         </div>
         <div class="menu-card" onclick="goToDashboard()">
             <h3>📜 Belépés a Krónikába</h3>
-            <p>Csatlakozz a harchoz.</p>
+            <p>Csatlakozz a többiekhez a csatamezőn.</p>
         </div>
     </div>
 </div>
 
 <div id="player-creator" class="hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:100; display:flex; align-items:center; justify-content:center;">
-    <div class="card">
-        <h2>Karakteralkotás</h2>
-        <input type="text" id="pName" placeholder="Hős neve...">
+    <div class="card" style="width: 340px; border: 1px solid var(--gold);">
+        <h2>Hős Megidézése</h2>
+        <input type="text" id="pName" placeholder="Karakter neve...">
         <select id="pClass">
             <option value="Harcos">Harcos (100 HP / 20 MP)</option>
             <option value="Mágus">Mágus (60 HP / 120 MP)</option>
-            <option value="Vándor">Vándor (80 HP / 50 MP)</option>
             <option value="Lovag">Lovag (120 HP / 10 MP)</option>
             <option value="Íjász">Íjász (90 HP / 40 MP)</option>
-            <option value="Orgyilkos">Orgyilkos (70 HP / 30 MP)</option>
             <option value="Pap">Pap (85 HP / 100 MP)</option>
-            <option value="Bárd">Bárd (75 HP / 80 MP)</option>
         </select>
-        <input type="password" id="pPin" placeholder="Saját 4 jegyű PIN kód..." maxlength="4">
-        <button onclick="savePlayerChar()" style="width:100%; padding:10px; background:var(--accent); color:white; border:none; cursor:pointer;">MEGIDÉZÉS</button>
-        <button onclick="hideCreatePlayer()" style="width:100%; margin-top:5px; background:none; color:gray; border:none; cursor:pointer;">Mégse</button>
+        <input type="password" id="pPin" placeholder="PIN kód (4 számjegy)..." maxlength="4">
+        <button onclick="savePlayerChar()" style="width:100%; padding:12px; background:var(--accent); color:white; border:none; cursor:pointer; font-family:'MedievalSharp';">MEGIDÉZÉS</button>
+        <button onclick="hideCreatePlayer()" style="width:100%; margin-top:5px; background:none; color:gray; border:none; cursor:pointer;">Vissza</button>
     </div>
 </div>
 
 <div id="main-dashboard" class="hidden">
     <div class="container">
         <div class="main-header"><h1 onclick="location.reload()" style="cursor:pointer">Death's Armada</h1></div>
+        
         <div class="role-selector">
-            <span>📜 RANG:</span>
-            <select id="currentUserRole" onchange="checkDMPassword()" style="width: auto; margin: 0;">
+            <span style="font-family:'MedievalSharp'; color:var(--gold); margin-right:10px;">RANG:</span>
+            <select id="currentUserRole" onchange="checkDMPassword()" style="width: auto; margin: 0; padding: 4px;">
                 <option value="PLAYER">Játékos</option>
                 <option value="DM">Kalandmester</option>
             </select>
-            <button onclick="location.reload()" style="margin-left:auto; background:none; border:none; color:var(--gold); font-size:10px;">← FŐMENÜ</button>
+            <button onclick="location.reload()" style="margin-left:auto; background:none; border:none; color:var(--gold); cursor:pointer; font-size:11px;">← FŐMENÜ</button>
         </div>
 
         <div class="dashboard">
             <div>
                 <div id="dm-panel" class="card hidden">
-                    <h2>DM - Szörny Idézés</h2>
-                    <input type="text" id="newCharName" placeholder="Szörny neve...">
-                    <select id="newCharClass">
-                        <option value="Szörny">Átlagos Szörny (50 HP)</option>
-                        <option value="Főgonosz">Főgonosz (250 HP)</option>
-                    </select>
-                    <button onclick="createMonster()" style="width: 100%; background:#1a1a1e; color:var(--gold); border:1px solid #444; padding:5px; cursor:pointer;">SZÖRNY TEREMTÉSE</button>
+                    <h2>Kalandmester Panel</h2>
+                    <input type="text" id="monsterName" placeholder="Szörny neve...">
+                    <button onclick="createMonster()" style="width:100%; background:var(--accent); color:white; border:none; padding:8px;">SZÖRNY IDÉZÉSE (50 HP)</button>
                 </div>
+
                 <div class="card">
-                    <h2>Egységek</h2>
+                    <h2>Harci Egységek</h2>
                     <div id="char-list"></div>
-                    <button id="end-battle-btn" onclick="clearMonsters()" class="hidden" style="width: 100%; color: var(--danger); background:none; border:1px dashed var(--danger); padding:5px; margin-top:10px; cursor:pointer;">💀 SZÖRNYEK TÖRLÉSE</button>
+                    <button id="clear-btn" onclick="clearMonsters()" class="hidden" style="width: 100%; color: var(--danger); background:none; border:1px dashed var(--danger); padding:10px; margin-top:10px; cursor:pointer; font-family:'MedievalSharp';">KÖR VÉGE - SZÖRNYEK TÖRLÉSE</button>
                 </div>
             </div>
+
             <div>
                 <div class="card"><h2>Krónika</h2><div id="log" class="log-box"></div></div>
                 <div class="card" style="text-align: center;">
-                    <h2 style="border:none">Sorsvetés</h2>
-                    <div style="font-size: 30px; color: var(--accent); font-family: 'MedievalSharp';" id="dice-res">?</div>
-                    <div style="display: flex; gap: 5px; margin-top: 5px;">
-                        <button onclick="roll(20)" style="flex:1; background:#1a1a1e; color:#fff; border:1px solid #444;">D20</button>
-                        <button onclick="roll(6)" style="flex:1; background:#1a1a1e; color:#fff; border:1px solid #444;">D6</button>
+                    <h2>Sorsvetés</h2>
+                    <div style="font-size: 40px; color: var(--accent); font-family: 'MedievalSharp'; margin: 10px 0;" id="dice-res">?</div>
+                    <div style="display: flex; gap: 8px;">
+                        <button onclick="roll(20)" style="flex:1; padding:10px; background:#1a1a1e; color:#fff; border:1px solid #444;">D20</button>
+                        <button onclick="roll(6)" style="flex:1; padding:10px; background:#1a1a1e; color:#fff; border:1px solid #444;">D6</button>
                     </div>
                 </div>
             </div>
@@ -175,20 +197,13 @@
         messagingSenderId: "886037504950",
         appId: "1:886037504950:web:46e80b46f0e26e24429717"
     };
-
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    let unlockedChars = []; 
+    let unlockedChars = [];
 
-    const heroStats = {
-        "Harcos": { hp: 100, mp: 20 },
-        "Mágus": { hp: 60, mp: 120 },
-        "Vándor": { hp: 80, mp: 50 },
-        "Lovag": { hp: 120, mp: 10 },
-        "Íjász": { hp: 90, mp: 40 },
-        "Orgyilkos": { hp: 70, mp: 30 },
-        "Pap": { hp: 85, mp: 100 },
-        "Bárd": { hp: 75, mp: 80 }
+    const statsMap = {
+        "Harcos": { hp: 100, mp: 20 }, "Mágus": { hp: 60, mp: 120 },
+        "Lovag": { hp: 120, mp: 10 }, "Íjász": { hp: 90, mp: 40 }, "Pap": { hp: 85, mp: 100 }
     };
 
     function showCreatePlayer() { document.getElementById('player-creator').classList.remove('hidden'); }
@@ -203,43 +218,41 @@
         const name = document.getElementById('pName').value;
         const cls = document.getElementById('pClass').value;
         const pin = document.getElementById('pPin').value;
-        if(!name || !pin) return alert("Név és PIN kötelező!");
-
+        if(!name || !pin) return alert("Tölts ki mindent!");
+        
         db.ref('characters').push({
             name, type: 'player', charClass: cls, pin,
-            hp: heroStats[cls].hp, maxHp: heroStats[cls].hp,
-            mp: heroStats[cls].mp, maxMp: heroStats[cls].mp,
-            slots: ["Üres", "Üres", "Üres", "Üres"]
+            hp: statsMap[cls].hp, maxHp: statsMap[cls].hp,
+            mp: statsMap[cls].mp, maxMp: statsMap[cls].mp,
+            slots: Array(8).fill("Üres")
         });
         hideCreatePlayer(); goToDashboard();
     }
 
     function createMonster() {
-        const name = document.getElementById('newCharName').value;
-        const cls = document.getElementById('newCharClass').value;
+        const name = document.getElementById('monsterName').value;
         if(!name) return;
-        const hp = cls === "Főgonosz" ? 250 : 50;
         db.ref('characters').push({
-            name, type: 'monster', charClass: cls, pin: "4469",
-            hp: hp, maxHp: hp, mp: 0, maxMp: 0,
-            slots: ["Támadás", "Különleges", "Üres", "Üres"]
+            name, type: 'monster', charClass: 'Szörny', pin: '4469',
+            hp: 50, maxHp: 50, mp: 0, maxMp: 0,
+            slots: Array(8).fill("Üres")
         });
-        document.getElementById('newCharName').value = '';
+        document.getElementById('monsterName').value = '';
     }
 
     function checkDMPassword() {
         const role = document.getElementById('currentUserRole').value;
         if (role === 'DM' && prompt("DM kód:") !== "4469") {
-            alert("Sikertelen!");
+            alert("Hozzáférés megtagadva!");
             document.getElementById('currentUserRole').value = 'PLAYER';
         }
         updateUI();
     }
 
-    function unlockChar(id, correctPin) {
-        if (prompt("PIN kód:") === correctPin.toString() || document.getElementById('currentUserRole').value === 'DM') {
+    function unlockChar(id, pin) {
+        if(prompt("Karakter PIN:") === pin.toString() || document.getElementById('currentUserRole').value === 'DM') {
             unlockedChars.push(id); renderCharacters();
-        } else { alert("Hibás!"); }
+        }
     }
 
     function renderCharacters() {
@@ -252,33 +265,46 @@
                 const c = child.val();
                 const id = child.key;
                 const isUnlocked = unlockedChars.includes(id) || role === 'DM';
-                const slots = c.slots || ["Üres", "Üres", "Üres", "Üres"];
-                
+                const slots = c.slots || Array(8).fill("Üres");
+
                 list.innerHTML += `
-                    <div class="char-card ${isUnlocked ? 'unlocked' : ''}" style="border-left: 3px solid ${c.type === 'monster' ? 'var(--accent)' : 'var(--gold)'}">
+                    <div class="char-card ${isUnlocked ? 'unlocked' : ''}" style="border-left: 4px solid ${c.type === 'monster' ? 'var(--accent)' : 'var(--gold)'}">
                         <div class="char-header">
                             <span class="lock-status" onclick="unlockChar('${id}', '${c.pin}')">${isUnlocked ? '🔓' : '🔒'}</span>
-                            <strong style="font-family:'MedievalSharp'; flex-grow:1; margin-left:10px;">${c.name} <span style="font-size:0.7em; font-weight:normal; opacity:0.6;">- ${c.charClass || ''}</span></strong>
-                            ${role === 'DM' ? `<button class="del-btn" onclick="deleteChar('${id}')">X</button>` : ''}
+                            <strong style="font-family:'MedievalSharp'; font-size:1.3em;">${c.name} <small style="font-weight:normal; opacity:0.5; font-size:0.6em;">(${c.charClass || 'Ismeretlen'})</small></strong>
+                            ${role === 'DM' ? `<button class="del-btn" onclick="deleteChar('${id}')">✕</button>` : '<span></span>'}
                         </div>
-                        <div class="stats-container">
-                            <div class="stat-line">
-                                <div class="bar-bg"><div class="hp-fill" style="width:${(c.hp/c.maxHp)*100}%"></div><div class="bar-text">${c.hp}/${c.maxHp} HP</div></div>
-                                <div class="mini-btn-group">
-                                    <button class="mini-btn" ${!isUnlocked ? 'disabled' : ''} onclick="modStat('${id}', 'hp', -5)">-5</button>
-                                    <button class="mini-btn" ${!isUnlocked ? 'disabled' : ''} onclick="modStat('${id}', 'hp', 5)">+5</button>
+
+                        <div class="stats-box">
+                            <div class="stat-row">
+                                <div class="bar-container">
+                                    <div class="bar-fill hp-bar" style="width: ${(c.hp/c.maxHp)*100}%"></div>
+                                    <div class="bar-label">${c.hp} / ${c.maxHp} HP</div>
+                                </div>
+                                <div class="btn-group">
+                                    <button class="mod-btn minus" ${!isUnlocked ? 'disabled' : ''} onclick="modStat('${id}', 'hp', -5)">-5</button>
+                                    <button class="mod-btn plus" ${!isUnlocked ? 'disabled' : ''} onclick="modStat('${id}', 'hp', 5)">+5</button>
                                 </div>
                             </div>
-                            <div class="stat-line">
-                                <div class="bar-bg"><div class="mp-fill" style="width:${(c.mp/c.maxMp)*100}%"></div><div class="bar-text">${c.mp}/${c.maxMp} MP</div></div>
-                                <div class="mini-btn-group">
-                                    <button class="mini-btn" ${!isUnlocked ? 'disabled' : ''} onclick="modStat('${id}', 'mp', -10)">-10</button>
-                                    <button class="mini-btn" ${!isUnlocked ? 'disabled' : ''} onclick="modStat('${id}', 'mp', 10)">+10</button>
+                            <div class="stat-row" ${c.maxMp === 0 ? 'style="display:none"' : ''}>
+                                <div class="bar-container">
+                                    <div class="bar-fill mp-bar" style="width: ${(c.mp/c.maxMp)*100}%"></div>
+                                    <div class="bar-label">${c.mp} / ${c.maxMp} MP</div>
+                                </div>
+                                <div class="btn-group">
+                                    <button class="mod-btn minus" ${!isUnlocked ? 'disabled' : ''} onclick="modStat('${id}', 'mp', -10)">-10</button>
+                                    <button class="mod-btn plus" ${!isUnlocked ? 'disabled' : ''} onclick="modStat('${id}', 'mp', 10)">+10</button>
                                 </div>
                             </div>
                         </div>
+
+                        <div class="inventory-title">Felszerelés & Táska</div>
                         <div class="inventory-grid">
-                            ${slots.map((item, index) => `<div class="slot"><input type="text" value="${item}" ${!isUnlocked ? 'disabled' : ''} onchange="updateSlot('${id}', ${index}, this.value)"></div>`).join('')}
+                            ${slots.map((item, i) => `
+                                <div class="inv-slot">
+                                    <input type="text" value="${item}" ${!isUnlocked ? 'disabled' : ''} onchange="updateSlot('${id}', ${i}, this.value)">
+                                </div>
+                            `).join('')}
                         </div>
                     </div>
                 `;
@@ -291,22 +317,21 @@
     function updateUI() {
         const role = document.getElementById('currentUserRole').value;
         document.getElementById('dm-panel').classList.toggle('hidden', role !== 'DM');
-        document.getElementById('end-battle-btn').classList.toggle('hidden', role !== 'DM');
-        if(!document.getElementById('main-dashboard').classList.contains('hidden')) renderCharacters(); 
+        document.getElementById('clear-btn').classList.toggle('hidden', role !== 'DM');
+        renderCharacters();
     }
 
-    function updateSlot(charId, index, value) { db.ref(`characters/${charId}/slots/${index}`).set(value); }
-    function deleteChar(id) { if(confirm("Törlöd?")) db.ref(`characters/${id}`).remove(); }
     function modStat(id, stat, val) {
         db.ref(`characters/${id}`).once('value', s => {
-            let newVal = (s.val()[stat] || 0) + val;
-            newVal = Math.min(Math.max(0, newVal), s.val().maxHp || 100);
-            db.ref(`characters/${id}`).update({ [stat]: newVal });
+            let n = (s.val()[stat] || 0) + val;
+            n = Math.min(Math.max(0, n), s.val()[stat === 'hp' ? 'maxHp' : 'maxMp']);
+            db.ref(`characters/${id}`).update({ [stat]: n });
         });
     }
 
+    function updateSlot(id, i, val) { db.ref(`characters/${id}/slots/${i}`).set(val); }
+    function deleteChar(id) { if(confirm("Törlöd a karaktert?")) db.ref(`characters/${id}`).remove(); }
     function clearMonsters() {
-        if(!confirm("Minden szörnyet törölsz?")) return;
         db.ref('characters').once('value', snap => {
             snap.forEach(c => { if(c.val().type === 'monster') db.ref(`characters/${c.key}`).remove(); });
         });
@@ -315,12 +340,12 @@
     function roll(s) {
         const r = Math.floor(Math.random() * s) + 1;
         document.getElementById('dice-res').innerText = r;
-        logAction(`D${s} dobás: [ ${r} ]`);
+        logAction(`Dobás (D${s}): ${r}`);
     }
 
     function logAction(msg) {
-        const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        db.ref('logs').push(`[${time}] ${msg}`);
+        const t = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        db.ref('logs').push(`[${t}] ${msg}`);
     }
 
     db.ref('logs').on('value', snap => {
