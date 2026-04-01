@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>D&D Karakter és Campaign Tracker</title>
+    <title>D&D Campaign Tracker - RPG Edition</title>
     <style>
         * {
             margin: 0;
@@ -137,34 +137,131 @@
             background: #ffd700;
             transform: scale(1.05);
         }
+
+        .ability-btn {
+            background: #8b4513;
+            color: #fff;
+            padding: 6px 12px;
+            font-size: 11px;
+            margin: 2px;
+            border-radius: 3px;
+            border: 1px solid #ffd700;
+        }
+
+        .ability-btn:hover {
+            background: #a0522d;
+            transform: scale(1.02);
+        }
+
+        .ability-btn.used {
+            background: #444;
+            color: #888;
+            border-color: #666;
+        }
         
         .character-card {
             background: rgba(107, 127, 209, 0.15);
             border-left: 4px solid #ffd700;
-            padding: 15px;
+            padding: 20px;
             margin-bottom: 15px;
-            border-radius: 4px;
+            border-radius: 8px;
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
         }
         
         .character-card h3 {
             grid-column: 1 / -1;
             color: #ffd700;
             margin-bottom: 10px;
+            font-size: 18px;
         }
-        
-        .stat {
+
+        .char-description {
+            grid-column: 1 / -1;
+            font-style: italic;
+            color: #b0b8e8;
             font-size: 13px;
+            margin-bottom: 10px;
+        }
+
+        .char-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+
+        .stat-label {
             color: #b0b8e8;
         }
-        
+
         .stat-value {
             color: #e0e6ff;
             font-weight: bold;
         }
-        
+
+        .hp-bar, .mana-bar {
+            height: 6px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 3px;
+        }
+
+        .hp-fill {
+            height: 100%;
+            background: #00ff00;
+            transition: width 0.3s;
+        }
+
+        .mana-fill {
+            height: 100%;
+            background: #0088ff;
+            transition: width 0.3s;
+        }
+
+        .ability-section {
+            grid-column: 1 / -1;
+            margin-top: 10px;
+        }
+
+        .ability-name {
+            color: #ffd700;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .ability-desc {
+            color: #b0b8e8;
+            font-size: 11px;
+            margin-bottom: 5px;
+        }
+
+        .class-preview {
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid #ffd700;
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 10px;
+        }
+
+        .class-preview h4 {
+            color: #ffd700;
+            margin-bottom: 5px;
+        }
+
+        .class-preview p {
+            font-size: 12px;
+            color: #b0b8e8;
+            margin-bottom: 5px;
+        }
+
         .dice-area {
             display: flex;
             gap: 15px;
@@ -229,29 +326,15 @@
         .delete-btn:hover {
             background: #c94949;
         }
-        
-        .tracker-item {
-            background: rgba(107, 127, 209, 0.1);
-            border: 1px solid #6b7fd1;
-            padding: 12px;
-            margin-bottom: 10px;
-            border-radius: 4px;
-            display: flex;
-            gap: 12px;
-            align-items: center;
-        }
-        
-        .tracker-item input {
-            width: 50px;
-        }
-        
-        .tracker-status {
-            flex: 1;
-        }
-        
-        .tracker-status p {
-            margin: 2px 0;
-            font-size: 13px;
+
+        .battle-log {
+            background: rgba(0,0,0,0.3);
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 12px;
             color: #b0b8e8;
         }
     </style>
@@ -259,58 +342,76 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>⚔️ D&D CAMPAIGN TRACKER ⚔️</h1>
-            <p>Karakterek, kocka, és kampány kezelés egy helyen</p>
+            <h1>⚔️ D&D CAMPAIGN TRACKER - RPG EDITION ⚔️</h1>
+            <p>Epikus kalandok, stratégiai harcok és mágia</p>
             <div id="status" class="status">✅ Működik!</div>
         </div>
         
         <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('character')">Karakterek</button>
-            <button class="tab-btn" onclick="switchTab('dice')">Kocka Dobó</button>
-            <button class="tab-btn" onclick="switchTab('tracker')">Campaign Tracker</button>
+            <button class="tab-btn active" onclick="switchTab('character')">Hősök</button>
+            <button class="tab-btn" onclick="switchTab('battle')">Harc</button>
+            <button class="tab-btn" onclick="switchTab('dice')">Kocka</button>
         </div>
         
         <div id="character" class="tab-content active">
             <div class="section">
-                <h2>Új Karakter Létrehozása</h2>
+                <h2>Új Hős Létrehozása</h2>
                 <div class="form-group">
-                    <label>Karakter Neve</label>
-                    <input type="text" id="charName" placeholder="pl. Aragorn">
+                    <label>Hős Neve</label>
+                    <input type="text" id="charName" placeholder="pl. Thorgar Vasököl">
                 </div>
                 <div class="form-group">
                     <label>Faj</label>
-                    <select id="charRace">
-                        <option>Ember</option>
-                        <option>Elf</option>
-                        <option>Félork</option>
-                        <option>Törpe</option>
-                        <option>Halfling</option>
+                    <select id="charRace" onchange="updatePreview()">
+                        <option value="ember">Ember</option>
+                        <option value="elf">Elf</option>
+                        <option value="felork">Félork</option>
+                        <option value="torpe">Törpe</option>
+                        <option value="halfling">Halfling</option>
+                        <option value="tiefling">Tiefling</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label>Osztály</label>
-                    <select id="charClass">
-                        <option>Barbár</option>
-                        <option>Bárd</option>
-                        <option>Klérikus</option>
-                        <option>Druid</option>
-                        <option>Fighter</option>
-                        <option>Mágus</option>
-                        <option>Paladin</option>
-                        <option>Besúgó</option>
-                        <option>Varázsló</option>
+                    <select id="charClass" onchange="updatePreview()">
+                        <option value="barbar">Barbár</option>
+                        <option value="bard">Bárd</option>
+                        <option value="clerikus">Klérikus</option>
+                        <option value="druid">Druid</option>
+                        <option value="fighter">Fighter</option>
+                        <option value="magus">Mágus</option>
+                        <option value="paladin">Paladin</option>
+                        <option value="ranger">Ranger</option>
+                        <option value="rogue">Besúgó</option>
+                        <option value="sorcerer">Varázsló</option>
+                        <option value="warlock">Warlock</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label>HP (Élet)</label>
-                    <input type="number" id="charHP" placeholder="pl. 25">
-                </div>
-                <button onclick="addCharacter()">➕ Karakter Hozzáadása</button>
+
+                <div id="classPreview" class="class-preview"></div>
+                
+                <button onclick="addCharacter()">⚡ Hős Létrehozása</button>
             </div>
             
             <div class="section">
-                <h2>Létrehozott Karakterek</h2>
+                <h2>Hősök Csapata</h2>
                 <div id="characterList"></div>
+                <div id="battleLog" class="battle-log" style="display: none;"></div>
+            </div>
+        </div>
+
+        <div id="battle" class="tab-content">
+            <div class="section">
+                <h2>Harc Vezérlőpanel</h2>
+                <button onclick="newRound()">🔄 Új Kör</button>
+                <button onclick="healAll()">💚 Pihenés (Teljes Gyógyulás)</button>
+                <button onclick="clearLog()">🗑️ Log Törlése</button>
+                <div id="roundInfo" style="color: #ffd700; margin-top: 10px;">Kör: 1</div>
+            </div>
+            
+            <div class="section">
+                <h2>Harci Log</h2>
+                <div id="combatLog" class="battle-log" style="display: block; max-height: 400px;"></div>
             </div>
         </div>
         
@@ -350,29 +451,10 @@
                 </div>
             </div>
         </div>
-        
-        <div id="tracker" class="tab-content">
-            <div class="section">
-                <h2>Campaign Tracker (Max 6 Karakter)</h2>
-                <p style="color: #b0b8e8; margin-bottom: 15px; font-size: 13px;">Kövesd nyomon a karakterek életerőjét</p>
-                
-                <div style="margin-bottom: 20px;">
-                    <label>Válassz Karaktert</label>
-                    <div style="display: flex; gap: 10px;">
-                        <select id="trackerCharacter" style="flex: 1;">
-                            <option value="">-- Válassz egy karaktert --</option>
-                        </select>
-                        <button onclick="addToTracker()">Hozzáadás</button>
-                    </div>
-                </div>
-                
-                <div id="trackerList"></div>
-            </div>
-        </div>
     </div>
     
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU",
@@ -388,7 +470,99 @@
         const db = firebase.database();
 
         let characters = [];
-        let trackerCharacters = [];
+        let currentRound = 1;
+
+        // Osztály adatok
+        const classData = {
+            barbar: {
+                name: "Barbár",
+                hp: 80, mana: 20, damage: 25,
+                description: "Vad harcos, aki dühtől hajtva zúzza szét ellenségeit.",
+                ability: "Vad Düh",
+                abilityDesc: "Dupla sebzést okoz ezen a körön",
+                abilityEffect: (char) => ({ damage: char.damage * 2, message: `${char.name} vad dühhel támad! Dupla sebzés!` })
+            },
+            magus: {
+                name: "Mágus",
+                hp: 50, mana: 100, damage: 30,
+                description: "Tudós varázsló, aki arkán mágiával manipulálja a valóságot.",
+                ability: "Villámcsapás",
+                abilityDesc: "Extra sebzés + célpont kábul 1 körre",
+                abilityEffect: (char) => ({ damage: char.damage + 20, stun: true, message: `${char.name} villámot szór! +20 sebzés és kábitás!` })
+            },
+            paladin: {
+                name: "Paladin",
+                hp: 70, mana: 60, damage: 20,
+                description: "Szent harcos, aki isteni erővel védi szövetségeseit.",
+                ability: "Isteni Gyógyítás",
+                abilityDesc: "Visszanyeri 25 HP-t",
+                abilityEffect: (char) => ({ heal: 25, message: `${char.name} isteni fénnyel gyógyul! +25 HP!` })
+            },
+            rogue: {
+                name: "Besúgó",
+                hp: 60, mana: 40, damage: 35,
+                description: "Árnyékban rejtőző gyilkos, aki váratlan helyekről támad.",
+                ability: "Árnyék Támadás",
+                abilityDesc: "Garantált kritikus találat",
+                abilityEffect: (char) => ({ damage: char.damage * 1.8, critical: true, message: `${char.name} árnyékból támad! Kritikus találat!` })
+            },
+            bard: {
+                name: "Bárd",
+                hp: 55, mana: 80, damage: 18,
+                description: "Zenész-mágus, aki dalokkal inspirálja társait és gyengíti ellenségeit.",
+                ability: "Inspiráló Dal",
+                abilityDesc: "Minden szövetséges +15 HP-t kap",
+                abilityEffect: (char) => ({ teamHeal: 15, message: `${char.name} inspiráló dalt énekel! Csapat gyógyulás +15 HP!` })
+            },
+            druid: {
+                name: "Druid",
+                hp: 65, mana: 70, damage: 22,
+                description: "A természet őrzője, aki elemekkel és állatokkal harcol.",
+                ability: "Természet Haragja",
+                abilityDesc: "Mérgezi az ellenséget 3 körig",
+                abilityEffect: (char) => ({ poison: 3, damage: char.damage, message: `${char.name} természeti mérgeket szabadít fel!` })
+            },
+            fighter: {
+                name: "Fighter",
+                hp: 75, mana: 30, damage: 24,
+                description: "Tapasztalt katona, aki minden fegyvert és páncélt ismer.",
+                ability: "Harci Őrjöngés",
+                abilityDesc: "Három gyors támadás",
+                abilityEffect: (char) => ({ attacks: 3, damage: char.damage, message: `${char.name} sorozat támadást indít!` })
+            },
+            clerikus: {
+                name: "Klérikus",
+                hp: 65, mana: 90, damage: 16,
+                description: "Isteni küldött, aki áldásokkal segít és átkokkal büntet.",
+                ability: "Tömeg Gyógyítás",
+                abilityDesc: "Minden szövetséges teljes HP-ra gyógyul",
+                abilityEffect: (char) => ({ fullHeal: true, message: `${char.name} isteni csodát tesz! Mindenki teljesen meggyógyul!` })
+            },
+            ranger: {
+                name: "Ranger",
+                hp: 68, mana: 50, damage: 26,
+                description: "Vadon járó vadász, aki íjjal és természeti mágiával harcol.",
+                ability: "Mesterlövész",
+                abilityDesc: "Távolsági támadás, nem lehet kivédeni",
+                abilityEffect: (char) => ({ damage: char.damage + 15, unavoidable: true, message: `${char.name} tökéletes lövést ad le!` })
+            },
+            sorcerer: {
+                name: "Varázsló",
+                hp: 45, mana: 110, damage: 32,
+                description: "Született mágiával rendelkező, aki puszta akarattal alakít varázslatokat.",
+                ability: "Mágia Túlterhelés",
+                abilityDesc: "Hatalmas sebzés, de saját HP veszteség",
+                abilityEffect: (char) => ({ damage: char.damage * 2.5, selfDamage: 15, message: `${char.name} túlterheli mágiáját! Hatalmas sebzés, de ár is van!` })
+            },
+            warlock: {
+                name: "Warlock",
+                hp: 58, mana: 85, damage: 28,
+                description: "Sötét erőkkel szövetséges mágus, aki ördögi paktumokból merít erőt.",
+                ability: "Pokoli Tűz",
+                abilityDesc: "Égető sebzés, ami 2 körig folytatódik",
+                abilityEffect: (char) => ({ damage: char.damage, burn: 2, message: `${char.name} pokoli tüzet idéz! Égető károsodás!` })
+            }
+        };
 
         db.ref('characters').on('value', (snapshot) => {
             characters = [];
@@ -399,17 +573,37 @@
                 });
             });
             updateCharacterDisplay();
-            updateTrackerSelect();
         });
+
+        function updatePreview() {
+            const race = document.getElementById('charRace').value;
+            const className = document.getElementById('charClass').value;
+            const classInfo = classData[className];
+            
+            const preview = document.getElementById('classPreview');
+            preview.innerHTML = `
+                <h4>${classInfo.name}</h4>
+                <p>${classInfo.description}</p>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin: 10px 0; font-size: 12px;">
+                    <div><span style="color: #ff6b6b;">❤️ Életerő:</span> ${classInfo.hp}</div>
+                    <div><span style="color: #4dabf7;">✨ Mana:</span> ${classInfo.mana}</div>
+                    <div><span style="color: #ffd43b;">⚔️ Sebzés:</span> ${classInfo.damage}</div>
+                </div>
+                <div style="margin-top: 10px;">
+                    <div style="color: #ffd700; font-weight: bold; font-size: 13px;">🌟 ${classInfo.ability}</div>
+                    <div style="font-size: 11px; color: #b0b8e8;">${classInfo.abilityDesc}</div>
+                </div>
+            `;
+        }
 
         function addCharacter() {
             const name = document.getElementById('charName').value;
             const race = document.getElementById('charRace').value;
             const className = document.getElementById('charClass').value;
-            const hp = parseInt(document.getElementById('charHP').value);
+            const classInfo = classData[className];
             
-            if (!name || !hp) {
-                alert('Töltsd ki az összes mezőt!');
+            if (!name) {
+                alert('Add meg a hős nevét!');
                 return;
             }
             
@@ -417,53 +611,176 @@
                 name,
                 race,
                 className,
-                maxHP: hp,
-                currentHP: hp
+                classInfo: classInfo,
+                maxHP: classInfo.hp,
+                currentHP: classInfo.hp,
+                maxMana: classInfo.mana,
+                currentMana: classInfo.mana,
+                damage: classInfo.damage,
+                abilityUsed: false,
+                statusEffects: {},
+                createdAt: new Date().toISOString()
             });
             
             document.getElementById('charName').value = '';
-            document.getElementById('charHP').value = '';
+            logCombat(`${name} csatlakozott a csapathoz mint ${classInfo.name}!`);
         }
 
         function updateCharacterDisplay() {
             const list = document.getElementById('characterList');
             if (characters.length === 0) {
-                list.innerHTML = '<p style="color: #b0b8e8;">Nincsenek karakterek</p>';
+                list.innerHTML = '<p style="color: #b0b8e8;">Nincsenek hősök. Hozz létre egyet!</p>';
                 return;
             }
             list.innerHTML = '';
             
             characters.forEach(char => {
                 const hpPercent = (char.currentHP / char.maxHP) * 100;
-                const hpColor = hpPercent > 50 ? '#00ff00' : hpPercent > 25 ? '#ffaa00' : '#ff3333';
+                const manaPercent = (char.currentMana / char.maxMana) * 100;
+                const hpColor = hpPercent > 60 ? '#00ff00' : hpPercent > 30 ? '#ffaa00' : '#ff3333';
                 
                 const card = document.createElement('div');
                 card.className = 'character-card';
                 card.innerHTML = `
-                    <h3>${char.name}</h3>
-                    <div class="stat">Faj: <span class="stat-value">${char.race}</span></div>
-                    <div class="stat">Osztály: <span class="stat-value">${char.className}</span></div>
-                    <div class="stat" style="grid-column: 1 / -1;">
-                        HP: <span class="stat-value" style="color: ${hpColor};">${char.currentHP}/${char.maxHP}</span>
-                        <div style="background: rgba(0,0,0,0.3); height: 8px; border-radius: 4px; margin-top: 5px; overflow: hidden;">
-                            <div style="background: ${hpColor}; height: 100%; width: ${hpPercent}%;"></div>
+                    <h3>${char.name} <span style="color: #b0b8e8; font-size: 14px;">(${char.race} ${char.classInfo.name})</span></h3>
+                    <div class="char-description">${char.classInfo.description}</div>
+                    
+                    <div class="char-stats">
+                        <div class="stat-row">
+                            <span class="stat-label">❤️ Életerő:</span>
+                            <span class="stat-value" style="color: ${hpColor};">${char.currentHP}/${char.maxHP}</span>
+                        </div>
+                        <div class="hp-bar">
+                            <div class="hp-fill" style="width: ${hpPercent}%; background: ${hpColor};"></div>
                         </div>
                     </div>
-                    <input type="number" value="${char.currentHP}" min="0" max="${char.maxHP}" onchange="updateHP('${char.id}', this.value)">
-                    <button class="delete-btn" onclick="deleteChar('${char.id}')">Törlés</button>
+
+                    <div class="char-stats">
+                        <div class="stat-row">
+                            <span class="stat-label">✨ Mana:</span>
+                            <span class="stat-value">${char.currentMana}/${char.maxMana}</span>
+                        </div>
+                        <div class="mana-bar">
+                            <div class="mana-fill" style="width: ${manaPercent}%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="char-stats">
+                        <div class="stat-row">
+                            <span class="stat-label">⚔️ Sebzés:</span>
+                            <span class="stat-value">${char.damage}</span>
+                        </div>
+                        <div style="margin-top: 5px;">
+                            <input type="number" value="${char.currentHP}" min="0" max="${char.maxHP}" onchange="updateHP('${char.id}', this.value)" style="width: 60px; margin-right: 5px;">
+                            <input type="number" value="${char.currentMana}" min="0" max="${char.maxMana}" onchange="updateMana('${char.id}', this.value)" style="width: 60px;">
+                        </div>
+                    </div>
+
+                    <div class="ability-section">
+                        <div class="ability-name">🌟 ${char.classInfo.ability}</div>
+                        <div class="ability-desc">${char.classInfo.abilityDesc}</div>
+                        <button class="ability-btn ${char.abilityUsed ? 'used' : ''}" 
+                                onclick="useAbility('${char.id}')" 
+                                ${char.abilityUsed ? 'disabled' : ''}>
+                            ${char.abilityUsed ? '✓ Használva' : 'Aktiválás'}
+                        </button>
+                        <button class="ability-btn" onclick="dealDamage('${char.id}', 10)">
+                            Sebzés (10)
+                        </button>
+                        <button class="delete-btn" onclick="deleteChar('${char.id}')">Törlés</button>
+                    </div>
                 `;
                 list.appendChild(card);
             });
         }
 
+        function useAbility(id) {
+            const char = characters.find(c => c.id === id);
+            if (!char || char.abilityUsed) return;
+
+            const effect = char.classInfo.abilityEffect(char);
+            logCombat(`🌟 ${effect.message}`);
+
+            // Alkalmazzuk a hatást
+            if (effect.damage) {
+                logCombat(`💥 Sebzés: ${effect.damage}`);
+            }
+            if (effect.heal) {
+                updateHP(id, Math.min(char.maxHP, char.currentHP + effect.heal));
+                logCombat(`💚 ${char.name} gyógyul ${effect.heal} HP-t!`);
+            }
+            if (effect.teamHeal) {
+                characters.forEach(c => {
+                    updateHP(c.id, Math.min(c.maxHP, c.currentHP + effect.teamHeal));
+                });
+                logCombat(`💚 Minden csapattag gyógyul ${effect.teamHeal} HP-t!`);
+            }
+            if (effect.fullHeal) {
+                characters.forEach(c => {
+                    updateHP(c.id, c.maxHP);
+                });
+                logCombat(`💚 Mindenki teljesen meggyógyult!`);
+            }
+            if (effect.selfDamage) {
+                updateHP(id, char.currentHP - effect.selfDamage);
+                logCombat(`💔 ${char.name} ${effect.selfDamage} sebzést szenved!`);
+            }
+
+            // Képesség használva jelölés
+            db.ref('characters/' + id).update({ abilityUsed: true });
+        }
+
+        function dealDamage(id, damage) {
+            const char = characters.find(c => c.id === id);
+            if (!char) return;
+            
+            const newHP = Math.max(0, char.currentHP - damage);
+            updateHP(id, newHP);
+            logCombat(`💥 ${char.name} ${damage} sebzést szenved! (${newHP}/${char.maxHP} HP)`);
+        }
+
         function updateHP(id, value) {
-            db.ref('characters/' + id).update({
-                currentHP: Math.max(0, Math.min(parseInt(value), characters.find(c => c.id === id).maxHP))
-            });
+            const newHP = Math.max(0, Math.min(parseInt(value), characters.find(c => c.id === id)?.maxHP || 0));
+            db.ref('characters/' + id).update({ currentHP: newHP });
+        }
+
+        function updateMana(id, value) {
+            const newMana = Math.max(0, Math.min(parseInt(value), characters.find(c => c.id === id)?.maxMana || 0));
+            db.ref('characters/' + id).update({ currentMana: newMana });
         }
 
         function deleteChar(id) {
             db.ref('characters/' + id).remove();
+        }
+
+        function newRound() {
+            currentRound++;
+            // Reset képességek
+            characters.forEach(char => {
+                db.ref('characters/' + char.id).update({ abilityUsed: false });
+            });
+            
+            document.getElementById('roundInfo').textContent = `Kör: ${currentRound}`;
+            logCombat(`🔄 === ${currentRound}. KÖR KEZDŐDIK ===`);
+        }
+
+        function healAll() {
+            characters.forEach(char => {
+                updateHP(char.id, char.maxHP);
+                updateMana(char.id, char.maxMana);
+            });
+            logCombat(`🛌 Pihenés! Minden hős teljesen felépült!`);
+        }
+
+        function logCombat(message) {
+            const log = document.getElementById('combatLog');
+            const time = new Date().toLocaleTimeString();
+            log.innerHTML += `<div>[${time}] ${message}</div>`;
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('combatLog').innerHTML = '';
         }
 
         function switchTab(tab) {
@@ -478,6 +795,7 @@
             document.getElementById('diceResult').style.display = 'block';
             document.getElementById('resultValue').textContent = result;
             document.getElementById('diceDetails').textContent = `d${sides}`;
+            logCombat(`🎲 Kocka dobás: d${sides} = ${result}`);
         }
 
         function rollMultipleDice() {
@@ -494,60 +812,11 @@
             document.getElementById('diceResult').style.display = 'block';
             document.getElementById('resultValue').textContent = total;
             document.getElementById('diceDetails').textContent = `${count}d${sides}: [${rolls.join(', ')}]`;
+            logCombat(`🎲 Kocka dobás: ${count}d${sides} = ${total} [${rolls.join(', ')}]`);
         }
 
-        function updateTrackerSelect() {
-            const select = document.getElementById('trackerCharacter');
-            const existing = trackerCharacters.map(c => c.id);
-            
-            select.innerHTML = '<option value="">-- Válassz egy karaktert --</option>';
-            characters.forEach(char => {
-                if (!existing.includes(char.id) && trackerCharacters.length < 6) {
-                    const opt = document.createElement('option');
-                    opt.value = char.id;
-                    opt.textContent = char.name;
-                    select.appendChild(opt);
-                }
-            });
-        }
-
-        function addToTracker() {
-            const id = document.getElementById('trackerCharacter').value;
-            if (!id || trackerCharacters.length >= 6) return;
-            
-            const char = characters.find(c => c.id === id);
-            if (char) {
-                trackerCharacters.push({...char});
-                updateTrackerSelect();
-                updateTrackerDisplay();
-            }
-        }
-
-        function updateTrackerDisplay() {
-            const list = document.getElementById('trackerList');
-            list.innerHTML = '';
-            
-            trackerCharacters.forEach((char, idx) => {
-                const hpPercent = (char.currentHP / char.maxHP) * 100;
-                const item = document.createElement('div');
-                item.className = 'tracker-item';
-                item.innerHTML = `
-                    <div style="font-weight: bold; color: #ffd700; min-width: 80px;">${idx + 1}. ${char.name}</div>
-                    <div class="tracker-status">
-                        <p>${char.race} • ${char.className}</p>
-                        <div style="display: flex; gap: 10px; align-items: center; margin-top: 5px;">
-                            <input type="number" value="${char.currentHP}" min="0" max="${char.maxHP}" onchange="trackerCharacters[${idx}].currentHP = Math.max(0, Math.min(parseInt(this.value), ${char.maxHP})); updateTrackerDisplay();">
-                            <span style="color: #b0b8e8;">/ ${char.maxHP}</span>
-                            <div style="flex: 1; background: rgba(0,0,0,0.3); height: 6px; border-radius: 3px;">
-                                <div style="background: ${hpPercent > 50 ? '#00ff00' : hpPercent > 25 ? '#ffaa00' : '#ff3333'}; height: 100%; width: ${hpPercent}%;"></div>
-                            </div>
-                            <button class="delete-btn" onclick="trackerCharacters.splice(${idx}, 1); updateTrackerSelect(); updateTrackerDisplay();" style="width: auto; padding: 4px 8px;">✕</button>
-                        </div>
-                    </div>
-                `;
-                list.appendChild(item);
-            });
-        }
+        // Initialize
+        updatePreview();
     </script>
 </body>
 </html>
