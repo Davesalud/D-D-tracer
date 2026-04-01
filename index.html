@@ -61,7 +61,7 @@
             <h2>Hős Hozzáadása</h2>
             <div class="grid-2">
                 <input type="text" id="pName" placeholder="Hős neve">
-                <input type="number" id="pHP" placeholder="Max HP (pl. 50)">
+                <input type="number" id="pHP" placeholder="Max HP">
             </div>
             <button onclick="addUnit('player')">🛡️ Csapathoz adás</button>
         </div>
@@ -69,7 +69,7 @@
     </div>
 
     <div id="battle" class="tab-content">
-        <div class="section" style="background: rgba(157, 2, 8, 0.2); border-color: #9d0208; margin-bottom: 20px;">
+        <div class="section" style="border-color: #9d0208;">
             <button onclick="endEncounter()" style="background: #9d0208; width: 100%; font-size: 16px;">💀 HARC VÉGE (Szörnyek + Log törlése)</button>
         </div>
 
@@ -77,11 +77,10 @@
             <div>
                 <div class="section">
                     <h3>😈 Szörny Idézése</h3>
-                    <input type="text" id="mName" placeholder="Szörny neve (pl. Ork)">
+                    <input type="text" id="mName" placeholder="Szörny neve">
                     <input type="number" id="mHP" placeholder="HP">
                     <button onclick="addUnit('monster')" style="background: #5a189a;">🔥 Megjelenítés</button>
                 </div>
-                
                 <div id="battleGround"></div>
             </div>
 
@@ -89,7 +88,7 @@
                 <div class="section">
                     <h3>📜 Harci Napló</h3>
                     <div id="combatLog" class="battle-log"></div>
-                    <button onclick="clearLog()" style="margin-top:10px; font-size:10px;">Napló kézi ürítése</button>
+                    <button onclick="clearLog()" style="margin-top:10px; font-size:10px;">Napló ürítése</button>
                 </div>
                 <div class="section">
                     <h3>🎲 Gyors Dobás</h3>
@@ -134,7 +133,6 @@
     function addUnit(type) {
         const name = type === 'player' ? document.getElementById('pName').value : document.getElementById('mName').value;
         const hp = type === 'player' ? document.getElementById('pHP').value : document.getElementById('mHP').value;
-        
         if(!name || !hp) return alert("Név és HP kell!");
 
         db.ref('units').push({
@@ -154,14 +152,12 @@
         snapshot.forEach(child => { units.push({id: child.key, ...child.val()}); });
         units.sort((a, b) => b.init - a.init);
         renderUnits(units);
-        document.getElementById('status').textContent = "✅ Élő kapcsolat";
     });
 
     function renderUnits(units) {
         const pList = document.getElementById('playerList');
         const bGround = document.getElementById('battleGround');
-        pList.innerHTML = '';
-        bGround.innerHTML = '';
+        pList.innerHTML = ''; bGround.innerHTML = '';
 
         units.forEach(unit => {
             const hpPct = (unit.currentHP / unit.maxHP) * 100;
@@ -185,7 +181,8 @@
     }
 
     function doAction(id, type) {
-        const val = parseInt(document.getElementById('dmg_' + id).value);
+        const valInput = document.getElementById('dmg_' + id);
+        const val = parseInt(valInput.value);
         if(isNaN(val)) return;
 
         db.ref('units/' + id).once('value').then(snap => {
@@ -195,26 +192,20 @@
             if(newHP > data.maxHP) newHP = data.maxHP;
 
             db.ref('units/' + id).update({ currentHP: newHP });
-            
-            const logMsg = type === 'dmg' 
-                ? `💥 <b>${data.name}</b> ${val} sebzést kapott!` 
-                : `✨ <b>${data.name}</b> gyógyult ${val}-t.`;
-            addLog(logMsg);
+            addLog(type === 'dmg' ? `💥 <b>${data.name}</b> -${val} HP!` : `✨ <b>${data.name}</b> +${val} HP.`);
+            valInput.value = '';
         });
     }
 
-    // --- ÚJ: TAKARÍTÓ FUNKCIÓ ---
     function endEncounter() {
-        if (confirm("Vége a harcnak? A szörnyek és a napló törlődni fognak.")) {
-            db.ref('units').once('value').then(snapshot => {
-                snapshot.forEach(child => {
-                    if (child.val().type === 'monster') {
-                        db.ref('units/' + child.key).remove();
-                    }
+        if(confirm("Takarítod a csatateret? (Csak a szörnyek törlődnek!)")) {
+            db.ref('units').once('value').then(snap => {
+                snap.forEach(child => {
+                    if(child.val().type === 'monster') db.ref('units/' + child.key).remove();
                 });
             });
             db.ref('logs').remove();
-            addLog("⚔️ <b>A csata véget ért. A szörnyek eltűntek.</b>");
+            addLog("⚔️ <b>A csata véget ért.</b>");
         }
     }
 
@@ -227,4 +218,18 @@
         const logBox = document.getElementById('combatLog');
         logBox.innerHTML = '';
         snap.forEach(child => {
-            logBox.innerHTML = `<div class
+            logBox.innerHTML = `<div class="log-entry">${child.val()}</div>` + logBox.innerHTML;
+        });
+    });
+
+    function removeUnit(id) { db.ref('units/' + id).remove(); }
+    function clearLog() { db.ref('logs').remove(); }
+    function rollDice(s) {
+        const res = Math.floor(Math.random() * s) + 1;
+        document.getElementById('diceBigResult').textContent = res;
+        document.getElementById('quickDiceResult').textContent = "🎲 " + res;
+        addLog(`🎲 Kockadobás: <b>${res}</b>`);
+    }
+</script>
+</body>
+</html>
