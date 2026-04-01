@@ -3,233 +3,208 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>D&D Campaign Tracker - Ultimate RPG Edition</title>
+    <title>D&D Pro Campaign Manager</title>
     <style>
-        /* Megtartottam az összes eredeti RPG stílust */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
-            color: #e0e6ff; padding: 20px; min-height: 100vh;
-        }
-        .container { max-width: 1200px; margin: 0 auto; }
-        .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #6b7fd1; padding-bottom: 20px; }
-        .header h1 { font-size: 32px; color: #ffd700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); }
-        .tabs { display: flex; gap: 10px; margin-bottom: 30px; flex-wrap: wrap; }
-        .tab-btn { padding: 10px 20px; background: rgba(107, 127, 209, 0.2); border: 2px solid #6b7fd1; color: #e0e6ff; cursor: pointer; border-radius: 5px; transition: 0.3s; }
-        .tab-btn.active { background: #6b7fd1; color: #000; font-weight: bold; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        .section { background: rgba(26, 31, 58, 0.8); border: 2px solid #6b7fd1; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
-        .section h2 { color: #ffd700; margin-bottom: 15px; }
-        .form-group { margin-bottom: 15px; }
-        input, select { width: 100%; padding: 8px; background: rgba(0, 0, 0, 0.4); border: 1px solid #6b7fd1; color: #fff; border-radius: 4px; }
-        button { background: #6b7fd1; color: #000; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        button:hover { background: #ffd700; }
-        .character-card { background: rgba(107, 127, 209, 0.15); border-left: 4px solid #ffd700; padding: 15px; margin-bottom: 15px; border-radius: 8px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-        .hp-bar, .mana-bar { height: 8px; background: rgba(0,0,0,0.4); border-radius: 4px; overflow: hidden; margin: 5px 0; }
-        .hp-fill { height: 100%; background: #2ecc71; transition: 0.3s; }
-        .mana-fill { height: 100%; background: #3498db; transition: 0.3s; }
-        .battle-log { background: rgba(0,0,0,0.5); padding: 15px; border-radius: 5px; height: 300px; overflow-y: auto; font-family: monospace; font-size: 13px; border: 1px solid #333; }
-        .log-entry { margin-bottom: 5px; border-bottom: 1px solid #222; padding-bottom: 2px; }
-        .monster-card { border-left: 4px solid #e74c3c; background: rgba(231, 76, 60, 0.1); }
+        :root { --gold: #ffd700; --bg: #0d1117; --card: #161b22; --accent: #58a6ff; --danger: #f85149; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: #c9d1d9; margin: 0; padding: 15px; }
+        .container { max-width: 1000px; margin: auto; }
+        
+        /* Grid Elrendezés */
+        .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        @media (max-width: 768px) { .dashboard { grid-template-columns: 1fr; } }
+
+        .card { background: var(--card); border: 1px solid #30363d; border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        h2 { color: var(--gold); border-bottom: 1px solid #30363d; padding-bottom: 10px; margin-top: 0; }
+
+        /* Karakter Kártya Extrák */
+        .char-grid { display: grid; grid-template-columns: 60px 1fr auto; gap: 10px; align-items: center; border-bottom: 1px solid #30363d; padding: 10px 0; }
+        .lvl-badge { background: var(--accent); color: white; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; }
+        
+        .stat-bar-container { flex-grow: 1; margin: 5px 0; }
+        .bar { height: 10px; background: #21262d; border-radius: 5px; overflow: hidden; margin-top: 4px; }
+        .hp-fill { height: 100%; background: #238636; transition: width 0.4s ease; }
+        .mp-fill { height: 100%; background: #1f6feb; transition: width 0.4s ease; }
+        
+        .controls { display: flex; gap: 5px; }
+        button { cursor: pointer; border: none; border-radius: 6px; padding: 8px 12px; font-weight: bold; transition: 0.2s; }
+        .btn-plus { background: #238636; color: white; }
+        .btn-minus { background: #da3633; color: white; }
+        .btn-action { background: #8957e5; color: white; width: 100%; margin-top: 10px; }
+        
+        .log-box { background: #010409; height: 400px; overflow-y: auto; padding: 10px; border-radius: 8px; font-family: 'Courier New', Courier, monospace; font-size: 0.9em; }
+        .log-item { border-left: 3px solid var(--accent); padding-left: 8px; margin-bottom: 6px; color: #8b949e; }
+        
+        input, select { background: #0d1117; border: 1px solid #30363d; color: white; padding: 10px; border-radius: 6px; margin-bottom: 10px; width: 100%; box-sizing: border-box; }
+        .flex-row { display: flex; gap: 10px; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>⚔️ D&D CAMPAIGN TRACKER ⚔️</h1>
-            <p id="status" style="color: #ffd700; font-size: 12px;">Szinkronizálás...</p>
-        </div>
-        
-        <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('character')">Hősök & Csapat</button>
-            <button class="tab-btn" onclick="switchTab('battle')">Harcitér</button>
-            <button class="tab-btn" onclick="switchTab('dice')">Kockák</button>
-        </div>
-        
-        <div id="character" class="tab-content active">
-            <div class="section">
-                <h2>Új Karakter</h2>
-                <div class="form-group">
-                    <input type="text" id="charName" placeholder="Név...">
-                </div>
-                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                    <select id="charType">
-                        <option value="player">HŐS (Megmarad)</option>
-                        <option value="monster">SZÖRNY (Törölhető)</option>
+
+<div class="container">
+    <div style="text-align: center; margin-bottom: 20px;">
+        <h1 style="color: var(--gold); margin-bottom: 5px;">⚔️ LEGENDARY TRACKER PRO</h1>
+        <span id="sync-status" style="font-size: 12px; opacity: 0.6;">Kapcsolódás...</span>
+    </div>
+
+    <div class="dashboard">
+        <div>
+            <div class="card">
+                <h2>Új Kalandor / Szörny</h2>
+                <input type="text" id="name" placeholder="Név...">
+                <div class="flex-row">
+                    <select id="type">
+                        <option value="player">Hős (Megmarad)</option>
+                        <option value="monster">Szörny (Harc végén törlődik)</option>
                     </select>
-                    <select id="charClass" onchange="updatePreview()">
-                        <option value="barbar">Barbár</option>
-                        <option value="magus">Mágus</option>
-                        <option value="paladin">Paladin</option>
-                        <option value="rogue">Besúgó</option>
-                        <option value="bard">Bárd</option>
+                    <select id="class">
+                        <option value="Warior">Harcos</option>
+                        <option value="Mage">Mágus</option>
+                        <option value="Ranger">Vándor</option>
                     </select>
                 </div>
-                <div id="classPreview" style="font-size: 12px; color: #b0b8e8; margin-bottom: 15px; padding: 10px; background: rgba(0,0,0,0.2);"></div>
-                <button onclick="addCharacter()">⚡ Hozzáadás a csapathoz</button>
+                <button onclick="createCharacter()" class="btn-plus" style="width: 100%;">Létrehozás a Firebase-ben</button>
             </div>
-            
-            <div class="section">
-                <h2>Jelenlévők</h2>
-                <div id="characterList"></div>
+
+            <div class="card">
+                <h2>Csapat és Ellenfelek</h2>
+                <div id="char-list"></div>
+                <button onclick="clearMonsters()" class="btn-minus" style="width: 100%; margin-top: 15px;">💀 HARC VÉGE (Szörnyek ürítése)</button>
             </div>
         </div>
 
-        <div id="battle" class="tab-content">
-            <div class="section" style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <button onclick="endEncounter()" style="background: #e74c3c; color: white;">💀 HARC VÉGE (Szörnyek + Log törlése)</button>
-                <button onclick="healAll()">💚 Teljes Pihenő</button>
-                <button onclick="db.ref('logs').remove()">🗑️ Csak Log ürítés</button>
+        <div>
+            <div class="card">
+                <h2>Közös Harci Napló</h2>
+                <div id="log" class="log-box"></div>
+                <button onclick="db.ref('logs').remove()" style="margin-top: 10px; background: transparent; color: gray; font-size: 11px;">Napló törlése</button>
             </div>
-            <div class="section">
-                <h2>Harci Események (Közös minden eszközön)</h2>
-                <div id="combatLog" class="battle-log"></div>
-            </div>
-        </div>
-        
-        <div id="dice" class="tab-content">
-            <div class="section" style="text-align: center;">
-                <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
-                    <button style="width: 80px; height: 80px; border-radius: 50%;" onclick="rollDice(20)">d20</button>
-                    <button style="width: 80px; height: 80px; border-radius: 50%;" onclick="rollDice(6)">d6</button>
-                    <button style="width: 80px; height: 80px; border-radius: 50%;" onclick="rollDice(10)">d10</button>
+
+            <div class="card" style="text-align: center;">
+                <h2>Sorsolás</h2>
+                <div style="font-size: 48px; color: var(--gold); margin: 10px 0;" id="dice-res">20</div>
+                <div class="flex-row">
+                    <button onclick="roll(20)" style="flex:1">D20</button>
+                    <button onclick="roll(6)" style="flex:1">D6</button>
+                    <button onclick="roll(100)" style="flex:1">D100</button>
                 </div>
-                <h1 id="diceResult" style="font-size: 80px; color: #ffd700; margin-top: 20px;">?</h1>
             </div>
         </div>
     </div>
+</div>
 
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU",
-            authDomain: "dnd-tracker-4fe05.firebaseapp.com",
-            projectId: "dnd-tracker-4fe05",
-            databaseURL: "https://dnd-tracker-4fe05-default-rtdb.europe-west1.firebasedatabase.app",
-            storageBucket: "dnd-tracker-4fe05.firebasestorage.app",
-            messagingSenderId: "886037504950",
-            appId: "1:886037504950:web:46e80b46f0e26e24429717"
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU",
+        authDomain: "dnd-tracker-4fe05.firebaseapp.com",
+        projectId: "dnd-tracker-4fe05",
+        databaseURL: "https://dnd-tracker-4fe05-default-rtdb.europe-west1.firebasedatabase.app",
+        storageBucket: "dnd-tracker-4fe05.firebasestorage.app",
+        messagingSenderId: "886037504950",
+        appId: "1:886037504950:web:46e80b46f0e26e24429717"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // Adat struktúra bővítése
+    function createCharacter() {
+        const name = document.getElementById('name').value;
+        const type = document.getElementById('type').value;
+        const cls = document.getElementById('class').value;
+        if(!name) return;
+
+        const baseStats = {
+            "Warior": { hp: 100, mp: 20, skill: "Pajzsütés" },
+            "Mage": { hp: 60, mp: 120, skill: "Tűzgolyó" },
+            "Ranger": { hp: 80, mp: 50, skill: "Dupla lövés" }
         };
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-
-        // Eredeti RPG adatok
-        const classData = {
-            barbar: { name: "Barbár", hp: 80, mana: 20, ability: "Vad Düh" },
-            magus: { name: "Mágus", hp: 50, mana: 100, ability: "Villámcsapás" },
-            paladin: { name: "Paladin", hp: 70, mana: 60, ability: "Szent Fény" },
-            rogue: { name: "Besúgó", hp: 60, mana: 40, ability: "Árnyékcsapás" },
-            bard: { name: "Bárd", hp: 55, mana: 80, ability: "Inspiráció" }
-        };
-
-        function updatePreview() {
-            const cls = classData[document.getElementById('charClass').value];
-            document.getElementById('classPreview').innerHTML = `Induló: ❤️${cls.hp} HP | ✨${cls.mana} Mana | Képesség: ${cls.ability}`;
-        }
-
-        function addCharacter() {
-            const name = document.getElementById('charName').value;
-            const type = document.getElementById('charType').value;
-            const clsKey = document.getElementById('charClass').value;
-            if(!name) return;
-
-            db.ref('characters').push({
-                name, type, 
-                className: classData[clsKey].name,
-                maxHP: classData[clsKey].hp, currentHP: classData[clsKey].hp,
-                maxMana: classData[clsKey].mana, currentMana: classData[clsKey].mana
-            });
-            document.getElementById('charName').value = '';
-            logCombat(`✨ ${name} (${classData[clsKey].name}) belépett a játékba.`);
-        }
-
-        // ÉLŐ FRISSÍTÉS (Minden eszközön)
-        db.ref('characters').on('value', snap => {
-            const list = document.getElementById('characterList');
-            list.innerHTML = '';
-            snap.forEach(child => {
-                const c = child.val();
-                const hpPct = (c.currentHP / c.maxHP) * 100;
-                list.innerHTML += `
-                    <div class="character-card ${c.type === 'monster' ? 'monster-card' : ''}">
-                        <div style="grid-column: 1/3;">
-                            <strong>${c.name}</strong> <small>(${c.className})</small>
-                            <div class="hp-bar"><div class="hp-fill" style="width:${hpPct}%"></div></div>
-                            <div style="font-size:11px">HP: ${c.currentHP} / ${c.maxHP}</div>
-                        </div>
-                        <div style="text-align:right">
-                            <button onclick="updateHP('${child.key}', -10)">-10</button>
-                            <button onclick="updateHP('${child.key}', 10)">+10</button>
-                            <button onclick="db.ref('characters/${child.key}').remove()" style="background:none;color:gray">❌</button>
-                        </div>
-                    </div>`;
-            });
-            document.getElementById('status').innerHTML = "✅ Élő kapcsolat";
+        db.ref('characters').push({
+            name, type, class: cls,
+            hp: baseStats[cls].hp, maxHp: baseStats[cls].hp,
+            mp: baseStats[cls].mp, maxMp: baseStats[cls].mp,
+            lvl: 1, skill: baseStats[cls].skill
         });
+        
+        logAction(`🛡️ ${name} csatlakozott mint ${cls}!`);
+        document.getElementById('name').value = '';
+    }
 
-        function updateHP(id, change) {
-            db.ref('characters/' + id).once('value', s => {
-                const newHP = Math.max(0, (s.val().currentHP || 0) + change);
-                db.ref('characters/' + id).update({ currentHP: newHP });
-                logCombat(`❤️ ${s.val().name}: ${change > 0 ? '+' : ''}${change} HP (Most: ${newHP})`);
-            });
-        }
+    // ÉLŐ SZINKRON
+    db.ref('characters').on('value', snap => {
+        const list = document.getElementById('char-list');
+        list.innerHTML = '';
+        snap.forEach(child => {
+            const c = child.val();
+            const id = child.key;
+            list.innerHTML += `
+                <div class="char-grid">
+                    <div class="lvl-badge">Lvl ${c.lvl}</div>
+                    <div class="stat-bar-container">
+                        <strong style="color:${c.type === 'monster' ? '#f85149' : '#58a6ff'}">${c.name}</strong>
+                        <div class="bar"><div class="hp-fill" style="width:${(c.hp/c.maxHp)*100}%"></div></div>
+                        <div class="bar"><div class="mp-fill" style="width:${(c.mp/c.maxMp)*100}%"></div></div>
+                    </div>
+                    <div class="controls">
+                        <button class="btn-minus" onclick="modStat('${id}', 'hp', -10)">-</button>
+                        <button class="btn-plus" onclick="modStat('${id}', 'hp', 10)">+</button>
+                    </div>
+                    <button class="btn-action" onclick="useSkill('${id}')" ${c.mp < 10 ? 'disabled' : ''}>
+                        ${c.skill} (-10 MP)
+                    </button>
+                </div>
+            `;
+        });
+        document.getElementById('sync-status').innerText = "🟢 Online Szinkron Aktív";
+    });
 
-        // HARC VÉGE: Csak a szörnyeket törli, a hősöket nem!
-        function endEncounter() {
-            if(confirm("Befejezed a harcot? A szörnyek és a log törlődni fognak!")) {
-                db.ref('characters').once('value', snap => {
-                    snap.forEach(child => {
-                        if(child.val().type === 'monster') {
-                            db.ref('characters/' + child.key).remove();
-                        }
-                    });
-                });
-                db.ref('logs').remove();
-                logCombat("💀 A harcnak vége. A szörnyek elestek, a napló tiszta.");
+    function modStat(id, stat, val) {
+        db.ref(`characters/${id}`).once('value', s => {
+            let newVal = (s.val()[stat] || 0) + val;
+            if(stat === 'hp') newVal = Math.min(Math.max(0, newVal), s.val().maxHp);
+            db.ref(`characters/${id}`).update({ [stat]: newVal });
+        });
+    }
+
+    function useSkill(id) {
+        db.ref(`characters/${id}`).once('value', s => {
+            if(s.val().mp >= 10) {
+                db.ref(`characters/${id}`).update({ mp: s.val().mp - 10 });
+                logAction(`✨ ${s.val().name} használta: ${s.val().skill}!`);
             }
-        }
+        });
+    }
 
-        function logCombat(msg) {
-            const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            db.ref('logs').push(`${time} - ${msg}`);
-        }
-
-        db.ref('logs').on('value', snap => {
-            const logBox = document.getElementById('combatLog');
-            logBox.innerHTML = '';
-            snap.forEach(child => {
-                logBox.innerHTML = `<div class="log-entry">${child.val()}</div>` + logBox.innerHTML;
+    function clearMonsters() {
+        db.ref('characters').once('value', snap => {
+            snap.forEach(c => {
+                if(c.val().type === 'monster') db.ref(`characters/${c.key}`).remove();
             });
         });
+        logAction("💀 A harc véget ért, a szörnyek eltakarítva.");
+    }
 
-        function rollDice(s) {
-            const res = Math.floor(Math.random() * s) + 1;
-            document.getElementById('diceResult').innerHTML = res;
-            logCombat(`🎲 Dobás (d${s}): **${res}**`);
-        }
+    function roll(s) {
+        const r = Math.floor(Math.random() * s) + 1;
+        document.getElementById('dice-res').innerText = r;
+        logAction(`🎲 Dobás d${s}: [ ${r} ]`);
+    }
 
-        function switchTab(tab) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-            document.getElementById(tab).classList.add('active');
-            event.target.classList.add('active');
-        }
+    function logAction(msg) {
+        const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        db.ref('logs').push(`[${time}] ${msg}`);
+    }
 
-        function healAll() {
-            db.ref('characters').once('value', snap => {
-                snap.forEach(child => {
-                    db.ref('characters/' + child.key).update({ currentHP: child.val().maxHP });
-                });
-            });
-            logCombat("🛌 Pihenő: Mindenki teljesen felgyógyult!");
-        }
-
-        updatePreview();
-    </script>
+    db.ref('logs').on('value', snap => {
+        const box = document.getElementById('log');
+        box.innerHTML = '';
+        snap.forEach(l => {
+            box.innerHTML = `<div class="log-item">${l.val()}</div>` + box.innerHTML;
+        });
+    });
+</script>
 </body>
 </html>
