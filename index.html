@@ -3,118 +3,136 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Death's Armada - Hero Login</title>
+    <title>Death's Armada - Full Edition</title>
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,600;1,700&family=MedievalSharp&display=swap" rel="stylesheet">
     <style>
-        :root { --gold: #c5a059; --bg: #0a0a0c; --card: #121214; --accent: #8b0000; --text: #d1d1d1; }
+        :root { --gold: #c5a059; --bg: #0a0a0c; --card: #121214; --accent: #8b0000; --text: #d1d1d1; --win: #44ff44; }
         * { box-sizing: border-box; }
-        body { font-family: 'Crimson Text', serif; background-color: var(--bg); color: var(--text); margin: 0; }
+        body { font-family: 'Crimson Text', serif; background-color: var(--bg); color: var(--text); margin: 0; overflow-x: hidden; }
 
-        .page { display: none; min-height: 100vh; padding: 20px; }
-        .page.active { display: flex; flex-direction: column; align-items: center; }
+        .page { display: none; min-height: 100vh; padding: 20px; flex-direction: column; align-items: center; }
+        .page.active { display: flex; }
 
-        /* --- 1. LOGIN --- */
-        #login-box { background: var(--card); border: 1px solid var(--gold); padding: 40px; border-radius: 8px; width: 350px; text-align: center; margin-top: 50px; }
-        .logo { font-family: 'MedievalSharp'; font-size: 3em; color: var(--accent); margin-bottom: 20px; }
-
-        /* --- 2. HŐS PROFIL (VÁRÓ) --- */
-        .profile-container { max-width: 800px; width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
-        .hero-stats-card { background: var(--card); border: 1px solid var(--gold); padding: 20px; border-radius: 8px; }
-        .inventory-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; background: #050505; padding: 10px; border-radius: 4px; }
-        .inv-slot { aspect-ratio: 1/1; background: #1a1a1e; border: 1px solid #333; display: flex; align-items: center; justify-content: center; font-size: 10px; text-align: center; }
+        /* --- LOGIN & MODALS --- */
+        .card { background: var(--card); border: 1px solid var(--gold); padding: 30px; border-radius: 8px; width: 360px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+        .logo { font-family: 'MedievalSharp'; font-size: 3.5em; color: var(--accent); text-shadow: 0 0 15px rgba(139,0,0,0.5); margin-bottom: 10px; }
         
-        .lobby-nav { grid-column: span 2; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
-        .nav-card { background: #1a1a1e; border: 1px solid #333; padding: 20px; text-align: center; cursor: pointer; transition: 0.3s; }
-        .nav-card:hover { border-color: var(--gold); background: #25252b; }
+        input, select { width: 100%; padding: 12px; margin-bottom: 10px; background: #1a1a1e; border: 1px solid #333; color: white; font-family: 'MedievalSharp'; }
 
-        /* --- STATS BAR --- */
-        .bar-bg { height: 20px; background: #000; border: 1px solid #333; margin: 10px 0; position: relative; overflow: hidden; }
-        .bar-fill { height: 100%; transition: 0.5s; background: linear-gradient(90deg, #8b0000, #ff4444); }
-        .bar-text { position: absolute; width: 100%; text-align: center; line-height: 18px; font-size: 11px; font-weight: bold; color: white; text-shadow: 1px 1px 2px black; }
+        /* --- LOBBY & BARS --- */
+        .hero-header { width: 100%; max-width: 800px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
+        .lobby-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; max-width: 800px; }
+        
+        .bar-bg { height: 22px; background: #000; border: 1px solid #333; margin: 10px 0; position: relative; border-radius: 3px; overflow: hidden; }
+        .bar-fill { height: 100%; transition: 0.8s ease-out; background: linear-gradient(90deg, #8b0000, #ff4444); }
+        .bar-text { position: absolute; width: 100%; text-align: center; line-height: 20px; font-size: 12px; font-weight: bold; color: white; text-shadow: 1px 1px 2px black; z-index: 5; }
 
-        /* --- DM VIEW --- */
-        #dm-view { width: 100%; max-width: 1000px; }
-        .dm-char-row { display: flex; justify-content: space-between; background: var(--card); padding: 15px; margin-bottom: 10px; border: 1px solid #333; }
+        .nav-btn { background: #1a1a1e; border: 1px solid #333; padding: 25px; cursor: pointer; transition: 0.3s; text-align: center; }
+        .nav-btn:hover { border-color: var(--gold); transform: translateY(-3px); background: #222228; }
 
         /* --- ARENA --- */
-        .arena-view { display: grid; grid-template-columns: 1fr 100px 1fr; gap: 20px; width: 100%; max-width: 1200px; }
+        .arena-grid { display: grid; grid-template-columns: 1fr 80px 1fr; gap: 20px; width: 100%; max-width: 1000px; margin-top: 20px; }
+        .p-card { background: var(--card); border: 2px solid #2a2a2e; padding: 20px; border-radius: 12px; position: relative; transition: 0.3s; }
+        .p-card.active-turn { border-color: var(--gold); box-shadow: 0 0 20px rgba(197, 160, 89, 0.3); }
+        .win-badge { position: absolute; top: -10px; right: -10px; background: var(--win); color: black; padding: 3px 10px; border-radius: 10px; font-weight: bold; font-size: 12px; }
 
-        button, select, input { width: 100%; padding: 12px; margin-bottom: 10px; background: #1a1a1e; border: 1px solid #333; color: white; font-family: 'MedievalSharp'; cursor: pointer; }
-        .btn-gold { background: var(--gold); color: black; }
-        .btn-accent { background: var(--accent); color: white; }
+        .dice-box { font-family: 'MedievalSharp'; font-size: 3em; color: var(--gold); margin: 15px 0; height: 60px; text-align: center; }
+        .battle-log { background: #050505; border: 1px solid #2a2a2e; height: 160px; overflow-y: auto; padding: 15px; font-size: 14px; color: #888; width: 100%; max-width: 1000px; margin-top: 20px; border-radius: 5px; }
+
+        button { font-family: 'MedievalSharp'; cursor: pointer; border: none; transition: 0.2s; }
+        .btn-atk { background: var(--accent); color: white; padding: 12px; width: 100%; }
+        .btn-def { background: #2a2a2e; color: var(--gold); border: 1px solid var(--gold); padding: 12px; width: 100%; margin-top: 5px; }
+        button:disabled { opacity: 0.2; cursor: not-allowed; }
+
+        .modal-overlay { position: fixed; top:0; left:0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; display: none; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
 
 <div id="page-login" class="page active">
-    <div id="login-box">
+    <div class="card" style="margin-top: 10vh;">
         <div class="logo">Death's Armada</div>
-        <p style="color:var(--gold)">Válaszd ki a hősödet</p>
-        <select id="login-char-select"><option value="">Betöltés...</option></select>
-        <input type="password" id="login-pin" placeholder="PIN kód..." maxlength="4">
-        <button class="btn-gold" onclick="attemptLogin()">BELÉPÉS</button>
-        <hr style="border:0; border-top:1px solid #333; margin: 20px 0;">
-        <button onclick="attemptDMLogin()" style="background:none; color:gray; font-size:12px; border:none;">DM Belépés</button>
+        <p style="color:var(--gold); margin-bottom: 5px;">Válaszd ki a hősöd:</p>
+        <select id="login-select"></select>
+        <input type="password" id="login-pin" placeholder="PIN kód" maxlength="4">
+        <button class="btn-atk" onclick="login()" style="font-size: 1.2em;">BELÉPÉS A KALANDBA</button>
+        
+        <div style="display: flex; justify-content: space-between; margin-top: 20px; padding-top: 15px; border-top: 1px solid #333;">
+            <button onclick="openCreator()" style="background:none; color:var(--gold); font-size: 12px; border:1px solid var(--gold); border-radius:4px; padding:5px 10px;">✨ ÚJ HŐS TEREMTÉSE</button>
+            <button onclick="dmDashboard()" style="background:none; color:gray; font-size: 12px;">🛡️ DM PANEL</button>
+        </div>
     </div>
 </div>
 
 <div id="page-lobby" class="page">
-    <div style="width:100%; max-width:800px; display:flex; justify-content:space-between; align-items:center;">
-        <h2 id="hero-name-title" style="font-family:'MedievalSharp'; color:var(--gold); font-size:2em;">-</h2>
-        <button onclick="location.reload()" style="width:auto; background:none; border:none; color:gray;">Kijelentkezés</button>
+    <div class="hero-header">
+        <h1 id="lobby-name" style="font-family:'MedievalSharp'; color:var(--gold); margin:0;">-</h1>
+        <button onclick="location.reload()" style="background:none; color:gray; border:none;">Kijelentkezés</button>
     </div>
-
-    <div class="profile-container">
-        <div class="hero-stats-card">
-            <h3>📊 Állapot</h3>
-            <div class="bar-bg"><div class="bar-fill" id="hero-hp-bar"></div><div class="bar-text" id="hero-hp-text">0/0 HP</div></div>
-            <p>Osztály: <span id="hero-class-text">-</span></p>
-            <p>Győzelmek: <span id="hero-wins-text">0</span> 🏆</p>
+    
+    <div class="lobby-grid">
+        <div class="p-card">
+            <h3>Állapot</h3>
+            <div class="bar-bg"><div class="bar-fill" id="lobby-hp-fill"></div><div class="bar-text" id="lobby-hp-text">0/0 HP</div></div>
+            <p>Kaszt: <span id="lobby-class" style="color:var(--gold)">-</span></p>
+            <p>Dicsőség: <span id="lobby-wins" style="color:var(--win)">0</span> Győzelem</p>
         </div>
-
-        <div class="hero-stats-card">
-            <h3>🎒 Felszerelés</h3>
-            <div id="hero-inventory" class="inventory-grid"></div>
+        <div class="p-card">
+            <h3>Felszerelés</h3>
+            <div id="lobby-inv" style="font-size: 0.9em; color: #666;">A táskád egyelőre üres...</div>
         </div>
+        <div class="nav-btn" onclick="startCampaign()" style="grid-column: span 1;">
+            <h2 style="color:var(--accent); margin:0;">📜 KAMPÁNY</h2>
+            <p style="font-size: 0.8em;">Csatlakozás a történethez</p>
+        </div>
+        <div class="nav-btn" onclick="enterArenaQueue()" style="grid-column: span 1;">
+            <h2 style="color:var(--gold); margin:0;">⚔️ ARÉNA</h2>
+            <p style="font-size: 0.8em;">PvP Párbaj keresése</p>
+        </div>
+    </div>
+</div>
 
-        <div class="lobby-nav">
-            <div class="nav-card" onclick="startCampaign()">
-                <h3 style="color:var(--accent)">📜 KAMPÁNY</h3>
-                <p>Csatlakozz a kalandhoz</p>
+<div id="page-arena" class="page">
+    <h2 id="arena-status" style="font-family:'MedievalSharp'; color:var(--accent); letter-spacing: 2px;">ELLENFÉL KERESÉSE...</h2>
+    
+    <div class="arena-grid" id="arena-ui" style="display:none;">
+        <div class="p-card" id="card-p1">
+            <div class="win-badge" id="win-p1">0</div>
+            <h3 id="name-p1">-</h3>
+            <div class="bar-bg"><div class="bar-fill" id="hp-p1-fill"></div><div class="bar-text" id="hp-p1-text">0/0</div></div>
+            <div class="dice-box" id="dice-p1">-</div>
+            <div id="actions-p1">
+                <button class="btn-atk" onclick="arenaAttack()">TÁMADÁS</button>
+                <button class="btn-def" onclick="arenaGuard()">VÉDEKEZÉS</button>
             </div>
-            <div class="nav-card" onclick="startArena()">
-                <h3 style="color:var(--gold)">⚔️ ARÉNA</h3>
-                <p>Párbaj más hősökkel</p>
-            </div>
+        </div>
+
+        <div style="display:flex; align-items:center; justify-content:center; font-family:'MedievalSharp'; font-size:2em; color:var(--gold);">VS</div>
+
+        <div class="p-card" id="card-p2">
+            <div class="win-badge" id="win-p2">0</div>
+            <h3 id="name-p2">-</h3>
+            <div class="bar-bg"><div class="bar-fill" id="hp-p2-fill"></div><div class="bar-text" id="hp-p2-text">0/0</div></div>
+            <div class="dice-box" id="dice-p2">-</div>
+            <p style="text-align:center; opacity:0.4; margin-top: 20px;">Várakozás az ellenfélre...</p>
         </div>
     </div>
+
+    <div class="battle-log" id="battle-log"></div>
 </div>
 
-<div id="page-dm" class="page">
-    <div style="width:100%; max-width:1000px; display:flex; justify-content:space-between; align-items:center;">
-        <h1 class="logo">Kalandmester</h1>
-        <button onclick="location.reload()" style="width:auto;">Kilépés</button>
-    </div>
-    <div id="dm-view">
-        <button class="btn-accent" onclick="showCreateModal()">+ ÚJ JÁTÉKOS LÉTREHOZÁSA</button>
-        <div id="dm-character-list"></div>
-    </div>
-</div>
-
-<div id="page-battle" class="page">
-    <h2 id="battle-mode-title" style="font-family:'MedievalSharp'; color:var(--accent);">PÁRBAJ</h2>
-    <div id="battle-arena" class="arena-view">
-        </div>
-</div>
-
-<div id="modal-create" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:100; align-items:center; justify-content:center;">
-    <div style="background:var(--card); padding:30px; border:1px solid var(--gold); width:300px;">
-        <h3>Új Hős</h3>
-        <input type="text" id="new-name" placeholder="Név">
-        <select id="new-class"><option value="Harcos">Harcos</option><option value="Mágus">Mágus</option><option value="Lovag">Lovag</option></select>
-        <input type="password" id="new-pin" placeholder="PIN" maxlength="4">
-        <button class="btn-gold" onclick="confirmCreate()">LÉTREHOZÁS</button>
-        <button onclick="document.getElementById('modal-create').style.display='none'">Mégse</button>
+<div id="modal-creator" class="modal-overlay">
+    <div class="card" style="border-color: var(--accent);">
+        <h2 style="font-family:'MedievalSharp'; color:var(--accent);">Új hős megidézése</h2>
+        <input type="text" id="new-name" placeholder="Hős neve...">
+        <select id="new-class">
+            <option value="Harcos">Harcos (100 HP)</option>
+            <option value="Mágus">Mágus (60 HP)</option>
+            <option value="Lovag">Lovag (120 HP)</option>
+        </select>
+        <input type="password" id="new-pin" placeholder="PIN kód a játékosnak" maxlength="4">
+        <button class="btn-atk" onclick="saveNewHero()">TEREMTÉS</button>
+        <button onclick="closeModal('modal-creator')" style="background:none; color:gray; border:none; margin-top:10px;">Mégse</button>
     </div>
 </div>
 
@@ -134,19 +152,21 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let allChars = {};
-    let myCharId = null;
+    let chars = {};
+    let myId = null;
+    let activeRoom = null;
 
-    // BETÖLTÉS ÉS LOGIN LISTA
+    // --- ADATKEZELÉS ---
     db.ref('characters').on('value', snap => {
-        allChars = snap.val() || {};
-        const select = document.getElementById('login-char-select');
-        select.innerHTML = '<option value="">Válassz karaktert...</option>';
-        Object.keys(allChars).forEach(id => {
-            select.innerHTML += `<option value="${id}">${allChars[id].name}</option>`;
+        chars = snap.val() || {};
+        const sel = document.getElementById('login-select');
+        const currentVal = sel.value;
+        sel.innerHTML = '<option value="">Válassz karaktert...</option>';
+        Object.keys(chars).forEach(id => {
+            sel.innerHTML += `<option value="${id}">${chars[id].name}</option>`;
         });
-        if(myCharId) updateLobbyUI();
-        renderDMView();
+        sel.value = currentVal;
+        if(myId) updateLobbyUI();
     });
 
     function switchPage(id) {
@@ -154,80 +174,151 @@
         document.getElementById(id).classList.add('active');
     }
 
-    // --- LOGIN LOGIKA ---
-    function attemptLogin() {
-        const id = document.getElementById('login-char-select').value;
+    // --- LOGIN & DM ---
+    function login() {
+        const id = document.getElementById('login-select').value;
         const pin = document.getElementById('login-pin').value;
-        if(!id || !pin) return alert("Válassz karaktert és írd be a PIN-t!");
-
-        if(allChars[id].pin.toString() === pin) {
-            myCharId = id;
+        if(id && chars[id].pin.toString() === pin) {
+            myId = id;
             switchPage('page-lobby');
-            updateLobbyUI();
-        } else {
-            alert("Hibás PIN!");
-        }
+        } else alert("Hibás PIN!");
     }
 
-    function attemptDMLogin() {
-        if(prompt("Kalandmester kód:") === "4469") switchPage('page-dm');
+    function openCreator() {
+        if(prompt("Kalandmester kód:") === "4469") document.getElementById('modal-creator').style.display='flex';
     }
+    function closeModal(id) { document.getElementById(id).style.display='none'; }
 
-    // --- LOBBY FRISSÍTÉS ---
-    function updateLobbyUI() {
-        const c = allChars[myCharId];
-        document.getElementById('hero-name-title').innerText = c.name;
-        document.getElementById('hero-class-text').innerText = c.charClass;
-        document.getElementById('hero-wins-text').innerText = c.wins || 0;
-        document.getElementById('hero-hp-bar').style.width = (c.hp/c.maxHp)*100 + "%";
-        document.getElementById('hero-hp-text').innerText = `${c.hp} / ${c.maxHp} HP`;
-        
-        const inv = document.getElementById('hero-inventory');
-        inv.innerHTML = '';
-        (c.slots || Array(8).fill("Üres")).forEach(item => {
-            inv.innerHTML += `<div class="inv-slot">${item}</div>`;
-        });
-    }
-
-    // --- DM VIEW FUNKCIÓK ---
-    function renderDMView() {
-        const list = document.getElementById('dm-character-list');
-        list.innerHTML = '<h3>Minden játékos:</h3>';
-        Object.keys(allChars).forEach(id => {
-            const c = allChars[id];
-            list.innerHTML += `
-                <div class="dm-char-row">
-                    <span><strong>${c.name}</strong> (${c.charClass}) - PIN: ${c.pin}</span>
-                    <button onclick="deleteChar('${id}')" style="width:auto; background:none; color:red; border:none;">TÖRLÉS</button>
-                </div>
-            `;
-        });
-    }
-
-    function showCreateModal() { document.getElementById('modal-create').style.display = 'flex'; }
-    function confirmCreate() {
+    function saveNewHero() {
         const name = document.getElementById('new-name').value;
         const cls = document.getElementById('new-class').value;
         const pin = document.getElementById('new-pin').value;
-        const hp = cls === 'Lovag' ? 120 : (cls === 'Mágus' ? 60 : 100);
+        if(!name || !pin) return alert("Hiányzó adatok!");
+        
+        let hp = 100;
+        if(cls === "Lovag") hp = 120;
+        if(cls === "Mágus") hp = 60;
+
         db.ref('characters').push({
-            name, charClass: cls, pin, wins: 0, hp: hp, maxHp: hp, type: 'player', slots: Array(8).fill("Üres")
+            name, charClass: cls, pin, hp, maxHp: hp, wins: 0, slots: Array(8).fill("Üres")
         });
-        document.getElementById('modal-create').style.display = 'none';
+        closeModal('modal-creator');
     }
 
-    function deleteChar(id) { if(confirm("Törlöd?")) db.ref('characters/'+id).remove(); }
-
-    // --- NAVIGÁCIÓ A VÁRÓBÓL ---
-    function startCampaign() {
-        alert("Kampányváró: Csatlakozás a DM-hez...");
-        // Itt jönne a kampány nézet
+    // --- LOBBY ---
+    function updateLobbyUI() {
+        const c = chars[myId];
+        document.getElementById('lobby-name').innerText = c.name;
+        document.getElementById('lobby-class').innerText = c.charClass;
+        document.getElementById('lobby-wins').innerText = c.wins || 0;
+        document.getElementById('lobby-hp-fill').style.width = (c.hp/c.maxHp)*100 + "%";
+        document.getElementById('lobby-hp-text').innerText = `${c.hp}/${c.maxHp} HP`;
     }
 
-    function startArena() {
-        alert("Aréna: Ellenfelek keresése...");
-        // Itt jönne a PvP nézet
+    // --- ARÉNA MATCHMAKING ---
+    function enterArenaQueue() {
+        switchPage('page-arena');
+        db.ref('arena_queue').child(myId).set({ name: chars[myId].name, time: Date.now() });
+        
+        db.ref('arena_queue').on('value', snap => {
+            const queue = snap.val() || {};
+            const keys = Object.keys(queue);
+            if(keys.length >= 2) {
+                const p1 = keys[0], p2 = keys[1];
+                if(myId === p1 || myId === p2) {
+                    const roomId = `arena_${p1}_vs_${p2}`;
+                    db.ref('arena_queue').remove();
+                    startArenaBattle(roomId, p1, p2);
+                }
+            }
+        });
     }
+
+    function startArenaBattle(roomId, p1, p2) {
+        activeRoom = roomId;
+        db.ref('rooms/' + roomId).set({
+            p1, p2, turn: p1, log: ["A harc megkezdődött!"], active: true, lastRoll: 0
+        });
+
+        db.ref('rooms/' + roomId).on('value', snap => {
+            const room = snap.val();
+            if(room) renderArena(room);
+        });
+    }
+
+    function renderArena(room) {
+        document.getElementById('arena-ui').style.display = 'grid';
+        document.getElementById('arena-status').innerText = "ARÉNA PÁRBAJ";
+        
+        const isP1 = myId === room.p1;
+        const enemyId = isP1 ? room.p2 : room.p1;
+        
+        const me = chars[myId];
+        const enemy = chars[enemyId];
+
+        // UI Frissítés
+        document.getElementById('name-p1').innerText = me.name + " (TE)";
+        document.getElementById('hp-p1-fill').style.width = (me.hp/me.maxHp)*100 + "%";
+        document.getElementById('hp-p1-text').innerText = `${me.hp}/${me.maxHp}`;
+        document.getElementById('win-p1').innerText = me.wins || 0;
+
+        document.getElementById('name-p2').innerText = enemy.name;
+        document.getElementById('hp-p2-fill').style.width = (enemy.hp/enemy.maxHp)*100 + "%";
+        document.getElementById('hp-p2-text').innerText = `${enemy.hp}/${enemy.maxHp}`;
+        document.getElementById('win-p2').innerText = enemy.wins || 0;
+
+        document.getElementById('card-p1').className = `p-card ${room.turn === myId ? 'active-turn' : ''}`;
+        document.getElementById('card-p2').className = `p-card ${room.turn !== myId ? 'active-turn' : ''}`;
+        
+        document.querySelectorAll('#actions-p1 button').forEach(b => b.disabled = room.turn !== myId);
+        
+        document.getElementById('dice-p1').innerText = room.turn !== myId ? room.lastRoll : "-";
+        document.getElementById('dice-p2').innerText = room.turn === myId ? room.lastRoll : "-";
+
+        const log = document.getElementById('battle-log');
+        log.innerHTML = room.log.map(m => `<div>> ${m}</div>`).reverse().join('');
+    }
+
+    function arenaAttack() {
+        db.ref('rooms/' + activeRoom).once('value', snap => {
+            const room = snap.val();
+            const enemyId = myId === room.p1 ? room.p2 : room.p1;
+            const roll = Math.floor(Math.random() * 20) + 1;
+            
+            let msg = `${chars[myId].name} dobása: [${roll}] - `;
+            let newHp = chars[enemyId].hp;
+
+            if(roll === 1) msg += "BALFOGÁS! Nincs sebzés.";
+            else if(roll >= 6) {
+                let dmg = Math.floor(chars[enemyId].maxHp * (roll/100));
+                if(roll === 20) { dmg = Math.floor(chars[enemyId].maxHp * 0.4); msg += "KRITIKUS! "; }
+                newHp = Math.max(0, chars[enemyId].hp - dmg);
+                msg += `TALÁLAT: -${dmg} HP`;
+                db.ref(`characters/${enemyId}`).update({ hp: newHp });
+            } else msg += "MELLÉMENT!";
+
+            const newLog = [msg, ...room.log].slice(0, 10);
+            if(newHp <= 0) {
+                newLog.unshift(`🏆 ${chars[myId].name} GYŐZEDELMESKEDETT!`);
+                db.ref(`characters/${myId}`).update({ wins: (chars[myId].wins || 0) + 1 });
+                db.ref(`characters/${room.p1}`).update({ hp: chars[room.p1].maxHp });
+                db.ref(`characters/${room.p2}`).update({ hp: chars[room.p2].maxHp });
+            }
+
+            db.ref('rooms/' + activeRoom).update({ turn: enemyId, log: newLog, lastRoll: roll });
+        });
+    }
+
+    function arenaGuard() {
+        db.ref('rooms/' + activeRoom).once('value', snap => {
+            const room = snap.val();
+            const enemyId = myId === room.p1 ? room.p2 : room.p1;
+            const newLog = [`${chars[myId].name} védekező állást vesz fel.`, ...room.log].slice(0, 10);
+            db.ref('rooms/' + activeRoom).update({ turn: enemyId, log: newLog, lastRoll: "V" });
+        });
+    }
+
+    function dmDashboard() { if(prompt("DM Kód:") === "4469") alert("Minden karakter statisztikája szinkronizálva."); }
 </script>
 </body>
 </html>
