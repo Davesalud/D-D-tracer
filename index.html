@@ -12,7 +12,7 @@
         }
         
         body {
-            font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
             color: #e0e6ff;
             padding: 20px;
@@ -40,12 +40,8 @@
         
         .status {
             font-size: 12px;
-            color: #b0b8e8;
+            color: #ffd700;
             margin-top: 10px;
-        }
-        
-        .status.connected {
-            color: #00ff00;
         }
         
         .tabs {
@@ -258,12 +254,6 @@
             font-size: 13px;
             color: #b0b8e8;
         }
-
-        .loading {
-            text-align: center;
-            color: #ffd700;
-            padding: 20px;
-        }
     </style>
 </head>
 <body>
@@ -271,7 +261,7 @@
         <div class="header">
             <h1>⚔️ D&D CAMPAIGN TRACKER ⚔️</h1>
             <p>Karakterek, kocka, és kampány kezelés egy helyen</p>
-            <div id="status" class="status">Csatlakozás...</div>
+            <div id="status" class="status">✅ Működik!</div>
         </div>
         
         <div class="tabs">
@@ -280,7 +270,6 @@
             <button class="tab-btn" onclick="switchTab('tracker')">Campaign Tracker</button>
         </div>
         
-        <!-- CHARACTER SHEET TAB -->
         <div id="character" class="tab-content active">
             <div class="section">
                 <h2>Új Karakter Létrehozása</h2>
@@ -314,4 +303,251 @@
                 </div>
                 <div class="form-group">
                     <label>HP (Élet)</label>
-                    <input type="number" id="charHP" pla
+                    <input type="number" id="charHP" placeholder="pl. 25">
+                </div>
+                <button onclick="addCharacter()">➕ Karakter Hozzáadása</button>
+            </div>
+            
+            <div class="section">
+                <h2>Létrehozott Karakterek</h2>
+                <div id="characterList"></div>
+            </div>
+        </div>
+        
+        <div id="dice" class="tab-content">
+            <div class="section">
+                <h2>Kocka Dobó</h2>
+                <div class="dice-area">
+                    <button class="dice-btn" onclick="rollDice(4)">d4</button>
+                    <button class="dice-btn" onclick="rollDice(6)">d6</button>
+                    <button class="dice-btn" onclick="rollDice(8)">d8</button>
+                    <button class="dice-btn" onclick="rollDice(10)">d10</button>
+                    <button class="dice-btn" onclick="rollDice(12)">d12</button>
+                    <button class="dice-btn" onclick="rollDice(20)">d20</button>
+                    <button class="dice-btn" onclick="rollDice(100)">d100</button>
+                </div>
+                
+                <div class="form-group" style="margin-top: 20px;">
+                    <label>Több Kocka Dobása</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="number" id="diceCount" value="1" min="1" max="10" style="width: 80px;">
+                        <select id="diceType" style="flex: 1;">
+                            <option value="4">d4</option>
+                            <option value="6" selected>d6</option>
+                            <option value="8">d8</option>
+                            <option value="10">d10</option>
+                            <option value="12">d12</option>
+                            <option value="20">d20</option>
+                        </select>
+                        <button onclick="rollMultipleDice()">Dob!</button>
+                    </div>
+                </div>
+                
+                <div id="diceResult" class="result-display" style="display: none;">
+                    <h3>Rezultátum</h3>
+                    <div class="result-value" id="resultValue">-</div>
+                    <p id="diceDetails" style="margin-top: 10px; color: #b0b8e8; font-size: 13px;"></p>
+                </div>
+            </div>
+        </div>
+        
+        <div id="tracker" class="tab-content">
+            <div class="section">
+                <h2>Campaign Tracker (Max 6 Karakter)</h2>
+                <p style="color: #b0b8e8; margin-bottom: 15px; font-size: 13px;">Kövesd nyomon a karakterek életerőjét</p>
+                
+                <div style="margin-bottom: 20px;">
+                    <label>Válassz Karaktert</label>
+                    <div style="display: flex; gap: 10px;">
+                        <select id="trackerCharacter" style="flex: 1;">
+                            <option value="">-- Válassz egy karaktert --</option>
+                        </select>
+                        <button onclick="addToTracker()">Hozzáadás</button>
+                    </div>
+                </div>
+                
+                <div id="trackerList"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU",
+            authDomain: "dnd-tracker-4fe05.firebaseapp.com",
+            projectId: "dnd-tracker-4fe05",
+            databaseURL: "https://dnd-tracker-4fe05-default-rtdb.europe-west1.firebasedatabase.app",
+            storageBucket: "dnd-tracker-4fe05.firebasestorage.app",
+            messagingSenderId: "886037504950",
+            appId: "1:886037504950:web:46e80b46f0e26e24429717"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let characters = [];
+        let trackerCharacters = [];
+
+        db.ref('characters').on('value', (snapshot) => {
+            characters = [];
+            snapshot.forEach((child) => {
+                characters.push({
+                    id: child.key,
+                    ...child.val()
+                });
+            });
+            updateCharacterDisplay();
+            updateTrackerSelect();
+        });
+
+        function addCharacter() {
+            const name = document.getElementById('charName').value;
+            const race = document.getElementById('charRace').value;
+            const className = document.getElementById('charClass').value;
+            const hp = parseInt(document.getElementById('charHP').value);
+            
+            if (!name || !hp) {
+                alert('Töltsd ki az összes mezőt!');
+                return;
+            }
+            
+            db.ref('characters').push({
+                name,
+                race,
+                className,
+                maxHP: hp,
+                currentHP: hp
+            });
+            
+            document.getElementById('charName').value = '';
+            document.getElementById('charHP').value = '';
+        }
+
+        function updateCharacterDisplay() {
+            const list = document.getElementById('characterList');
+            if (characters.length === 0) {
+                list.innerHTML = '<p style="color: #b0b8e8;">Nincsenek karakterek</p>';
+                return;
+            }
+            list.innerHTML = '';
+            
+            characters.forEach(char => {
+                const hpPercent = (char.currentHP / char.maxHP) * 100;
+                const hpColor = hpPercent > 50 ? '#00ff00' : hpPercent > 25 ? '#ffaa00' : '#ff3333';
+                
+                const card = document.createElement('div');
+                card.className = 'character-card';
+                card.innerHTML = `
+                    <h3>${char.name}</h3>
+                    <div class="stat">Faj: <span class="stat-value">${char.race}</span></div>
+                    <div class="stat">Osztály: <span class="stat-value">${char.className}</span></div>
+                    <div class="stat" style="grid-column: 1 / -1;">
+                        HP: <span class="stat-value" style="color: ${hpColor};">${char.currentHP}/${char.maxHP}</span>
+                        <div style="background: rgba(0,0,0,0.3); height: 8px; border-radius: 4px; margin-top: 5px; overflow: hidden;">
+                            <div style="background: ${hpColor}; height: 100%; width: ${hpPercent}%;"></div>
+                        </div>
+                    </div>
+                    <input type="number" value="${char.currentHP}" min="0" max="${char.maxHP}" onchange="updateHP('${char.id}', this.value)">
+                    <button class="delete-btn" onclick="deleteChar('${char.id}')">Törlés</button>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        function updateHP(id, value) {
+            db.ref('characters/' + id).update({
+                currentHP: Math.max(0, Math.min(parseInt(value), characters.find(c => c.id === id).maxHP))
+            });
+        }
+
+        function deleteChar(id) {
+            db.ref('characters/' + id).remove();
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tab).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function rollDice(sides) {
+            const result = Math.floor(Math.random() * sides) + 1;
+            document.getElementById('diceResult').style.display = 'block';
+            document.getElementById('resultValue').textContent = result;
+            document.getElementById('diceDetails').textContent = `d${sides}`;
+        }
+
+        function rollMultipleDice() {
+            const count = parseInt(document.getElementById('diceCount').value);
+            const sides = parseInt(document.getElementById('diceType').value);
+            let total = 0, rolls = [];
+            
+            for (let i = 0; i < count; i++) {
+                const roll = Math.floor(Math.random() * sides) + 1;
+                rolls.push(roll);
+                total += roll;
+            }
+            
+            document.getElementById('diceResult').style.display = 'block';
+            document.getElementById('resultValue').textContent = total;
+            document.getElementById('diceDetails').textContent = `${count}d${sides}: [${rolls.join(', ')}]`;
+        }
+
+        function updateTrackerSelect() {
+            const select = document.getElementById('trackerCharacter');
+            const existing = trackerCharacters.map(c => c.id);
+            
+            select.innerHTML = '<option value="">-- Válassz egy karaktert --</option>';
+            characters.forEach(char => {
+                if (!existing.includes(char.id) && trackerCharacters.length < 6) {
+                    const opt = document.createElement('option');
+                    opt.value = char.id;
+                    opt.textContent = char.name;
+                    select.appendChild(opt);
+                }
+            });
+        }
+
+        function addToTracker() {
+            const id = document.getElementById('trackerCharacter').value;
+            if (!id || trackerCharacters.length >= 6) return;
+            
+            const char = characters.find(c => c.id === id);
+            if (char) {
+                trackerCharacters.push({...char});
+                updateTrackerSelect();
+                updateTrackerDisplay();
+            }
+        }
+
+        function updateTrackerDisplay() {
+            const list = document.getElementById('trackerList');
+            list.innerHTML = '';
+            
+            trackerCharacters.forEach((char, idx) => {
+                const hpPercent = (char.currentHP / char.maxHP) * 100;
+                const item = document.createElement('div');
+                item.className = 'tracker-item';
+                item.innerHTML = `
+                    <div style="font-weight: bold; color: #ffd700; min-width: 80px;">${idx + 1}. ${char.name}</div>
+                    <div class="tracker-status">
+                        <p>${char.race} • ${char.className}</p>
+                        <div style="display: flex; gap: 10px; align-items: center; margin-top: 5px;">
+                            <input type="number" value="${char.currentHP}" min="0" max="${char.maxHP}" onchange="trackerCharacters[${idx}].currentHP = Math.max(0, Math.min(parseInt(this.value), ${char.maxHP})); updateTrackerDisplay();">
+                            <span style="color: #b0b8e8;">/ ${char.maxHP}</span>
+                            <div style="flex: 1; background: rgba(0,0,0,0.3); height: 6px; border-radius: 3px;">
+                                <div style="background: ${hpPercent > 50 ? '#00ff00' : hpPercent > 25 ? '#ffaa00' : '#ff3333'}; height: 100%; width: ${hpPercent}%;"></div>
+                            </div>
+                            <button class="delete-btn" onclick="trackerCharacters.splice(${idx}, 1); updateTrackerSelect(); updateTrackerDisplay();" style="width: auto; padding: 4px 8px;">✕</button>
+                        </div>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+        }
+    </script>
+</body>
+</html>
