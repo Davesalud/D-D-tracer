@@ -3,89 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Death's Armada - Campaign Manager</title>
+    <title>Death's Armada - Secure 4469</title>
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,600;1,700&family=MedievalSharp&display=swap" rel="stylesheet">
     <style>
         :root { 
-            --gold: #c5a059; 
-            --bg: #0a0a0c; 
-            --card: #121214; 
-            --accent: #8b0000; /* Sötétvörös az Armada hangulathoz */
-            --danger: #ff4444; 
-            --success: #2d5a27; 
-            --text: #d1d1d1;
+            --gold: #c5a059; --bg: #0a0a0c; --card: #121214; --accent: #8b0000; 
+            --danger: #ff4444; --success: #2d5a27; --text: #d1d1d1;
         }
         
         body { 
-            font-family: 'Crimson Text', serif; 
-            background-color: var(--bg); 
-            color: var(--text); 
-            margin: 0; 
-            padding: 15px; 
-            background-image: radial-gradient(circle at center, #1a1a1e 0%, #0a0a0c 100%);
+            font-family: 'Crimson Text', serif; background-color: var(--bg); color: var(--text); 
+            margin: 0; padding: 10px; background-image: radial-gradient(circle at center, #1a1a1e 0%, #0a0a0c 100%);
         }
         
-        .container { max-width: 1100px; margin: auto; }
-        
-        /* ÚJ FEJLÉC STÍLUS */
-        .main-header { 
-            text-align: center; 
-            margin-bottom: 30px; 
-            padding: 20px;
-            border-bottom: 1px dashed var(--accent);
-        }
-        
-        .main-header h1 { 
-            font-family: 'MedievalSharp', cursive; 
-            font-size: 3.5em; 
-            color: var(--accent); 
-            text-transform: uppercase; 
-            letter-spacing: 5px;
-            margin: 0;
-            text-shadow: 3px 3px 5px rgba(0,0,0,0.8), 0 0 20px rgba(139, 0, 0, 0.4);
-        }
+        .container { max-width: 900px; margin: auto; }
+        .main-header { text-align: center; margin-bottom: 20px; padding: 10px; border-bottom: 1px dashed var(--accent); }
+        .main-header h1 { font-family: 'MedievalSharp', cursive; font-size: 2.5em; color: var(--accent); margin: 0; text-shadow: 2px 2px 4px #000; }
 
-        .role-selector { 
-            background: var(--card); 
-            padding: 12px; 
-            border-radius: 4px; 
-            margin-bottom: 20px; 
-            display: flex; 
-            align-items: center; 
-            gap: 15px; 
-            border: 1px solid var(--accent);
-            font-family: 'MedievalSharp', cursive;
-        }
+        .role-selector { background: var(--card); padding: 8px; border-radius: 4px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; border: 1px solid var(--accent); font-size: 0.9em; }
 
-        .dashboard { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 15px; }
+        .dashboard { display: grid; grid-template-columns: 1fr 320px; gap: 15px; }
         @media (max-width: 900px) { .dashboard { grid-template-columns: 1fr; } }
 
-        .card { background: var(--card); border: 1px solid #2a2a2e; border-radius: 4px; padding: 15px; margin-bottom: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
-        h2 { font-family: 'MedievalSharp', cursive; color: var(--gold); border-bottom: 1px solid #2a2a2e; padding-bottom: 10px; margin-top: 0; font-size: 1.4em; }
+        .card { background: var(--card); border: 1px solid #2a2a2e; border-radius: 4px; padding: 12px; margin-bottom: 15px; }
+        h2 { font-family: 'MedievalSharp', cursive; color: var(--gold); border-bottom: 1px solid #2a2a2e; padding-bottom: 8px; margin-top: 0; font-size: 1.1em; }
 
-        .char-card { border: 1px solid #2a2a2e; padding: 15px; margin-bottom: 15px; background: #08080a; position: relative; }
-        .char-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .char-card { border: 1px solid #2a2a2e; padding: 12px; margin-bottom: 12px; background: #08080a; position: relative; transition: 0.3s; }
+        .char-card.unlocked { border: 1px solid var(--gold); box-shadow: 0 0 10px rgba(197, 160, 89, 0.2); }
         
-        .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-        .bar-bg { height: 14px; background: #1a1a1e; border-radius: 2px; overflow: hidden; position: relative; border: 1px solid #333; }
+        .char-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .lock-status { cursor: pointer; font-size: 14px; margin-right: 10px; }
+
+        .stats-container { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
+        .stat-line { display: grid; grid-template-columns: 1fr 80px; gap: 5px; align-items: center; }
+
+        .bar-bg { height: 14px; background: #1a1a1e; border-radius: 2px; overflow: hidden; position: relative; border: 1px solid #333; width: 100%; }
         .hp-fill { height: 100%; background: linear-gradient(90deg, #8b0000, #ff4444); transition: 0.5s; }
         .mp-fill { height: 100%; background: linear-gradient(90deg, #00448b, #44aaff); transition: 0.5s; }
-        .bar-text { position: absolute; width: 100%; text-align: center; font-size: 10px; line-height: 14px; font-weight: bold; color: #fff; text-shadow: 1px 1px 2px #000; }
+        .bar-text { position: absolute; width: 100%; text-align: center; font-size: 9px; line-height: 14px; font-weight: bold; color: #fff; text-shadow: 1px 1px 2px #000; }
 
-        .inventory-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 15px; border-top: 1px solid #2a2a2e; padding-top: 10px; }
-        .slot { background: #121214; border: 1px solid #333; padding: 5px; }
-        .slot input { background: transparent; border: none; color: #aaa; width: 100%; font-size: 12px; outline: none; font-family: 'Crimson Text', serif; }
-        .slot input:focus { color: var(--gold); }
+        .mini-btn-group { display: flex; gap: 2px; }
+        .mini-btn { font-family: 'MedievalSharp', cursive; cursor: pointer; border: 1px solid #444; background: #1a1a1e; color: #fff; font-size: 9px; padding: 2px 5px; min-width: 25px; }
+        .mini-btn:disabled { opacity: 0.2; cursor: default; }
 
-        button { font-family: 'MedievalSharp', cursive; cursor: pointer; border: 1px solid #444; border-radius: 2px; padding: 8px; transition: 0.3s; background: #1a1a1e; color: var(--text); }
-        button:hover { background: var(--accent); color: white; border-color: var(--accent); }
-        .btn-minus { color: var(--danger); }
-        .btn-plus { color: #55ff55; }
+        .inventory-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; margin-top: 8px; border-top: 1px solid #2a2a2e; padding-top: 8px; }
+        .slot { background: #121214; border: 1px solid #2a2a2e; padding: 4px; height: 20px; display: flex; align-items: center; }
+        .slot input { background: transparent; border: none; color: #666; width: 100%; font-size: 10px; outline: none; font-family: 'Crimson Text', serif; }
+        .slot input:enabled { color: #aaa; }
 
-        .log-box { background: #050505; height: 350px; overflow-y: auto; padding: 10px; border-radius: 2px; font-size: 13px; border: 1px solid #2a2a2e; line-height: 1.5; }
-        input[type="text"], select { background: #1a1a1e; border: 1px solid #333; color: white; padding: 8px; width: 100%; margin-bottom: 5px; font-family: 'Crimson Text', serif; }
+        .log-box { background: #050505; height: 250px; overflow-y: auto; padding: 8px; font-size: 12px; border: 1px solid #2a2a2e; }
+        input[type="text"], select { background: #1a1a1e; border: 1px solid #333; color: white; padding: 6px; width: 100%; margin-bottom: 5px; font-family: 'Crimson Text', serif; font-size: 12px; box-sizing: border-box; }
         
         .hidden { display: none !important; }
+        .del-btn { color: #555; font-size: 10px; cursor: pointer; border: none; background: none; }
     </style>
 </head>
 <body>
@@ -96,37 +66,36 @@
     </div>
 
     <div class="role-selector">
-        <span>📜 JELENLEGI SZEREPKÖR:</span>
-        <select id="currentUserRole" onchange="updateUIByRole()" style="width: auto; margin: 0;">
-            <option value="DM">Kalandmester (DM)</option>
-            <option value="PLAYER">Játékos (Szemlélő)</option>
+        <span>📜 RANG:</span>
+        <select id="currentUserRole" onchange="checkDMPassword()" style="width: auto; margin: 0;">
+            <option value="PLAYER">Játékos</option>
+            <option value="DM">Kalandmester (Titkos)</option>
         </select>
-        <span id="sync-status" style="font-size: 11px; margin-left: auto; color: var(--gold);">Kapcsolódás...</span>
     </div>
 
     <div class="dashboard">
         <div>
-            <div id="dm-panel" class="card">
-                <h2>Új Entitás Megidézése</h2>
-                <input type="text" id="newCharName" placeholder="Név...">
-                <div style="display: flex; gap: 10px;">
+            <div id="dm-panel" class="card hidden">
+                <h2>Új Karakter Megidézése</h2>
+                <input type="text" id="newCharName" placeholder="Karakter neve...">
+                <div style="display: flex; gap: 5px;">
                     <select id="newCharType">
                         <option value="player">Hős</option>
                         <option value="monster">Szörny</option>
                     </select>
                     <select id="newCharClass">
-                        <option value="Warior">Harcos</option>
-                        <option value="Mage">Mágus</option>
-                        <option value="Ranger">Vándor</option>
+                        <option value="Harcos">Harcos</option>
+                        <option value="Mágus">Mágus</option>
+                        <option value="Vándor">Vándor</option>
                     </select>
                 </div>
-                <button onclick="createCharacter()" style="width: 100%; margin-top: 5px; color: var(--gold);">LÉTREHOZÁS</button>
+                <button onclick="createCharacter()" style="width: 100%; font-family:'MedievalSharp'; background:#1a1a1e; color:var(--gold); border:1px solid #444; padding:5px; margin-top:5px; cursor:pointer;">MEGIDÉZÉS</button>
             </div>
 
             <div class="card">
-                <h2>Harci Egységek</h2>
+                <h2>Egységek</h2>
                 <div id="char-list"></div>
-                <button id="end-battle-btn" onclick="clearMonsters()" class="btn-minus" style="width: 100%; margin-top: 10px;">💀 SZÖRNYEK ELTÁVOLÍTÁSA</button>
+                <button id="end-battle-btn" onclick="clearMonsters()" class="hidden" style="width: 100%; color: var(--danger); background:none; border:1px dashed var(--danger); cursor:pointer; font-family:'MedievalSharp'; padding:5px;">💀 SZÖRNYEK TÖRLÉSE</button>
             </div>
         </div>
 
@@ -137,11 +106,11 @@
             </div>
 
             <div class="card" style="text-align: center;">
-                <h2>Sorsvetés</h2>
-                <div style="font-size: 50px; color: var(--accent); font-family: 'MedievalSharp', cursive; margin: 10px 0;" id="dice-res">?</div>
-                <div style="display: flex; gap: 5px;">
-                    <button onclick="roll(20)" style="flex:1">D20</button>
-                    <button onclick="roll(6)" style="flex:1">D6</button>
+                <h2 style="border:none">Sorsvetés</h2>
+                <div style="font-size: 30px; color: var(--accent); font-family: 'MedievalSharp', cursive;" id="dice-res">?</div>
+                <div style="display: flex; gap: 5px; margin-top: 5px;">
+                    <button onclick="roll(20)" style="flex:1; background:#1a1a1e; color:#fff; border:1px solid #444; cursor:pointer;">D20</button>
+                    <button onclick="roll(6)" style="flex:1; background:#1a1a1e; color:#fff; border:1px solid #444; cursor:pointer;">D6</button>
                 </div>
             </div>
         </div>
@@ -164,11 +133,28 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
+    let unlockedChars = []; 
 
-    function updateUIByRole() {
+    function checkDMPassword() {
         const role = document.getElementById('currentUserRole').value;
-        document.getElementById('dm-panel').classList.toggle('hidden', role !== 'DM');
-        document.getElementById('end-battle-btn').classList.toggle('hidden', role !== 'DM');
+        if (role === 'DM') {
+            const pass = prompt("DM kód:");
+            if (pass !== "4469") {
+                alert("Sikertelen belépés!");
+                document.getElementById('currentUserRole').value = 'PLAYER';
+            }
+        }
+        updateUI();
+    }
+
+    function unlockChar(id, correctPin) {
+        const input = prompt("Karakter PIN kódja:");
+        if (input === correctPin.toString() || document.getElementById('currentUserRole').value === 'DM') {
+            unlockedChars.push(id);
+            renderCharacters();
+        } else {
+            alert("Hibás PIN!");
+        }
     }
 
     function createCharacter() {
@@ -176,15 +162,13 @@
         const type = document.getElementById('newCharType').value;
         const cls = document.getElementById('newCharClass').value;
         if(!name) return;
+        
+        const pin = prompt("Adj meg egy PIN-t a karakterhez (alapértelmezett: 4469):", "4469");
+        if(!pin) return;
 
-        const baseStats = {
-            "Warior": { hp: 100, mp: 20 },
-            "Mage": { hp: 60, mp: 120 },
-            "Ranger": { hp: 80, mp: 50 }
-        };
-
+        const baseStats = { "Harcos": { hp: 100, mp: 20 }, "Mágus": { hp: 60, mp: 120 }, "Vándor": { hp: 80, mp: 50 } };
         db.ref('characters').push({
-            name, type, class: cls,
+            name, type, charClass: cls, pin: pin,
             hp: baseStats[cls].hp, maxHp: baseStats[cls].hp,
             mp: baseStats[cls].mp, maxMp: baseStats[cls].mp,
             slots: ["Üres", "Üres", "Üres", "Üres"]
@@ -192,56 +176,72 @@
         document.getElementById('newCharName').value = '';
     }
 
-    db.ref('characters').on('value', snap => {
-        const list = document.getElementById('char-list');
-        list.innerHTML = '';
-        snap.forEach(child => {
-            const c = child.val();
-            const id = child.key;
-            const slots = c.slots || ["Üres", "Üres", "Üres", "Üres"];
-            
-            list.innerHTML += `
-                <div class="char-card" style="border-left: 4px solid ${c.type === 'monster' ? 'var(--accent)' : 'var(--gold)'}">
-                    <div class="char-header">
-                        <strong style="font-family: 'MedievalSharp', cursive; font-size: 1.2em;">${c.name}</strong>
-                        <span style="font-size: 0.8em; opacity: 0.7;">${c.class}</span>
-                    </div>
-                    <div class="stats-row">
-                        <div class="bar-bg"><div class="hp-fill" style="width:${(c.hp/c.maxHp)*100}%"></div><div class="bar-text">Vitality: ${c.hp}/${c.maxHp}</div></div>
-                        <div class="bar-bg"><div class="mp-fill" style="width:${(c.mp/c.maxMp)*100}%"></div><div class="bar-text">Essence: ${c.mp}/${c.maxMp}</div></div>
-                    </div>
-                    <div class="controls">
-                        <button class="btn-minus" onclick="modStat('${id}', 'hp', -5)">-5</button>
-                        <button class="btn-plus" onclick="modStat('${id}', 'hp', 5)">+5</button>
-                    </div>
-                    
-                    <div class="inventory-grid">
-                        ${slots.map((item, index) => `
-                            <div class="slot">
-                                <input type="text" value="${item}" onchange="updateSlot('${charId = id}', ${index}, this.value)" placeholder="Slot ${index+1}">
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-        });
-        document.getElementById('sync-status').innerText = "🟢 Kapcsolat élő";
-    });
+    function renderCharacters() {
+        db.ref('characters').once('value', snap => {
+            const list = document.getElementById('char-list');
+            list.innerHTML = '';
+            const role = document.getElementById('currentUserRole').value;
 
-    function updateSlot(charId, index, value) {
-        db.ref(`characters/${charId}/slots/${index}`).set(value);
+            snap.forEach(child => {
+                const c = child.val();
+                const id = child.key;
+                const slots = c.slots || ["Üres", "Üres", "Üres", "Üres"];
+                const isUnlocked = unlockedChars.includes(id) || role === 'DM';
+                
+                list.innerHTML += `
+                    <div class="char-card ${isUnlocked ? 'unlocked' : ''}" style="border-left: 3px solid ${c.type === 'monster' ? 'var(--accent)' : 'var(--gold)'}">
+                        <div class="char-header">
+                            <span class="lock-status" onclick="unlockChar('${id}', '${c.pin}')">${isUnlocked ? '🔓' : '🔒'}</span>
+                            <strong style="font-family:'MedievalSharp'; flex-grow:1;">${c.name} <span style="font-size:0.7em; font-weight:normal; opacity:0.6;">${c.charClass ? '- ' + c.charClass : ''}</span></strong>
+                            ${role === 'DM' ? `<button class="del-btn" onclick="deleteChar('${id}')">X</button>` : ''}
+                        </div>
+                        <div class="stats-container">
+                            <div class="stat-line">
+                                <div class="bar-bg"><div class="hp-fill" style="width:${(c.hp/c.maxHp)*100}%"></div><div class="bar-text">${c.hp}/${c.maxHp} HP</div></div>
+                                <div class="mini-btn-group">
+                                    <button class="mini-btn" ${!isUnlocked ? 'disabled' : ''} onclick="modStat('${id}', 'hp', -5)">-5</button>
+                                    <button class="mini-btn" ${!isUnlocked ? 'disabled' : ''} onclick="modStat('${id}', 'hp', 5)">+5</button>
+                                </div>
+                            </div>
+                            <div class="stat-line">
+                                <div class="bar-bg"><div class="mp-fill" style="width:${(c.mp/c.maxMp)*100}%"></div><div class="bar-text">${c.mp}/${c.maxMp} MP</div></div>
+                                <div class="mini-btn-group">
+                                    <button class="mini-btn" ${!isUnlocked ? 'disabled' : ''} onclick="modStat('${id}', 'mp', -10)">-10</button>
+                                    <button class="mini-btn" ${!isUnlocked ? 'disabled' : ''} onclick="modStat('${id}', 'mp', 10)">+10</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="inventory-grid">
+                            ${slots.map((item, index) => `
+                                <div class="slot"><input type="text" value="${item}" ${!isUnlocked ? 'disabled' : ''} onchange="updateSlot('${id}', ${index}, this.value)"></div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+        });
     }
 
+    db.ref('characters').on('value', () => { renderCharacters(); });
+    function updateUI() {
+        const role = document.getElementById('currentUserRole').value;
+        document.getElementById('dm-panel').classList.toggle('hidden', role !== 'DM');
+        document.getElementById('end-battle-btn').classList.toggle('hidden', role !== 'DM');
+        renderCharacters(); 
+    }
+
+    function updateSlot(charId, index, value) { db.ref(`characters/${charId}/slots/${index}`).set(value); }
+    function deleteChar(id) { if(confirm("Végleg törlöd?")) db.ref(`characters/${id}`).remove(); }
     function modStat(id, stat, val) {
         db.ref(`characters/${id}`).once('value', s => {
             let newVal = (s.val()[stat] || 0) + val;
-            newVal = Math.min(Math.max(0, newVal), s.val().maxHp);
+            newVal = Math.min(Math.max(0, newVal), s.val().maxHp || 100);
             db.ref(`characters/${id}`).update({ [stat]: newVal });
         });
     }
 
     function clearMonsters() {
-        if(!confirm("Eltávolítod az összes ellenfelet?")) return;
+        if(!confirm("Minden ellenfelet törölsz?")) return;
         db.ref('characters').once('value', snap => {
             snap.forEach(c => { if(c.val().type === 'monster') db.ref(`characters/${c.key}`).remove(); });
         });
@@ -250,7 +250,7 @@
     function roll(s) {
         const r = Math.floor(Math.random() * s) + 1;
         document.getElementById('dice-res').innerText = r;
-        logAction(`Sorsvetés (d${s}): ${r}`);
+        logAction(`D${s} dobás: [ ${r} ]`);
     }
 
     function logAction(msg) {
@@ -261,10 +261,10 @@
     db.ref('logs').on('value', snap => {
         const box = document.getElementById('log');
         box.innerHTML = '';
-        snap.forEach(l => { box.innerHTML = `<div style="border-bottom: 1px solid #1a1a1e; padding: 2px 0;">${l.val()}</div>` + box.innerHTML; });
+        snap.forEach(l => { box.innerHTML = `<div>${l.val()}</div>` + box.innerHTML; });
     });
 
-    updateUIByRole();
+    updateUI();
 </script>
 </body>
 </html>
