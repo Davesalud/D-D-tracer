@@ -3,26 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Death's Armada - Master Edition</title>
+    <title>Death's Armada - Inventory Edition</title>
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,600;1,700&family=MedievalSharp&display=swap" rel="stylesheet">
     <style>
         :root { 
             --gold: #c5a059; 
             --bg: #050507; 
-            --card: rgba(15, 15, 18, 0.85); 
+            --card: rgba(15, 15, 18, 0.9); 
             --accent: #8b0000; 
             --text: #e0e0e0; 
-            --win: #44ff44; 
         }
 
-        /* --- TILTÁSOK ÉS ALAPOK --- */
-        * { 
-            box-sizing: border-box; 
-            -webkit-user-select: none;
-            user-select: none;
-            outline: none;
-        }
-
+        * { box-sizing: border-box; -webkit-user-select: none; user-select: none; outline: none; }
         input, select { user-select: text !important; }
 
         body { 
@@ -39,53 +31,36 @@
             top: 0; left: 0; width: 100%; height: 100%;
             background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.7)), 
                               url('https://i.pinimg.com/originals/26/2b/dd/262bdd02564bf6dabbe89df4f93e8e26.jpg'); 
-            background-size: cover;
-            background-position: center;
-            z-index: -1;
+            background-size: cover; background-position: center; z-index: -1;
         }
 
         .page { display: none; height: 100vh; padding: 20px; flex-direction: column; align-items: center; overflow-y: auto; }
         .page.active { display: flex; }
 
-        /* --- UI ELEMEK --- */
         .card { 
-            background: var(--card); 
-            border: 1px solid var(--gold); 
-            padding: 25px; 
-            border-radius: 4px; 
-            width: 100%;
-            max-width: 400px; 
-            text-align: center; 
-            box-shadow: 0 20px 50px rgba(0,0,0,0.8); 
-            backdrop-filter: blur(12px);
+            background: var(--card); border: 1px solid var(--gold); padding: 20px; border-radius: 4px; 
+            width: 100%; max-width: 450px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.8); backdrop-filter: blur(10px);
+            margin-bottom: 20px;
         }
 
-        .logo { 
-            font-family: 'MedievalSharp'; 
-            font-size: 3.5em; 
-            color: var(--accent); 
-            text-shadow: 0 0 20px rgba(139,0,0,0.7), 2px 2px 4px black; 
-            margin-bottom: 20px; 
-        }
+        .logo { font-family: 'MedievalSharp'; font-size: 3em; color: var(--accent); text-shadow: 0 0 15px rgba(139,0,0,0.7), 2px 2px 4px black; margin-bottom: 15px; }
         
-        input, select { 
-            width: 100%; padding: 12px; margin-bottom: 10px; 
-            background: rgba(0,0,0,0.7); border: 1px solid #444; 
-            color: white; font-family: 'MedievalSharp'; 
-        }
+        input, select { width: 100%; padding: 12px; margin-bottom: 10px; background: rgba(0,0,0,0.8); border: 1px solid #444; color: white; font-family: 'MedievalSharp'; }
 
-        .btn {
-            font-family: 'MedievalSharp'; padding: 12px; cursor: pointer;
-            border: 1px solid var(--gold); transition: 0.3s; text-transform: uppercase;
-        }
+        .btn { font-family: 'MedievalSharp'; padding: 12px; cursor: pointer; border: 1px solid var(--gold); transition: 0.3s; text-transform: uppercase; }
         .btn-main { background: var(--accent); color: white; width: 100%; font-size: 1.1em; border: none; }
-        .btn-sub { background: none; color: var(--gold); font-size: 0.8em; margin-top: 10px; }
+        .btn-sub { background: none; color: var(--gold); font-size: 0.8em; margin-top: 10px; border: 1px solid var(--gold); width: 100%; }
 
-        /* --- HP BARS --- */
-        .bar-container { height: 22px; background: #000; border: 1px solid #333; position: relative; margin: 10px 0; border-radius: 3px; overflow: hidden; }
+        /* --- HP & INV --- */
+        .bar-container { height: 24px; background: #000; border: 1px solid #333; position: relative; margin: 10px 0; border-radius: 3px; overflow: hidden; }
         .bar-fill { height: 100%; transition: width 0.8s ease-out; background: linear-gradient(90deg, #8b0000, #ff4444); }
-        .bar-label { position: absolute; width: 100%; text-align: center; line-height: 20px; font-size: 12px; color: white; font-weight: bold; z-index: 2; }
+        .bar-label { position: absolute; width: 100%; text-align: center; line-height: 22px; font-size: 13px; color: white; font-weight: bold; z-index: 2; text-shadow: 1px 1px 2px black; }
 
+        .inv-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
+        .inv-slot { background: rgba(0,0,0,0.5); border: 1px dashed var(--gold); height: 60px; display: flex; align-items: center; justify-content: center; font-size: 0.7em; color: #666; flex-direction: column; }
+        .inv-slot b { color: var(--gold); font-size: 0.9em; }
+
+        .player-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: rgba(255,255,255,0.05); margin-bottom: 5px; border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -96,39 +71,54 @@
     <div class="card" style="margin-top: 10vh;">
         <div class="logo">Death's Armada</div>
         <select id="login-select"></select>
-        <input type="password" id="login-pin" placeholder="PIN KÓD (VAGY DM KÓD)" maxlength="4">
+        <input type="password" id="login-pin" placeholder="PIN VAGY DM KÓD" maxlength="4">
         <button class="btn btn-main" onclick="login()">Belépés</button>
         <button class="btn btn-sub" onclick="openCreator()">✨ Új Hős Megidézése</button>
     </div>
 </div>
 
 <div id="page-lobby" class="page">
-    <div class="card" style="max-width: 600px;">
-        <h1 id="lobby-name" style="font-family:'MedievalSharp'; color:var(--gold); margin:0;">-</h1>
-        <p id="lobby-class-display" style="margin:5px 0; font-style:italic;">-</p>
+    <div class="card">
+        <h1 id="lobby-name" style="font-family:'MedievalSharp'; color:var(--gold); margin:0; font-size: 2.2em;">Betöltés...</h1>
+        <p id="lobby-class-display" style="margin:5px 0; font-style:italic; color:#aaa;">-</p>
+        
         <div class="bar-container">
             <div class="bar-fill" id="lobby-hp-fill"></div>
-            <div class="bar-text bar-label" id="lobby-hp-text">0/0 HP</div>
+            <div class="bar-label" id="lobby-hp-text">0/0 HP</div>
         </div>
+
+        <div style="margin-top: 20px; text-align: left;">
+            <h3 style="font-family:'MedievalSharp'; color:var(--gold); border-bottom: 1px solid #333; margin:0;">Táska (Inventory)</h3>
+            <div class="inv-grid">
+                <div class="inv-slot" id="slot-weapon"><i>Kéz</i><b id="val-weapon">Pusztakéz</b></div>
+                <div class="inv-slot" id="slot-armor"><i>Test</i><b id="val-armor">Rongyok</b></div>
+                <div class="inv-slot" id="slot-extra"><i>Láb</i><b id="val-extra">Mezítláb</b></div>
+            </div>
+        </div>
+
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:20px;">
-            <button class="btn btn-main" onclick="alert('Hamarosan...')">📜 Kampány</button>
-            <button class="btn btn-main" onclick="alert('Keresés...')">⚔️ Aréna</button>
+            <button class="btn btn-main" style="background:#4a1a1a;">📜 KAMPÁNY</button>
+            <button class="btn btn-main">⚔️ ARÉNA</button>
         </div>
+
+        <h3 style="font-family:'MedievalSharp'; color:var(--gold); margin-top:20px; text-align: left;">Online Hősök</h3>
+        <div id="online-players-list" style="max-height: 150px; overflow-y: auto; text-align: left;"></div>
+        
         <button class="btn btn-sub" onclick="location.reload()">Kijelentkezés</button>
     </div>
 </div>
 
 <div id="page-dm" class="page">
     <div style="width:100%; max-width:900px; text-align:center;">
-        <h1 style="font-family:'MedievalSharp'; color:var(--accent); font-size:2.5em;">A MÉLYSÉG SZEME (DM)</h1>
-        <div id="dm-player-list" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:15px; margin:20px 0;"></div>
-        <button class="btn btn-sub" onclick="location.reload()">Kilépés a Panelből</button>
+        <h1 style="font-family:'MedievalSharp'; color:var(--accent); font-size:2.5em;">DM PANEL</h1>
+        <div id="dm-player-list" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap:15px; margin:20px 0;"></div>
+        <button class="btn btn-sub" onclick="location.reload()">Kilépés</button>
     </div>
 </div>
 
 <div id="modal-creator" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); display:none; align-items:center; justify-content:center; z-index:100;">
     <div class="card">
-        <h2 style="font-family:'MedievalSharp'; color:var(--gold);">Új Hős Teremtése</h2>
+        <h2 style="font-family:'MedievalSharp'; color:var(--gold);">Új Hős</h2>
         <input type="text" id="new-name" placeholder="Hős neve...">
         <select id="new-class">
             <option value="Harcos">Harcos (100 HP)</option>
@@ -138,9 +128,18 @@
             <option value="Bérgyilkos">Bérgyilkos (80 HP)</option>
             <option value="Nekromanta">Nekromanta (110 HP)</option>
         </select>
-        <input type="password" id="new-pin" placeholder="Válassz PIN kódot" maxlength="4">
+        <input type="password" id="new-pin" placeholder="PIN kód" maxlength="4">
         <button class="btn btn-main" onclick="saveNewHero()">Létrehozás</button>
         <button class="btn btn-sub" onclick="document.getElementById('modal-creator').style.display='none'">Mégse</button>
+    </div>
+</div>
+
+<div id="modal-challenge" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); display:none; align-items:center; justify-content:center; z-index:1000;">
+    <div class="card" style="border: 2px solid var(--accent);">
+        <h2 style="font-family:'MedievalSharp'; color:var(--accent);">PÁRBAJ MEGHÍVÓ!</h2>
+        <p id="challenge-text" style="font-size:1.2em;">-</p>
+        <button class="btn btn-main" onclick="acceptChallenge()" style="background:green; margin-bottom:10px;">ELFOGADOM</button>
+        <button class="btn btn-sub" onclick="declineChallenge()">ELUTASÍTOM</button>
     </div>
 </div>
 
@@ -178,21 +177,15 @@
         document.getElementById(id).classList.add('active');
     }
 
-    // --- GYORS DM LOGIN ---
     function login() {
         const id = document.getElementById('login-select').value;
         const pin = document.getElementById('login-pin').value;
-
-        if (pin === "4469") {
-            switchPage('page-dm');
-            loadDMData();
-            return;
-        }
-
-        if (id && chars[id].pin.toString() === pin) {
-            myId = id;
-            switchPage('page-lobby');
-        } else alert("Hiba a kapunál! Rossz PIN vagy név.");
+        if (pin === "4469") { switchPage('page-dm'); loadDMData(); return; }
+        if (id && chars[id].pin.toString() === pin) { 
+            myId = id; 
+            switchPage('page-lobby'); 
+            initPVPListeners(); 
+        } else alert("Rossz PIN!");
     }
 
     function openCreator() { document.getElementById('modal-creator').style.display='flex'; }
@@ -202,9 +195,11 @@
         const cls = document.getElementById('new-class').value;
         const pin = document.getElementById('new-pin').value;
         if(!name || !pin) return;
-
         let hp = { "Lovag":130, "Nekromanta":110, "Harcos":100, "Íjász":90, "Bérgyilkos":80, "Mágus":70 }[cls];
-        db.ref('characters').push({ name, charClass: cls, pin, hp, maxHp: hp, wins: 0 });
+        db.ref('characters').push({ 
+            name, charClass: cls, pin, hp, maxHp: hp, wins: 0,
+            inventory: { weapon: "Pusztakéz", armor: "Rongyok", extra: "Mezítláb" }
+        });
         document.getElementById('modal-creator').style.display='none';
     }
 
@@ -214,26 +209,74 @@
         document.getElementById('lobby-class-display').innerText = c.charClass;
         document.getElementById('lobby-hp-fill').style.width = (c.hp/c.maxHp)*100 + "%";
         document.getElementById('lobby-hp-text').innerText = `${c.hp}/${c.maxHp} HP`;
+        
+        // Inventory betöltése
+        if(c.inventory) {
+            document.getElementById('val-weapon').innerText = c.inventory.weapon || "Üres";
+            document.getElementById('val-armor').innerText = c.inventory.armor || "Üres";
+            document.getElementById('val-extra').innerText = c.inventory.extra || "Üres";
+        }
+    }
+
+    function initPVPListeners() {
+        db.ref('characters').on('value', snap => {
+            const listDiv = document.getElementById('online-players-list');
+            listDiv.innerHTML = "";
+            Object.keys(chars).forEach(id => {
+                if(id !== myId) {
+                    listDiv.innerHTML += `
+                        <div class="player-item">
+                            <span>${chars[id].name}</span>
+                            <button class="btn" style="padding:4px 8px; font-size:10px;" onclick="sendChallenge('${id}')">Kihívás</button>
+                        </div>`;
+                }
+            });
+        });
+
+        db.ref('challenges/' + myId).on('value', snap => {
+            const chal = snap.val();
+            if(chal && chal.status === 'pending') {
+                document.getElementById('challenge-text').innerText = chal.fromName + " párbajra hívott!";
+                document.getElementById('modal-challenge').style.display = 'flex';
+            }
+        });
+    }
+
+    function sendChallenge(targetId) {
+        db.ref('challenges/' + targetId).set({ fromId: myId, fromName: chars[myId].name, status: 'pending' });
+        alert("Kihívás elküldve!");
+    }
+
+    function acceptChallenge() {
+        db.ref('challenges/' + myId).update({ status: 'accepted' });
+        document.getElementById('modal-challenge').style.display = 'none';
+        alert("Párbaj indul! (Arena kód ide jön)");
+    }
+
+    function declineChallenge() {
+        db.ref('challenges/' + myId).remove();
+        document.getElementById('modal-challenge').style.display = 'none';
     }
 
     function loadDMData() {
         db.ref('characters').on('value', snap => {
-            const players = snap.val() || {};
             const container = document.getElementById('dm-player-list');
             container.innerHTML = "";
-            Object.keys(players).forEach(id => {
-                const p = players[id];
-                const pct = (p.hp/p.maxHp)*100;
+            Object.keys(chars).forEach(id => {
+                const p = chars[id];
+                const inv = p.inventory || { weapon: "-", armor: "-", extra: "-" };
                 container.innerHTML += `
                     <div class="card" style="max-width:none; text-align:left;">
-                        <h3 style="margin:0; color:var(--gold);">${p.name} (${p.charClass})</h3>
-                        <div class="bar-container"><div class="bar-fill" style="width:${pct}%;"></div><div class="bar-label">${p.hp}/${p.maxHp}</div></div>
-                        <div style="display:flex; gap:5px;">
-                            <button class="btn" style="flex:1; padding:5px; background:#1a4a1a;" onclick="modHP('${id}', 10)">+10</button>
-                            <button class="btn" style="flex:1; padding:5px; background:#4a1a1a;" onclick="modHP('${id}', -10)">-10</button>
-                            <button class="btn" style="flex:1; padding:5px; background:#333;" onclick="db.ref('characters/${id}').remove()">Törlés</button>
+                        <h3 style="margin:0; color:var(--gold);">${p.name}</h3>
+                        <div class="bar-container"><div class="bar-fill" style="width:${(p.hp/p.maxHp)*100}%;"></div><div class="bar-label">${p.hp}/${p.maxHp}</div></div>
+                        <div style="font-size:0.8em; color:#888; margin-bottom:10px;">
+                            ⚔️ ${inv.weapon} | 🛡️ ${inv.armor} | 👞 ${inv.extra}
                         </div>
-                        <p style="font-size:10px; color:gray; margin:5px 0;">PIN: ${p.pin} | ID: ${id}</p>
+                        <div style="display:flex; gap:5px;">
+                            <button class="btn" style="flex:1; padding:5px;" onclick="modHP('${id}', 10)">+10</button>
+                            <button class="btn" style="flex:1; padding:5px;" onclick="modHP('${id}', -10)">-10</button>
+                            <button class="btn" style="flex:1; padding:5px;" onclick="giveItemPrompt('${id}')">Tárgy</button>
+                        </div>
                     </div>`;
             });
         });
@@ -242,6 +285,14 @@
     function modHP(id, amt) {
         let newHp = Math.max(0, Math.min(chars[id].maxHp, chars[id].hp + amt));
         db.ref('characters/'+id).update({ hp: newHp });
+    }
+
+    function giveItemPrompt(id) {
+        const type = prompt("Mit adsz? (weapon / armor / extra)");
+        const name = prompt("Tárgy neve?");
+        if(type && name) {
+            db.ref('characters/'+id+'/inventory/'+type).set(name);
+        }
     }
 </script>
 </body>
