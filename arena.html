@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Death's Armada - ARENA v1.2 ⚔️</title>
+    <title>Death's Armada - ARENA v1.3 ⚔️</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #c5a059; --accent: #8b0000; --bg: #050507; }
@@ -82,11 +82,12 @@
 
         .back-btn-container { position: fixed; bottom: 20px; left: 20px; z-index: 100; }
         .back-link { 
-            color: var(--gold); text-decoration: none; background: rgba(0,0,0,0.5); 
-            border: 1px solid var(--gold); padding: 8px 15px; cursor: pointer; 
-            font-family: 'MedievalSharp'; font-size: 0.9em; transition: 0.3s;
+            color: var(--gold); text-decoration: none; background: rgba(0,0,0,0.6); 
+            border: 1px solid var(--gold); padding: 12px 20px; cursor: pointer; 
+            font-family: 'MedievalSharp'; font-size: 1em; transition: 0.3s;
+            text-transform: uppercase; border-radius: 4px;
         }
-        .back-link:hover { background: var(--accent); color: white; }
+        .back-link:hover { background: var(--accent); color: white; box-shadow: 0 0 10px var(--accent); }
     </style>
 </head>
 <body>
@@ -96,7 +97,7 @@
 <div id="win-screen">
     <h1 style="font-size: 5em; color: var(--gold); margin-bottom: 10px;">GYŐZELEM!</h1>
     <div id="winner-name" style="font-size: 2.5em; margin-bottom: 40px;">-</div>
-    <button class="btn" style="width: 250px;" onclick="resetArena()">Új viadal indítása</button>
+    <button class="btn" style="width: 250px;" onclick="resetArena()">Új viadal</button>
 </div>
 
 <div class="arena-header"><h2 id="turn-display">Dicsőség vagy Halál</h2></div>
@@ -125,7 +126,8 @@
 </div>
 
 <div class="back-btn-container">
-    <button class="back-link" onclick="forfeit()">⬅ Megfutamodás</button>
+    <button id="exit-btn" class="back-link" onclick="safeExit()" style="display: block;">⬅ Vissza a menübe</button>
+    <button id="forfeit-btn" class="back-link" onclick="forfeit()" style="display: none;">🏳️ Megfutamodás</button>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -146,7 +148,7 @@
     const myId = localStorage.getItem('selectedCharId');
     const bRef = db.ref('battles/global_arena');
 
-    if (!myId) window.location.href = 'index.html';
+    if (!myId) window.location.replace('index.html');
 
     const SKILLS = { "Harcos": 25, "Mágus": 35, "Lovag": 15, "Íjász": 24, "Bérgyilkos": 22, "Nekromanta": 15 };
 
@@ -178,42 +180,33 @@
         });
     }
 
+    // GOLYÓÁLLÓ KILÉPÉS (Ha egyedül vagy)
+    function safeExit() {
+        bRef.remove().then(() => {
+            window.location.replace('index.html');
+        }).catch(() => {
+            window.location.replace('index.html');
+        });
+    }
+
+    // MEG FUTAMODÁS (Harc közben)
     function forfeit() {
         bRef.once('value').then(snap => {
             const b = snap.val();
-            // Ha a szoba már nem is létezik, simán menjünk vissza
-            if (!b || !b.p1) {
-                window.location.href = 'index.html';
-                return;
-            }
-
+            if (!b) { window.location.replace('index.html'); return; }
             const isP1 = (b.p1.id === myId);
             const me = isP1 ? b.p1 : b.p2;
-            const opp = isP1 ? b.p2 : b.p1;
-            const hasOpponent = (opp && opp.id !== "waiting");
 
-            if (hasOpponent) {
-                if (confirm("Valóban megfutamodsz, te gyáva nyúl? Az ellenfeled azonnal nyer!")) {
-                    const updates = {};
-                    updates[isP1 ? 'p1/hp' : 'p2/hp'] = 0;
-                    let nLog = b.log || [];
-                    nLog.push(`🏳️ ${me.name} megfutamodott! Micsoda gyáva nyúl...`);
-                    updates['log'] = nLog;
-                    bRef.update(updates).then(() => {
-                        setTimeout(() => { window.location.href = 'index.html'; }, 500);
-                    });
-                }
-            } else {
-                // Ha egyedül várakozol, törlés után menjünk vissza
-                bRef.remove().then(() => {
-                    window.location.href = 'index.html';
-                }).catch(() => {
-                    window.location.href = 'index.html';
+            if (confirm("Valóban megfutamodsz, te gyáva nyúl? Az ellenfeled azonnal nyer!")) {
+                const updates = {};
+                updates[isP1 ? 'p1/hp' : 'p2/hp'] = 0;
+                let nLog = b.log || [];
+                nLog.push(`🏳️ ${me.name} megfutamodott! Micsoda gyáva nyúl...`);
+                updates['log'] = nLog;
+                bRef.update(updates).then(() => {
+                    setTimeout(() => { window.location.replace('index.html'); }, 500);
                 });
             }
-        }).catch(err => {
-            console.error("Kilépési hiba:", err);
-            window.location.href = 'index.html';
         });
     }
 
@@ -226,6 +219,11 @@
         const isP1 = b.p1.id === myId;
         const me = isP1 ? b.p1 : b.p2;
         const opp = isP1 ? b.p2 : b.p1;
+        const hasOpponent = (opp && opp.id !== "waiting");
+
+        // Gombok váltása
+        document.getElementById('exit-btn').style.display = hasOpponent ? 'none' : 'block';
+        document.getElementById('forfeit-btn').style.display = hasOpponent ? 'block' : 'none';
 
         document.getElementById('p-hp-fill').style.width = (me.hp/me.maxHp*100)+"%";
         document.getElementById('p-hp-val').innerText = Math.ceil(me.hp)+"/"+me.maxHp+" HP";
@@ -234,14 +232,14 @@
         document.getElementById('p-name').innerText = me.name;
         document.getElementById('e-name').innerText = opp.name;
 
-        const myTurn = (b.turn === myId && opp.id !== "waiting");
-        document.getElementById('turn-display').innerText = myTurn ? "TE KÖVETKEZEL!" : "ELLENFÉL KÖRE...";
+        const myTurn = (b.turn === myId && hasOpponent);
+        document.getElementById('turn-display').innerText = myTurn ? "TE KÖVETKEZEL!" : (hasOpponent ? "ELLENFÉL KÖRE..." : "Várakozás ellenfélre...");
+        
+        document.getElementById('p-card').classList.toggle('active', b.turn === me.id && hasOpponent);
+        document.getElementById('e-card').classList.toggle('active', b.turn === opp.id && hasOpponent);
+
         document.getElementById('btn-attack').disabled = !myTurn;
         document.getElementById('btn-skill').disabled = !myTurn;
-
-        document.getElementById('p-card').classList.toggle('active', b.turn === me.id && opp.id !== "waiting");
-        document.getElementById('e-card').classList.toggle('active', b.turn === opp.id && opp.id !== "waiting");
-
         document.getElementById('dice').innerText = b.lastRoll;
         document.getElementById('log').innerHTML = b.log ? b.log.map(l => `<div class="log-entry">${l}</div>`).reverse().join('') : "";
 
@@ -251,7 +249,7 @@
         if (window.lastOppHp !== undefined && window.lastOppHp < opp.hp) triggerHeal('e-card');
         window.lastHp = me.hp; window.lastOppHp = opp.hp;
 
-        if (opp.id !== "waiting" && (me.hp <= 0 || opp.hp <= 0)) {
+        if (hasOpponent && (me.hp <= 0 || opp.hp <= 0)) {
             document.getElementById('winner-name').innerText = me.hp > 0 ? me.name : opp.name;
             document.getElementById('win-screen').classList.add('win-active');
         }
@@ -300,7 +298,7 @@
                 }
 
                 const updates = {};
-                updates[isP1 ? 'p2/hp' : 'p1/hp'] = Math.max(0, opp.hp - dmg);
+                updates[isP1 ? 'p2/hp' : 'p1/hp'] = Math.max(0, (isP1 ? b.p2.hp : b.p1.hp) - dmg);
                 updates[isP1 ? 'p1/hp' : 'p2/hp'] = Math.min(me.maxHp, me.hp + heal);
                 updates['turn'] = opp.id;
                 updates['lastRoll'] = roll;
