@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Death's Armada - ELITE ARENA ⚔️</title>
+    <title>Death's Armada - ELITE ANIMATED ARENA ⚔️</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #c5a059; --accent: #8b0000; --bg: #050507; }
@@ -81,7 +81,12 @@
         .win-active { display: flex !important; }
 
         .back-btn-container { position: fixed; bottom: 20px; left: 20px; z-index: 100; }
-        .back-link { color: var(--gold); text-decoration: none; background: none; border: 1px solid var(--gold); padding: 8px 15px; cursor: pointer; font-family: 'MedievalSharp'; font-size: 0.9em; }
+        .back-link { 
+            color: var(--gold); text-decoration: none; background: rgba(0,0,0,0.5); 
+            border: 1px solid var(--gold); padding: 8px 15px; cursor: pointer; 
+            font-family: 'MedievalSharp'; font-size: 0.9em; transition: 0.3s;
+        }
+        .back-link:hover { background: var(--accent); color: white; }
     </style>
 </head>
 <body>
@@ -94,7 +99,7 @@
     <button class="btn" style="width: 250px;" onclick="resetArena()">Új viadal</button>
 </div>
 
-<div class="arena-header"><h2 id="turn-display">Dicsőség vagy Halál</h2></div>
+<div class="arena-header"><h2 id="turn-display">Aréna</h2></div>
 
 <div class="battlefield">
     <div id="p-card" class="fighter-card">
@@ -115,7 +120,7 @@
         <div class="turn-indicator">ELLENFÉL TÁMAD!</div>
         <h3 id="e-name">Ellenfél</h3>
         <div class="hp-bar"><div id="e-hp-fill" class="hp-fill"></div><div class="hp-text" id="e-hp-val">0/0 HP</div></div>
-        <div id="e-status" style="margin-top:10px; color:var(--gold); font-style: italic;">Várakozás...</div>
+        <div id="e-status" style="margin-top:10px; color:var(--gold); font-style: italic;">Harcolj dicsőséggel!</div>
     </div>
 </div>
 
@@ -173,8 +178,9 @@
         });
     }
 
+    // --- JAVÍTOTT MEG FUTAMODÁS FÜGGVÉNY ---
     function forfeit() {
-        bRef.once('value', snap => {
+        bRef.once('value').then(snap => {
             const b = snap.val();
             if (!b) { window.location.href = 'index.html'; return; }
 
@@ -197,7 +203,7 @@
             } else {
                 bRef.remove().then(() => { window.location.href = 'index.html'; });
             }
-        });
+        }).catch(() => { window.location.href = 'index.html'; });
     }
 
     function resetArena() {
@@ -280,8 +286,8 @@
                 }
 
                 const updates = {};
-                updates[`${isP1?'p2':'p1'}/hp`] = Math.max(0, (isP1?b.p2.hp:b.p1.hp) - dmg);
-                updates[`${isP1?'p1':'p2'}/hp`] = Math.min(me.maxHp, me.hp + heal);
+                updates[isP1 ? 'p2/hp' : 'p1/hp'] = Math.max(0, opp.hp - dmg);
+                updates[isP1 ? 'p1/hp' : 'p2/hp'] = Math.min(me.maxHp, me.hp + heal);
                 updates['turn'] = opp.id;
                 updates['lastRoll'] = roll;
                 let nLog = b.log || []; nLog.push(`[D20: ${roll}] ${msg}`);
