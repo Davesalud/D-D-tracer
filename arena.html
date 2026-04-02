@@ -7,67 +7,40 @@
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
     <style>
         body { 
-            background: #050507; 
-            color: white; 
-            font-family: 'MedievalSharp', cursive; 
-            margin: 0; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            height: 100vh;
-            background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.9)), url('https://wallpaperaccess.com/full/1155861.jpg');
+            background: #050507; color: white; font-family: 'MedievalSharp', cursive; 
+            margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh;
+            background-image: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.9)), url('https://wallpaperaccess.com/full/1155861.jpg');
             background-size: cover;
         }
         .arena-card {
-            border: 2px solid #c5a059;
-            background: rgba(20, 20, 25, 0.9);
-            padding: 30px;
-            text-align: center;
-            border-radius: 8px;
-            width: 90%;
-            max-width: 500px;
+            border: 2px solid #c5a059; background: rgba(15, 15, 20, 0.95);
+            padding: 30px; text-align: center; border-radius: 8px; width: 90%; max-width: 450px;
+            box-shadow: 0 0 30px rgba(139, 0, 0, 0.5);
         }
-        .hp-bar {
-            width: 100%;
-            height: 30px;
-            background: #000;
-            border: 1px solid #c5a059;
-            margin: 20px 0;
-            position: relative;
+        .hp-bar { width: 100%; height: 25px; background: #000; border: 1px solid #c5a059; margin: 20px 0; position: relative; overflow: hidden; }
+        #hp-fill { height: 100%; background: linear-gradient(90deg, #8b0000, #ff0000); width: 100%; transition: width 0.4s ease; }
+        .hp-text { position: absolute; width: 100%; top: 2px; left: 0; font-size: 14px; font-weight: bold; text-shadow: 1px 1px 2px black; }
+        .btn-attack {
+            background: #8b0000; color: white; border: 1px solid #c5a059; padding: 15px; width: 100%;
+            font-family: 'MedievalSharp'; cursor: pointer; font-size: 1.2em; text-transform: uppercase;
         }
-        #hp-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #8b0000, #ff0000);
-            width: 100%;
-            transition: width 0.3s;
-        }
-        .btn-action {
-            background: #8b0000;
-            color: white;
-            border: 1px solid #c5a059;
-            padding: 15px;
-            width: 100%;
-            font-family: 'MedievalSharp';
-            cursor: pointer;
-            font-size: 1.2em;
-        }
-        .btn-action:hover { background: #600; }
-        .back-link { color: #c5a059; text-decoration: none; margin-top: 20px; display: block; font-size: 0.8em; }
+        .back-btn { color: #c5a059; text-decoration: none; margin-top: 25px; display: block; font-size: 0.9em; }
     </style>
 </head>
 <body>
 
 <div class="arena-card">
-    <h1 id="char-name">Betöltés...</h1>
+    <h1 id="char-name" style="color: #c5a059; margin: 0;">Hősöd</h1>
+    <p id="char-class" style="font-style: italic; color: #aaa; margin-bottom: 20px;">Betöltés...</p>
+
     <div class="hp-bar">
         <div id="hp-fill"></div>
-        <div style="position:absolute; width:100%; top:5px;" id="hp-text">0 / 0 HP</div>
+        <div class="hp-text" id="hp-display">0 / 0 HP</div>
     </div>
     
-    <button class="btn-action" onclick="attack()">⚔️ TÁMADÁS (TESZT)</button>
+    <button class="btn-attack" onclick="doAttack()">⚔️ Támadás</button>
     
-    <a href="index.html" class="back-link">⬅ Vissza a Lobby-ba</a>
+    <a href="index.html" class="back-btn">⬅ Vissza a táborba (Lobby)</a>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -86,20 +59,24 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Itt egyelőre manuálisan kellene tudni, ki vagy, 
-    // de tesztnek az első karaktert töltjük be, amit találunk
+    // Megkeressük, ki van belépve (az index.html-ben elmentettük)
+    // Ha nincs senki, az elsőt mutatjuk
     db.ref('characters').on('value', snap => {
-        const chars = snap.val();
-        const firstId = Object.keys(chars)[0]; // Csak teszteléshez
-        const c = chars[firstId];
+        const data = snap.val();
+        if(!data) return;
+        
+        const id = Object.keys(data)[0]; 
+        const c = data[id];
 
         document.getElementById('char-name').innerText = c.name;
-        document.getElementById('hp-fill').style.width = (c.hp / c.maxHp * 100) + "%";
-        document.getElementById('hp-text').innerText = `${c.hp} / ${c.maxHp} HP`;
+        document.getElementById('char-class').innerText = c.charClass;
+        const pct = (c.hp / c.maxHp) * 100;
+        document.getElementById('hp-fill').style.width = pct + "%";
+        document.getElementById('hp-display').innerText = c.hp + " / " + c.maxHp + " HP";
     });
 
-    function attack() {
-        alert("BUMM! A harcrendszer fejlesztés alatt...");
+    function doAttack() {
+        alert("BUMM! Ez a rész a következő fejlesztés...");
     }
 </script>
 </body>
