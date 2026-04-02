@@ -70,7 +70,7 @@
 
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:20px;">
             <button class="btn btn-main" style="background:#4a1a1a;">📜 KAMPÁNY</button>
-            <a href="https://vesalud.github.io/D-D-tracer/arena.html" class="btn btn-main" style="background:#8b0000;">⚔️ ARÉNA</a>
+            <a href="./arena.html" class="btn btn-main" style="background:#8b0000;">⚔️ ARÉNA</a>
         </div>
 
         <h3 style="font-family:'MedievalSharp'; color:var(--gold); margin-top:20px; text-align: left;">Kihívható Hősök (ONLINE)</h3>
@@ -82,7 +82,7 @@
 
 <div id="page-dm" class="page">
     <div style="width:100%; max-width:900px;">
-        <h1 style="font-family:'MedievalSharp'; color:var(--accent); text-align:center; text-shadow: 0 0 10px red;">Seregszemle (DM PANEL)</h1>
+        <h1 style="font-family:'MedievalSharp'; color:var(--accent); text-align:center;">Seregszemle (DM PANEL)</h1>
         <div id="dm-player-list" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap:15px;"></div>
         <button class="btn btn-sub" onclick="location.reload()" style="margin-top:20px;">Kilépés</button>
     </div>
@@ -141,11 +141,10 @@
         if (document.getElementById('page-dm').classList.contains('active')) loadDMData();
     });
 
-    // JELENLÉT RENDSZER
+    // JELENLÉT-FIGYELŐ (Presence)
     function setupPresence(userId) {
         const myStatusRef = db.ref(`characters/${userId}/status`);
         const connectedRef = db.ref(".info/connected");
-
         connectedRef.on("value", (snap) => {
             if (snap.val() === true) {
                 myStatusRef.onDisconnect().set("offline").then(() => {
@@ -168,31 +167,19 @@
     function login() {
         const id = document.getElementById('login-select').value;
         const pin = document.getElementById('login-pin').value;
-        
-        if (pin === "4469") {
-            switchPage('page-dm');
-            loadDMData();
-            return;
-        }
-
+        if (pin === "4469") { switchPage('page-dm'); loadDMData(); return; }
         if (id && chars[id] && chars[id].pin.toString() === pin) {
             myId = id;
-            setupPresence(id); // Online állapot bekapcsolása
+            setupPresence(id); // Belépéskor online lesz
             switchPage('page-lobby');
             updateLobbyUI();
-        } else {
-            alert("Hibás PIN vagy nincs kiválasztva hős!");
-        }
+        } else { alert("Hibás PIN!"); }
     }
 
     function logout() {
         if (myId) {
-            db.ref(`characters/${myId}/status`).set("offline").then(() => {
-                location.reload();
-            });
-        } else {
-            location.reload();
-        }
+            db.ref(`characters/${myId}/status`).set("offline").then(() => { location.reload(); });
+        } else { location.reload(); }
     }
 
     function switchPage(pId) {
@@ -216,12 +203,11 @@
     function updateLobbyUI() {
         const c = chars[myId];
         if (!c) return;
-
         document.getElementById('lobby-name').innerText = c.name;
         document.getElementById('lobby-class-display').innerText = c.charClass;
         document.getElementById('lobby-hp-fill').style.width = (c.hp / c.maxHp * 100) + "%";
         document.getElementById('lobby-hp-text').innerText = `${c.hp} / ${c.maxHp} HP`;
-
+        
         const sk = SKILLS[c.charClass] || { name: "-", desc: "-" };
         document.getElementById('skill-name').innerText = sk.name;
         document.getElementById('skill-desc').innerText = sk.desc;
@@ -231,16 +217,12 @@
         document.getElementById('val-armor').innerText = inv.armor;
         document.getElementById('val-extra').innerText = inv.extra;
 
-        // ONLINE LISTA SZŰRÉSE
+        // CSAK ONLINE JÁTÉKOSOK LISTÁJA
         const list = document.getElementById('online-players-list');
         list.innerHTML = "";
         Object.keys(chars).forEach(id => {
             if (id !== myId && chars[id].status === "online") {
-                list.innerHTML += `
-                    <div class="player-item">
-                        <span>${chars[id].name} (${chars[id].charClass})</span>
-                        <b style="color:#4CAF50;">ONLINE ⚔️</b>
-                    </div>`;
+                list.innerHTML += `<div class="player-item"><span>${chars[id].name} (${chars[id].charClass})</span><b style="color:#4CAF50;">ONLINE ⚔️</b></div>`;
             }
         });
     }
@@ -250,26 +232,13 @@
         cont.innerHTML = "";
         Object.keys(chars).forEach(id => {
             const p = chars[id];
-            cont.innerHTML += `
-                <div class="dm-card">
-                    <b>${p.name}</b> [${p.status || 'offline'}]
-                    <div class="bar-container"><div class="bar-fill" style="width:${(p.hp/p.maxHp)*100}%;"></div></div>
-                    <button class="btn" onclick="modHP('${id}', 10)">+10</button>
-                    <button class="btn" onclick="modHP('${id}', -10)">-10</button>
-                    <button class="btn" onclick="giveItemPrompt('${id}')">🎒</button>
-                </div>`;
+            cont.innerHTML += `<div class="dm-card"><b>${p.name}</b> (${p.status || 'offline'})<button class="btn" onclick="modHP('${id}', 10)">+10 HP</button><button class="btn" onclick="modHP('${id}', -10)">-10 HP</button></div>`;
         });
     }
 
     function modHP(id, amt) {
         const newHp = Math.max(0, Math.min(chars[id].maxHp, chars[id].hp + amt));
         db.ref(`characters/${id}`).update({ hp: newHp });
-    }
-
-    function giveItemPrompt(id) {
-        const slot = prompt("Slot? (weapon/armor/extra)");
-        const val = prompt("Tárgy neve?");
-        if(slot && val) db.ref(`characters/${id}/inventory/${slot}`).set(val);
     }
 </script>
 </body>
