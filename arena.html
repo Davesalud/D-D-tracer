@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Death's Armada - ELITE ANIMATED ARENA ⚔️</title>
+    <title>Death's Armada - ARENA v1.2 ⚔️</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #c5a059; --accent: #8b0000; --bg: #050507; }
@@ -96,10 +96,10 @@
 <div id="win-screen">
     <h1 style="font-size: 5em; color: var(--gold); margin-bottom: 10px;">GYŐZELEM!</h1>
     <div id="winner-name" style="font-size: 2.5em; margin-bottom: 40px;">-</div>
-    <button class="btn" style="width: 250px;" onclick="resetArena()">Új viadal</button>
+    <button class="btn" style="width: 250px;" onclick="resetArena()">Új viadal indítása</button>
 </div>
 
-<div class="arena-header"><h2 id="turn-display">Aréna</h2></div>
+<div class="arena-header"><h2 id="turn-display">Dicsőség vagy Halál</h2></div>
 
 <div class="battlefield">
     <div id="p-card" class="fighter-card">
@@ -178,11 +178,14 @@
         });
     }
 
-    // --- JAVÍTOTT MEG FUTAMODÁS FÜGGVÉNY ---
     function forfeit() {
         bRef.once('value').then(snap => {
             const b = snap.val();
-            if (!b) { window.location.href = 'index.html'; return; }
+            // Ha a szoba már nem is létezik, simán menjünk vissza
+            if (!b || !b.p1) {
+                window.location.href = 'index.html';
+                return;
+            }
 
             const isP1 = (b.p1.id === myId);
             const me = isP1 ? b.p1 : b.p2;
@@ -197,13 +200,21 @@
                     nLog.push(`🏳️ ${me.name} megfutamodott! Micsoda gyáva nyúl...`);
                     updates['log'] = nLog;
                     bRef.update(updates).then(() => {
-                        setTimeout(() => { window.location.href = 'index.html'; }, 800);
+                        setTimeout(() => { window.location.href = 'index.html'; }, 500);
                     });
                 }
             } else {
-                bRef.remove().then(() => { window.location.href = 'index.html'; });
+                // Ha egyedül várakozol, törlés után menjünk vissza
+                bRef.remove().then(() => {
+                    window.location.href = 'index.html';
+                }).catch(() => {
+                    window.location.href = 'index.html';
+                });
             }
-        }).catch(() => { window.location.href = 'index.html'; });
+        }).catch(err => {
+            console.error("Kilépési hiba:", err);
+            window.location.href = 'index.html';
+        });
     }
 
     function resetArena() {
@@ -249,15 +260,18 @@
     function triggerHit(id) {
         const card = document.getElementById(id);
         const flash = document.getElementById('flash-effect');
-        card.classList.add('shake');
-        flash.classList.add('flash-active');
-        setTimeout(() => { card.classList.remove('shake'); flash.classList.remove('flash-active'); }, 500);
+        if (card) card.classList.add('shake');
+        if (flash) flash.classList.add('flash-active');
+        setTimeout(() => { 
+            if (card) card.classList.remove('shake'); 
+            if (flash) flash.classList.remove('flash-active'); 
+        }, 500);
     }
 
     function triggerHeal(id) {
         const card = document.getElementById(id);
-        card.classList.add('heal-effect');
-        setTimeout(() => { card.classList.remove('heal-effect'); }, 600);
+        if (card) card.classList.add('heal-effect');
+        setTimeout(() => { if (card) card.classList.remove('heal-effect'); }, 600);
     }
 
     function performAction(type) {
