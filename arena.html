@@ -12,88 +12,62 @@
             background-image: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.95)), url('https://wallpaperaccess.com/full/1155861.jpg');
             background-size: cover; height: 100vh; overflow: hidden; display: flex; flex-direction: column;
         }
-
-        /* FEJLÉC */
         .arena-header { padding: 10px; border-bottom: 2px solid var(--gold); text-align: center; background: rgba(0,0,0,0.5); }
-
-        /* HARCTÉR ELRENDEZÉS */
         .battlefield { display: flex; flex: 1; justify-content: space-around; align-items: center; padding: 20px; gap: 20px; }
-
-        /* JÁTÉKOS KÁRTYÁK */
         .fighter-card { 
             flex: 1; max-width: 300px; padding: 20px; border: 2px solid var(--gold); 
             background: rgba(20, 20, 25, 0.9); border-radius: 8px; text-align: center;
             transition: 0.3s;
         }
         .fighter-card.active { box-shadow: 0 0 20px var(--gold); transform: scale(1.05); }
-        .fighter-card.enemy { border-color: var(--accent); }
-
-        .hp-bar { width: 100%; height: 20px; background: #000; border: 1px solid #444; margin: 10px 0; overflow: hidden; }
+        .hp-bar { width: 100%; height: 20px; background: #000; border: 1px solid #444; margin: 10px 0; overflow: hidden; position: relative;}
         .hp-fill { height: 100%; background: linear-gradient(90deg, #8b0000, #ff0000); width: 100%; transition: 0.5s; }
-
-        /* KÖZÉPSŐ RÉSZ: KOCKA ÉS LOG */
+        .hp-text { position: absolute; width: 100%; text-align: center; font-size: 12px; top: 2px; text-shadow: 1px 1px black; }
         .center-ui { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 20px; }
-        
         .dice-box { 
             width: 80px; height: 80px; border: 3px solid var(--gold); display: flex; 
             align-items: center; justify-content: center; font-size: 2.5em; 
             background: rgba(139, 0, 0, 0.2); color: var(--gold); border-radius: 10px;
+            text-shadow: 0 0 10px var(--gold);
         }
-        
         .battle-log {
             width: 100%; max-width: 350px; height: 150px; background: rgba(0,0,0,0.8);
             border: 1px solid #333; padding: 10px; font-size: 0.85em; overflow-y: auto;
             text-align: left; color: #aaa; border-radius: 4px;
         }
-        .log-entry { margin-bottom: 5px; border-bottom: 1px solid #222; padding-bottom: 2px; }
-        .log-hit { color: #ff4444; }
-        .log-miss { color: #555; }
-
-        /* GOMBOK */
-        .action-btns { display: grid; grid-template-columns: 1fr; gap: 10px; width: 100%; margin-top: 20px; }
+        .log-entry { margin-bottom: 5px; border-bottom: 1px solid #222; }
         .btn { 
             background: var(--accent); color: white; border: 1px solid var(--gold); 
-            padding: 12px; font-family: 'MedievalSharp'; cursor: pointer; text-transform: uppercase;
+            padding: 12px; font-family: 'MedievalSharp'; cursor: pointer; text-transform: uppercase; width: 100%; margin-top: 10px;
         }
-        .btn:disabled { background: #333; color: #666; cursor: not-allowed; border-color: #444; }
-        .btn:hover:not(:disabled) { background: #a00; }
-
-        .back-btn { position: fixed; bottom: 20px; left: 20px; color: var(--gold); text-decoration: none; font-size: 0.8em; }
+        .btn:disabled { background: #222; color: #555; border-color: #333; cursor: not-allowed; }
+        .back-btn { position: fixed; bottom: 20px; left: 20px; color: var(--gold); text-decoration: none; }
     </style>
 </head>
 <body>
 
-<div class="arena-header">
-    <h2 id="turn-display">Várakozás az ellenfélre...</h2>
-</div>
+<div class="arena-header"><h2 id="turn-display">Keresés...</h2></div>
 
 <div class="battlefield">
     <div id="player-card" class="fighter-card">
-        <h3 id="p-name">Hősöd</h3>
-        <div class="hp-bar"><div id="p-hp-fill" class="hp-fill"></div></div>
-        <div id="p-hp-text">0 / 0 HP</div>
-        <div class="action-btns">
-            <button id="btn-attack" class="btn" onclick="performAction('attack')" disabled>⚔️ Támadás</button>
-            <button id="btn-skill" class="btn" style="background:#4a1a1a;" onclick="performAction('skill')" disabled>✨ Képesség</button>
-        </div>
+        <h3 id="p-name">Te</h3>
+        <div class="hp-bar"><div id="p-hp-fill" class="hp-fill"></div><div class="hp-text" id="p-hp-val">0/0</div></div>
+        <button id="btn-attack" class="btn" onclick="performAction('attack')" disabled>⚔️ Támadás</button>
     </div>
 
     <div class="center-ui">
         <div id="dice" class="dice-box">?</div>
-        <div id="log" class="battle-log">
-            <div class="log-entry">Üdvözöl az Aréna!</div>
-        </div>
+        <div id="log" class="battle-log"></div>
     </div>
 
-    <div id="enemy-card" class="fighter-card enemy">
+    <div id="enemy-card" class="fighter-card">
         <h3 id="e-name">Ellenfél</h3>
-        <div class="hp-bar"><div id="e-hp-fill" class="hp-fill"></div></div>
-        <div id="e-hp-text">0 / 0 HP</div>
-        <div style="margin-top:20px; font-style:italic; color: #8b0000;" id="e-status">Várakozik...</div>
+        <div class="hp-bar"><div id="e-hp-fill" class="hp-fill"></div><div class="hp-text" id="e-hp-val">0/0</div></div>
+        <div id="e-status" style="margin-top:10px; color:var(--gold);">Várakozás...</div>
     </div>
 </div>
 
-<a href="index.html" class="back-btn">⬅ Megfutamodás</a>
+<a href="index.html" class="back-btn">⬅ Vissza</a>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -110,101 +84,89 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-
     const myId = localStorage.getItem('selectedCharId');
-    let battleId = "global_arena"; // Egyelőre egy közös szoba, később lehet egyedi
-    let myTurn = false;
+    const bRef = db.ref('battles/global_arena');
 
-    if (!myId) { window.location.href = 'index.html'; }
+    if (!myId) window.location.href = 'index.html';
 
-    // ADATOK BETÖLTÉSE ÉS FIGYELÉSE
-    db.ref(`battles/${battleId}`).on('value', snap => {
-        const battle = snap.val();
-        if (!battle) {
-            setupBattle(); // Ha nincs csata, létrehozzuk
+    bRef.on('value', snap => {
+        const b = snap.val();
+        if (!b) { startBattle(); return; }
+        
+        // HA ÜRES A P2 ÉS NEM MI VAGYUNK A P1, CSATLAKOZUNK
+        if (b.p1.id !== myId && b.p2.id === "waiting") {
+            joinBattle();
             return;
         }
-
-        updateUI(battle);
+        updateArena(b);
     });
 
-    function setupBattle() {
-        db.ref(`characters/${myId}`).once('value', snap => {
-            const char = snap.val();
-            db.ref(`battles/${battleId}`).set({
-                p1: { id: myId, name: char.name, hp: char.hp, maxHp: char.maxHp },
-                p2: { id: "waiting", name: "Ellenfélre vár...", hp: 0, maxHp: 100 },
-                turn: myId,
-                lastRoll: 0,
-                log: ["A harc hamarosan kezdődik..."]
+    function startBattle() {
+        db.ref(`characters/${myId}`).once('value', s => {
+            const c = s.val();
+            bRef.set({
+                p1: { id: myId, name: c.name, hp: c.hp, maxHp: c.maxHp },
+                p2: { id: "waiting", name: "Ellenfél", hp: 0, maxHp: 100 },
+                turn: myId, lastRoll: "?", log: ["Várjuk az ellenfelet..."]
             });
         });
     }
 
-    function updateUI(battle) {
-        const isP1 = battle.p1.id === myId;
-        const me = isP1 ? battle.p1 : battle.p2;
-        const enemy = isP1 ? battle.p2 : battle.p1;
+    function joinBattle() {
+        db.ref(`characters/${myId}`).once('value', s => {
+            const c = s.val();
+            bRef.update({
+                "p2": { id: myId, name: c.name, hp: c.hp, maxHp: c.maxHp },
+                "log": ["A harc megkezdődött!"]
+            });
+        });
+    }
 
-        // Saját adatok
+    function updateArena(b) {
+        const isP1 = b.p1.id === myId;
+        const me = isP1 ? b.p1 : b.p2;
+        const opp = isP1 ? b.p2 : b.p1;
+
         document.getElementById('p-name').innerText = me.name;
-        document.getElementById('p-hp-fill').style.width = (me.hp / me.maxHp * 100) + "%";
-        document.getElementById('p-hp-text').innerText = `${me.hp} / ${me.maxHp} HP`;
+        document.getElementById('p-hp-fill').style.width = (me.hp/me.maxHp*100)+"%";
+        document.getElementById('p-hp-val').innerText = me.hp+"/"+me.maxHp;
 
-        // Ellenfel adatok
-        document.getElementById('e-name').innerText = enemy.name;
-        document.getElementById('e-hp-fill').style.width = (enemy.hp / enemy.maxHp * 100) + "%";
-        document.getElementById('e-hp-text').innerText = `${enemy.hp} / ${enemy.maxHp} HP`;
+        document.getElementById('e-name').innerText = opp.name;
+        document.getElementById('e-hp-fill').style.width = (opp.hp/opp.maxHp*100)+"%";
+        document.getElementById('e-hp-val').innerText = opp.hp+"/"+opp.maxHp;
 
-        // Kör figyelése
-        myTurn = (battle.turn === myId);
-        document.getElementById('turn-display').innerText = myTurn ? "TE KÖVETKEZEL!" : enemy.name + " lép éppen...";
+        const myTurn = (b.turn === myId && opp.id !== "waiting");
+        document.getElementById('turn-display').innerText = myTurn ? "TE KÖVETKEZEL!" : "ELLENFÉL KÖRÖS...";
         document.getElementById('btn-attack').disabled = !myTurn;
-        document.getElementById('btn-skill').disabled = !myTurn;
         document.getElementById('player-card').classList.toggle('active', myTurn);
-
-        // Kocka és Log
-        document.getElementById('dice').innerText = battle.lastRoll || "?";
-        const logBox = document.getElementById('log');
-        logBox.innerHTML = battle.log.map(m => `<div class="log-entry">${m}</div>`).reverse().join('');
+        
+        document.getElementById('dice').innerText = b.lastRoll;
+        document.getElementById('log').innerHTML = b.log.map(l => `<div class="log-entry">${l}</div>`).reverse().join('');
     }
 
     function performAction(type) {
-        if (!myTurn) return;
-
-        const roll = Math.floor(Math.random() * 20) + 1;
-        let damage = 0;
-        let message = "";
-
-        db.ref(`battles/${battleId}`).once('value', snap => {
-            const battle = snap.val();
-            const isP1 = battle.p1.id === myId;
-            const enemyKey = isP1 ? 'p2' : 'p1';
-            const enemy = battle[enemyKey];
-
-            if (roll >= 10) { // Találat
-                damage = type === 'attack' ? 15 : 25;
-                if (roll === 20) { damage *= 2; message = "KRITIKUS! "; }
-                message += `${battle[isP1 ? 'p1' : 'p2'].name} megütötte ${enemy.name}-t! (${damage} sebzés)`;
-            } else {
-                message = `${battle[isP1 ? 'p1' : 'p2'].name} elhibázta a támadást!`;
-            }
-
-            const newEnemyHp = Math.max(0, enemy.hp - damage);
-            const nextTurn = isP1 ? battle.p2.id : battle.p1.id;
-
-            // Frissítés Firebase-ben
-            const updates = {};
-            updates[`battles/${battleId}/${enemyKey}/hp`] = newEnemyHp;
-            updates[`battles/${battleId}/turn`] = nextTurn;
-            updates[`battles/${battleId}/lastRoll`] = roll;
+        bRef.once('value', snap => {
+            const b = snap.val();
+            const roll = Math.floor(Math.random() * 20) + 1;
+            const isP1 = b.p1.id === myId;
+            const targetKey = isP1 ? 'p2' : 'p1';
             
-            let newLog = battle.log || [];
-            newLog.push(`[D20: ${roll}] ${message}`);
-            if (newLog.length > 5) newLog.shift();
-            updates[`battles/${battleId}/log`] = newLog;
+            let dmg = roll >= 10 ? 15 : 0;
+            if (roll === 20) dmg = 30;
 
-            db.ref().update(updates);
+            const newHp = Math.max(0, b[targetKey].hp - dmg);
+            const msg = roll >= 10 ? `${b[isP1?'p1':'p2'].name} TALÁLT! (-${dmg} HP)` : `${b[isP1?'p1':'p2'].name} ELHIBÁZTA!`;
+            
+            let newLog = b.log || [];
+            newLog.push(`[D20: ${roll}] ${msg}`);
+            if (newLog.length > 6) newLog.shift();
+
+            const updates = {};
+            updates[`${targetKey}/hp`] = newHp;
+            updates['turn'] = b[targetKey].id;
+            updates['lastRoll'] = roll;
+            updates['log'] = newLog;
+            bRef.update(updates);
         });
     }
 </script>
