@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Death's Armada - Full Stable Version</title>
+    <title>Death's Armada - Final</title>
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,600;1,700&family=MedievalSharp&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #c5a059; --bg: #050507; --card: rgba(15, 15, 18, 0.95); --accent: #8b0000; --text: #e0e0e0; }
@@ -27,7 +27,6 @@
         .inv-slot b { color: var(--gold); font-size: 1em; }
         .skill-box { margin-top: 15px; padding: 10px; border: 1px solid var(--accent); background: rgba(139, 0, 0, 0.1); border-radius: 4px; text-align: left; }
         .player-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: rgba(255,255,255,0.05); margin-bottom: 5px; border-radius: 4px; border-left: 3px solid #4CAF50; }
-        .dm-card { background: rgba(20, 20, 25, 0.9); border: 1px solid var(--gold); padding: 15px; margin-bottom: 10px; border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -38,7 +37,7 @@
     <div class="card" style="margin-top: 10vh;">
         <div class="logo">Death's Armada</div>
         <select id="login-select"></select>
-        <input type="password" id="login-pin" placeholder="PIN VAGY DM KÓD" maxlength="4">
+        <input type="password" id="login-pin" placeholder="PIN KÓD" maxlength="4">
         <button class="btn btn-main" onclick="login()">Belépés</button>
         <button class="btn btn-sub" onclick="document.getElementById('modal-creator').style.display='flex'">✨ Új Hős Megidézése</button>
     </div>
@@ -46,7 +45,7 @@
 
 <div id="page-lobby" class="page">
     <div class="card">
-        <h1 id="lobby-name" style="font-family:'MedievalSharp'; color:var(--gold); margin:0;">Betöltés...</h1>
+        <h1 id="lobby-name" style="font-family:'MedievalSharp'; color:var(--gold); margin:0;">-</h1>
         <p id="lobby-class-display" style="margin:5px 0; font-style:italic; color:#aaa;">-</p>
         
         <div class="bar-container">
@@ -59,32 +58,21 @@
             <small id="skill-desc" style="color:#bbb;">-</small>
         </div>
 
-        <div style="margin-top: 20px; text-align: left;">
-            <h3 style="font-family:'MedievalSharp'; color:var(--gold); border-bottom: 1px solid #333; margin:0;">Táska (Inventory)</h3>
-            <div class="inv-grid">
-                <div class="inv-slot"><i>Kéz</i><b id="val-weapon">-</b></div>
-                <div class="inv-slot"><i>Test</i><b id="val-armor">-</b></div>
-                <div class="inv-slot"><i>Láb</i><b id="val-extra">-</b></div>
-            </div>
+        <div class="inv-grid">
+            <div class="inv-slot"><i>Kéz</i><b id="val-weapon">-</b></div>
+            <div class="inv-slot"><i>Test</i><b id="val-armor">-</b></div>
+            <div class="inv-slot"><i>Láb</i><b id="val-extra">-</b></div>
         </div>
 
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:20px;">
             <button class="btn btn-main" style="background:#4a1a1a;">📜 KAMPÁNY</button>
-            <a href="./arena.html" class="btn btn-main" style="background:#8b0000;">⚔️ ARÉNA</a>
+            <button onclick="goToArena()" class="btn btn-main" style="background:#8b0000;">⚔️ ARÉNA</button>
         </div>
 
         <h3 style="font-family:'MedievalSharp'; color:var(--gold); margin-top:20px; text-align: left;">Kihívható Hősök (ONLINE)</h3>
         <div id="online-players-list" style="max-height: 150px; overflow-y: auto;"></div>
         
         <button class="btn btn-sub" onclick="logout()">Kijelentkezés</button>
-    </div>
-</div>
-
-<div id="page-dm" class="page">
-    <div style="width:100%; max-width:900px;">
-        <h1 style="font-family:'MedievalSharp'; color:var(--accent); text-align:center;">Seregszemle (DM PANEL)</h1>
-        <div id="dm-player-list" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap:15px;"></div>
-        <button class="btn btn-sub" onclick="location.reload()" style="margin-top:20px;">Kilépés</button>
     </div>
 </div>
 
@@ -123,12 +111,12 @@
     const db = firebase.database();
 
     const SKILLS = {
-        "Harcos": { name: "Vérszomj", desc: "25 HP sebzés | CD: 3 kör (-5 HP tőled)" },
-        "Mágus": { name: "Tűzgolyó", desc: "35 HP sebzés | CD: 5 kör" },
-        "Lovag": { name: "Szent Pajzs", desc: "50% védelem | CD: 4 kör" },
-        "Íjász": { name: "Dupla Lövés", desc: "2x12 HP sebzés | CD: 3 kör" },
-        "Bérgyilkos": { name: "Mérgezett Tőr", desc: "10 + 3x5 HP sebzés | CD: 5 kör" },
-        "Nekromanta": { name: "Életelszívás", desc: "15 HP sebzés + 10 HP gyógyulás | CD: 4 kör" }
+        "Harcos": { name: "Vérszomj", desc: "25 HP sebzés" },
+        "Mágus": { name: "Tűzgolyó", desc: "35 HP sebzés" },
+        "Lovag": { name: "Szent Pajzs", desc: "50% védelem" },
+        "Íjász": { name: "Dupla Lövés", desc: "2x12 HP sebzés" },
+        "Bérgyilkos": { name: "Mérgezett Tőr", desc: "Mérgezés" },
+        "Nekromanta": { name: "Életelszívás", desc: "15 HP szívás" }
     };
 
     let chars = {};
@@ -138,18 +126,13 @@
         chars = snap.val() || {};
         updateLoginList();
         if (myId) updateLobbyUI();
-        if (document.getElementById('page-dm').classList.contains('active')) loadDMData();
     });
 
-    // JELENLÉT-FIGYELŐ (Presence)
-    function setupPresence(userId) {
-        const myStatusRef = db.ref(`characters/${userId}/status`);
-        const connectedRef = db.ref(".info/connected");
-        connectedRef.on("value", (snap) => {
+    function setupPresence(id) {
+        const statusRef = db.ref(`characters/${id}/status`);
+        db.ref(".info/connected").on("value", (snap) => {
             if (snap.val() === true) {
-                myStatusRef.onDisconnect().set("offline").then(() => {
-                    myStatusRef.set("online");
-                });
+                statusRef.onDisconnect().set("offline").then(() => { statusRef.set("online"); });
             }
         });
     }
@@ -158,46 +141,31 @@
         const sel = document.getElementById('login-select');
         const cur = sel.value;
         sel.innerHTML = '<option value="" disabled selected>Válaszd ki a hősöd...</option>';
-        Object.keys(chars).forEach(id => {
-            sel.innerHTML += `<option value="${id}">${chars[id].name}</option>`;
-        });
+        Object.keys(chars).forEach(id => { sel.innerHTML += `<option value="${id}">${chars[id].name}</option>`; });
         sel.value = cur;
     }
 
     function login() {
         const id = document.getElementById('login-select').value;
         const pin = document.getElementById('login-pin').value;
-        if (pin === "4469") { switchPage('page-dm'); loadDMData(); return; }
         if (id && chars[id] && chars[id].pin.toString() === pin) {
             myId = id;
-            setupPresence(id); // Belépéskor online lesz
-            switchPage('page-lobby');
+            localStorage.setItem('selectedCharId', id);
+            setupPresence(id);
+            document.getElementById('page-login').classList.remove('active');
+            document.getElementById('page-lobby').classList.add('active');
             updateLobbyUI();
         } else { alert("Hibás PIN!"); }
     }
 
+    function goToArena() {
+        if (!myId) return;
+        window.location.href = './arena.html';
+    }
+
     function logout() {
-        if (myId) {
-            db.ref(`characters/${myId}/status`).set("offline").then(() => { location.reload(); });
-        } else { location.reload(); }
-    }
-
-    function switchPage(pId) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.getElementById(pId).classList.add('active');
-    }
-
-    function saveNewHero() {
-        const name = document.getElementById('new-name').value;
-        const cls = document.getElementById('new-class').value;
-        const pin = document.getElementById('new-pin').value;
-        if(!name || !pin) return;
-        const hpMap = { "Harcos":100, "Mágus":70, "Lovag":130, "Íjász":90, "Bérgyilkos":80, "Nekromanta":110 };
-        db.ref('characters').push({
-            name, charClass: cls, pin, hp: hpMap[cls], maxHp: hpMap[cls], wins: 0, status: "offline",
-            inventory: { weapon: "Pusztakéz", armor: "Rongyok", extra: "Mezítláb" }
-        });
-        document.getElementById('modal-creator').style.display = 'none';
+        if (myId) db.ref(`characters/${myId}/status`).set("offline").then(() => { location.reload(); });
+        else location.reload();
     }
 
     function updateLobbyUI() {
@@ -212,33 +180,27 @@
         document.getElementById('skill-name').innerText = sk.name;
         document.getElementById('skill-desc').innerText = sk.desc;
 
-        const inv = c.inventory || { weapon: "-", armor: "-", extra: "-" };
-        document.getElementById('val-weapon').innerText = inv.weapon;
-        document.getElementById('val-armor').innerText = inv.armor;
-        document.getElementById('val-extra').innerText = inv.extra;
+        document.getElementById('val-weapon').innerText = c.inventory?.weapon || "Pusztakéz";
+        document.getElementById('val-armor').innerText = c.inventory?.armor || "Rongyok";
+        document.getElementById('val-extra').innerText = c.inventory?.extra || "Semmi";
 
-        // CSAK ONLINE JÁTÉKOSOK LISTÁJA
         const list = document.getElementById('online-players-list');
         list.innerHTML = "";
         Object.keys(chars).forEach(id => {
             if (id !== myId && chars[id].status === "online") {
-                list.innerHTML += `<div class="player-item"><span>${chars[id].name} (${chars[id].charClass})</span><b style="color:#4CAF50;">ONLINE ⚔️</b></div>`;
+                list.innerHTML += `<div class="player-item"><span>${chars[id].name}</span><b style="color:#4CAF50;">ONLINE ⚔️</b></div>`;
             }
         });
     }
 
-    function loadDMData() {
-        const cont = document.getElementById('dm-player-list');
-        cont.innerHTML = "";
-        Object.keys(chars).forEach(id => {
-            const p = chars[id];
-            cont.innerHTML += `<div class="dm-card"><b>${p.name}</b> (${p.status || 'offline'})<button class="btn" onclick="modHP('${id}', 10)">+10 HP</button><button class="btn" onclick="modHP('${id}', -10)">-10 HP</button></div>`;
-        });
-    }
-
-    function modHP(id, amt) {
-        const newHp = Math.max(0, Math.min(chars[id].maxHp, chars[id].hp + amt));
-        db.ref(`characters/${id}`).update({ hp: newHp });
+    function saveNewHero() {
+        const name = document.getElementById('new-name').value;
+        const cls = document.getElementById('new-class').value;
+        const pin = document.getElementById('new-pin').value;
+        if(!name || !pin) return;
+        const hpMap = { "Harcos":100, "Mágus":70, "Lovag":130, "Íjász":90, "Bérgyilkos":80, "Nekromanta":110 };
+        db.ref('characters').push({ name, charClass: cls, pin, hp: hpMap[cls], maxHp: hpMap[cls], status: "offline" });
+        document.getElementById('modal-creator').style.display = 'none';
     }
 </script>
 </body>
