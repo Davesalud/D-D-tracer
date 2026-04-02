@@ -14,28 +14,36 @@
         }
         .arena-header { padding: 10px; border-bottom: 2px solid var(--gold); text-align: center; background: rgba(0,0,0,0.5); }
         .battlefield { display: flex; flex: 1; justify-content: space-around; align-items: center; padding: 20px; gap: 20px; }
+        
         .fighter-card { 
-            flex: 1; max-width: 300px; padding: 20px; border: 2px solid var(--gold); 
+            flex: 1; max-width: 300px; padding: 20px; border: 2px solid #333; 
             background: rgba(20, 20, 25, 0.9); border-radius: 8px; text-align: center;
-            transition: 0.3s;
+            transition: 0.3s; position: relative;
         }
-        .fighter-card.active { box-shadow: 0 0 20px var(--gold); transform: scale(1.05); }
+        /* KI VAN SORON JELZŐ */
+        .turn-indicator {
+            position: absolute; top: -15px; left: 50%; transform: translateX(-50%);
+            background: var(--gold); color: black; padding: 2px 15px; font-size: 0.8em;
+            border-radius: 20px; display: none; font-weight: bold; box-shadow: 0 0 10px var(--gold);
+        }
+        .fighter-card.active { border-color: var(--gold); box-shadow: 0 0 20px rgba(197, 160, 89, 0.3); }
+        .fighter-card.active .turn-indicator { display: block; }
+
         .hp-bar { width: 100%; height: 20px; background: #000; border: 1px solid #444; margin: 10px 0; overflow: hidden; position: relative;}
         .hp-fill { height: 100%; background: linear-gradient(90deg, #8b0000, #ff0000); width: 100%; transition: 0.5s; }
         .hp-text { position: absolute; width: 100%; text-align: center; font-size: 12px; top: 2px; text-shadow: 1px 1px black; }
+        
         .center-ui { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 20px; }
         .dice-box { 
             width: 80px; height: 80px; border: 3px solid var(--gold); display: flex; 
             align-items: center; justify-content: center; font-size: 2.5em; 
             background: rgba(139, 0, 0, 0.2); color: var(--gold); border-radius: 10px;
-            text-shadow: 0 0 10px var(--gold);
         }
         .battle-log {
             width: 100%; max-width: 350px; height: 150px; background: rgba(0,0,0,0.8);
             border: 1px solid #333; padding: 10px; font-size: 0.85em; overflow-y: auto;
             text-align: left; color: #aaa; border-radius: 4px;
         }
-        .log-entry { margin-bottom: 5px; border-bottom: 1px solid #222; }
         .btn { 
             background: var(--accent); color: white; border: 1px solid var(--gold); 
             padding: 12px; font-family: 'MedievalSharp'; cursor: pointer; text-transform: uppercase; width: 100%; margin-top: 10px;
@@ -46,10 +54,11 @@
 </head>
 <body>
 
-<div class="arena-header"><h2 id="turn-display">Keresés...</h2></div>
+<div class="arena-header"><h2 id="turn-display">Aréna Inicializálása...</h2></div>
 
 <div class="battlefield">
     <div id="player-card" class="fighter-card">
+        <div class="turn-indicator">TÁMADÁS!</div>
         <h3 id="p-name">Te</h3>
         <div class="hp-bar"><div id="p-hp-fill" class="hp-fill"></div><div class="hp-text" id="p-hp-val">0/0</div></div>
         <button id="btn-attack" class="btn" onclick="performAction('attack')" disabled>⚔️ Támadás</button>
@@ -58,9 +67,11 @@
     <div class="center-ui">
         <div id="dice" class="dice-box">?</div>
         <div id="log" class="battle-log"></div>
+        <button class="btn" style="font-size:0.6em; width:auto; padding:5px 10px;" onclick="resetArena()">🔄 Aréna Reset</button>
     </div>
 
     <div id="enemy-card" class="fighter-card">
+        <div class="turn-indicator">TÁMADÁS!</div>
         <h3 id="e-name">Ellenfél</h3>
         <div class="hp-bar"><div id="e-hp-fill" class="hp-fill"></div><div class="hp-text" id="e-hp-val">0/0</div></div>
         <div id="e-status" style="margin-top:10px; color:var(--gold);">Várakozás...</div>
@@ -93,7 +104,7 @@
         const b = snap.val();
         if (!b) { startBattle(); return; }
         
-        // HA ÜRES A P2 ÉS NEM MI VAGYUNK A P1, CSATLAKOZUNK
+        // Ha valaki bent maradt szellemként, de nem mi vagyunk a P1
         if (b.p1.id !== myId && b.p2.id === "waiting") {
             joinBattle();
             return;
@@ -117,10 +128,13 @@
             const c = s.val();
             bRef.update({
                 "p2": { id: myId, name: c.name, hp: c.hp, maxHp: c.maxHp },
-                "log": ["A harc megkezdődött!"]
+                "log": ["A harc megkezdődött!"],
+                "lastRoll": "?"
             });
         });
     }
+
+    function resetArena() { bRef.remove(); location.reload(); }
 
     function updateArena(b) {
         const isP1 = b.p1.id === myId;
@@ -137,11 +151,14 @@
 
         const myTurn = (b.turn === myId && opp.id !== "waiting");
         document.getElementById('turn-display').innerText = myTurn ? "TE KÖVETKEZEL!" : "ELLENFÉL KÖRÖS...";
+        
+        // VIZUÁLIS JELZŐK
+        document.getElementById('player-card').classList.toggle('active', b.turn === me.id);
+        document.getElementById('enemy-card').classList.toggle('active', b.turn === opp.id);
         document.getElementById('btn-attack').disabled = !myTurn;
-        document.getElementById('player-card').classList.toggle('active', myTurn);
         
         document.getElementById('dice').innerText = b.lastRoll;
-        document.getElementById('log').innerHTML = b.log.map(l => `<div class="log-entry">${l}</div>`).reverse().join('');
+        document.getElementById('log').innerHTML = b.log ? b.log.map(l => `<div style="margin-bottom:5px; border-bottom:1px solid #222;">${l}</div>`).reverse().join('') : "";
     }
 
     function performAction(type) {
@@ -159,11 +176,11 @@
             
             let newLog = b.log || [];
             newLog.push(`[D20: ${roll}] ${msg}`);
-            if (newLog.length > 6) newLog.shift();
+            if (newLog.length > 5) newLog.shift();
 
             const updates = {};
             updates[`${targetKey}/hp`] = newHp;
-            updates['turn'] = b[targetKey].id;
+            updates['turn'] = b[targetKey].id; // Kör átadása
             updates['lastRoll'] = roll;
             updates['log'] = newLog;
             bRef.update(updates);
