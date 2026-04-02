@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Death's Armada - ELITE ANIMATED ARENA ⚔️</title>
+    <title>Death's Armada - ELITE ARENA ⚔️</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #c5a059; --accent: #8b0000; --bg: #050507; }
@@ -13,37 +13,32 @@
             background-size: cover; height: 100vh; overflow: hidden; display: flex; flex-direction: column;
         }
 
-        /* ANIMÁCIÓK */
+        /* --- ANIMÁCIÓK --- */
         @keyframes shake {
             0%, 100% { transform: translate(0, 0) rotate(0); }
-            10%, 30%, 50%, 70%, 90% { transform: translate(-8px, 0) rotate(-2deg); }
-            20%, 40%, 60%, 80% { transform: translate(8px, 0) rotate(2deg); }
+            20%, 60% { transform: translate(-8px, 0) rotate(-1deg); }
+            40%, 80% { transform: translate(8px, 0) rotate(1deg); }
         }
-        .shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; border-color: red !important; }
+        .shake { animation: shake 0.4s ease-in-out; border-color: red !important; }
 
         #flash-effect {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 0, 0, 0.5); opacity: 0; pointer-events: none; z-index: 999;
+            background: rgba(255, 0, 0, 0.4); opacity: 0; pointer-events: none; z-index: 999; transition: opacity 0.2s;
         }
-        .flash-active { animation: flash-fade 0.4s ease-out; }
-        @keyframes flash-fade { from { opacity: 1; } to { opacity: 0; } }
+        .flash-active { opacity: 1 !important; }
 
         .dice-box { 
             width: 100px; height: 100px; border: 3px solid var(--gold); display: flex; 
             align-items: center; justify-content: center; font-size: 3.5em; 
             background: rgba(139, 0, 0, 0.3); color: var(--gold); border-radius: 15px;
         }
-        .dice-rolling { animation: dice-spin 0.2s linear infinite; color: white; border-color: white; }
+        .dice-rolling { animation: dice-spin 0.2s linear infinite; color: white; }
         @keyframes dice-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
         .heal-effect { animation: heal-pulse 0.6s ease-out; }
-        @keyframes heal-pulse { 
-            0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.8); }
-            70% { box-shadow: 0 0 20px 10px rgba(76, 175, 80, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
-        }
+        @keyframes heal-pulse { 0% { box-shadow: 0 0 0 0 rgba(0, 255, 0, 0.7); } 100% { box-shadow: 0 0 20px 10px rgba(0, 255, 0, 0); } }
 
-        /* ELRENDEZÉS */
+        /* --- ELRENDEZÉS --- */
         .arena-header { padding: 10px; border-bottom: 2px solid var(--gold); text-align: center; background: rgba(0,0,0,0.7); }
         .battlefield { display: flex; flex: 1; justify-content: space-around; align-items: center; padding: 20px; gap: 20px; }
         
@@ -57,11 +52,11 @@
             background: var(--gold); color: black; padding: 4px 20px; font-size: 0.9em;
             border-radius: 20px; display: none; font-weight: bold; box-shadow: 0 0 15px var(--gold);
         }
-        .fighter-card.active { border-color: var(--gold); transform: translateY(-10px); }
+        .fighter-card.active { border-color: var(--gold); transform: translateY(-10px); box-shadow: 0 0 20px rgba(197, 160, 89, 0.3); }
         .fighter-card.active .turn-indicator { display: block; }
 
         .hp-bar { width: 100%; height: 26px; background: #000; border: 1px solid #444; margin: 15px 0; overflow: hidden; position: relative; border-radius: 4px; }
-        .hp-fill { height: 100%; background: linear-gradient(90deg, #8b0000, #ff0000); width: 100%; transition: 0.8s ease; }
+        .hp-fill { height: 100%; background: linear-gradient(90deg, #8b0000, #ff0000); width: 100%; transition: 0.6s ease-out; }
         .hp-text { position: absolute; width: 100%; text-align: center; font-size: 14px; top: 3px; text-shadow: 1px 1px 3px black; font-weight: bold; z-index: 5; }
         
         .battle-log {
@@ -69,8 +64,8 @@
             border: 1px solid #444; padding: 12px; font-size: 0.85em; overflow-y: auto;
             text-align: left; color: #ccc; border-radius: 8px;
         }
-        .log-entry { border-bottom: 1px solid #222; padding: 3px; animation: entry-slide 0.3s ease-out; }
-        @keyframes entry-slide { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .log-entry { border-bottom: 1px solid #222; padding: 3px; animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: translateX(0); } }
 
         .btn { 
             background: var(--accent); color: white; border: 1px solid var(--gold); 
@@ -86,7 +81,7 @@
         .win-active { display: flex !important; }
 
         .back-btn-container { position: fixed; bottom: 20px; left: 20px; z-index: 100; }
-        .back-link { color: var(--gold); text-decoration: none; background: none; border: 1px solid var(--gold); padding: 5px 10px; cursor: pointer; font-family: 'MedievalSharp'; }
+        .back-link { color: var(--gold); text-decoration: none; background: none; border: 1px solid var(--gold); padding: 8px 15px; cursor: pointer; font-family: 'MedievalSharp'; font-size: 0.9em; }
     </style>
 </head>
 <body>
@@ -99,7 +94,7 @@
     <button class="btn" style="width: 250px;" onclick="resetArena()">Új viadal</button>
 </div>
 
-<div class="arena-header"><h2 id="turn-display">Aréna</h2></div>
+<div class="arena-header"><h2 id="turn-display">Dicsőség vagy Halál</h2></div>
 
 <div class="battlefield">
     <div id="p-card" class="fighter-card">
@@ -113,7 +108,7 @@
     <div class="center-ui" style="display:flex; flex-direction:column; align-items:center; gap:15px;">
         <div id="dice" class="dice-box">?</div>
         <div id="log" class="battle-log"></div>
-        <button class="btn" style="font-size:0.6em; width:auto; padding:5px 15px; opacity:0.4;" onclick="resetArena()">🔄 Reset</button>
+        <button class="btn" style="font-size:0.6em; width:auto; padding:5px 15px; opacity:0.3;" onclick="resetArena()">🔄 Szoba Reset</button>
     </div>
 
     <div id="e-card" class="fighter-card">
@@ -163,7 +158,7 @@
             bRef.set({
                 p1: { id: myId, name: c.name, hp: c.maxHp, maxHp: c.maxHp, class: c.charClass },
                 p2: { id: "waiting", name: "Ellenfél", hp: 0, maxHp: 100 },
-                turn: myId, lastRoll: "?", log: ["Kihívót várunk..."]
+                turn: myId, lastRoll: "?", log: ["Kihívót várunk az Arénába..."]
             });
         });
     }
@@ -173,15 +168,36 @@
             const c = s.val();
             bRef.update({
                 "p2": { id: myId, name: c.name, hp: c.maxHp, maxHp: c.maxHp, class: c.charClass },
-                "log": ["A harc megkezdődött!"]
+                "log": ["A viadal megkezdődött! Vér folyik majd..."]
             });
         });
     }
 
     function forfeit() {
-        if (confirm("Biztosan megfutamodsz? A jelenlegi harc törlésre kerül!")) {
-            bRef.remove().then(() => { window.location.href = 'index.html'; });
-        }
+        bRef.once('value', snap => {
+            const b = snap.val();
+            if (!b) { window.location.href = 'index.html'; return; }
+
+            const isP1 = (b.p1.id === myId);
+            const me = isP1 ? b.p1 : b.p2;
+            const opp = isP1 ? b.p2 : b.p1;
+            const hasOpponent = (opp && opp.id !== "waiting");
+
+            if (hasOpponent) {
+                if (confirm("Valóban megfutamodsz, te gyáva nyúl? Az ellenfeled azonnal nyer!")) {
+                    const updates = {};
+                    updates[isP1 ? 'p1/hp' : 'p2/hp'] = 0;
+                    let nLog = b.log || [];
+                    nLog.push(`🏳️ ${me.name} megfutamodott! Micsoda gyáva nyúl...`);
+                    updates['log'] = nLog;
+                    bRef.update(updates).then(() => {
+                        setTimeout(() => { window.location.href = 'index.html'; }, 800);
+                    });
+                }
+            } else {
+                bRef.remove().then(() => { window.location.href = 'index.html'; });
+            }
+        });
     }
 
     function resetArena() {
@@ -225,17 +241,17 @@
     }
 
     function triggerHit(id) {
-        document.getElementById(id).classList.add('shake');
-        document.getElementById('flash-effect').classList.add('flash-active');
-        setTimeout(() => { 
-            document.getElementById(id).classList.remove('shake'); 
-            document.getElementById('flash-effect').classList.remove('flash-active');
-        }, 500);
+        const card = document.getElementById(id);
+        const flash = document.getElementById('flash-effect');
+        card.classList.add('shake');
+        flash.classList.add('flash-active');
+        setTimeout(() => { card.classList.remove('shake'); flash.classList.remove('flash-active'); }, 500);
     }
 
     function triggerHeal(id) {
-        document.getElementById(id).classList.add('heal-effect');
-        setTimeout(() => { document.getElementById(id).classList.remove('heal-effect'); }, 600);
+        const card = document.getElementById(id);
+        card.classList.add('heal-effect');
+        setTimeout(() => { card.classList.remove('heal-effect'); }, 600);
     }
 
     function performAction(type) {
@@ -254,9 +270,9 @@
 
                 if (type === 'attack') {
                     if (roll >= 8) {
-                        dmg = 15; if (roll === 20) { dmg = 30; msg = "🎯 KRITIKUS! "; }
-                        msg += `${me.name} talált! (-${dmg} HP)`;
-                    } else msg = `🛡️ ${me.name} elvétette!`;
+                        dmg = 15; if (roll === 20) { dmg = 30; msg = "🎯 KRITIKUS ÜTÉS! "; }
+                        msg += `${me.name} eltalálta az ellenséget! (-${dmg} HP)`;
+                    } else msg = `🛡️ ${me.name} elhibázta a csapást!`;
                 } else {
                     dmg = SKILLS[me.class] || 20;
                     if (me.class === "Nekromanta") heal = 15;
@@ -264,7 +280,7 @@
                 }
 
                 const updates = {};
-                updates[`${isP1?'p2':'p1'}/hp`] = Math.max(0, opp.hp - dmg);
+                updates[`${isP1?'p2':'p1'}/hp`] = Math.max(0, (isP1?b.p2.hp:b.p1.hp) - dmg);
                 updates[`${isP1?'p1':'p2'}/hp`] = Math.min(me.maxHp, me.hp + heal);
                 updates['turn'] = opp.id;
                 updates['lastRoll'] = roll;
