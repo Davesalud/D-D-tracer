@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Death's Armada - Final Fix</title>
+    <title>Death's Armada - Full Stable Version</title>
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,600;1,700&family=MedievalSharp&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #c5a059; --bg: #050507; --card: rgba(15, 15, 18, 0.95); --accent: #8b0000; --text: #e0e0e0; }
@@ -13,18 +13,21 @@
         .master-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.8)), url('https://i.pinimg.com/originals/26/2b/dd/262bdd02564bf6dabbe89df4f93e8e26.jpg'); background-size: cover; background-position: center; z-index: -1; }
         .page { display: none; height: 100vh; padding: 20px; flex-direction: column; align-items: center; overflow-y: auto; }
         .page.active { display: flex; }
-        .card { background: var(--card); border: 1px solid var(--gold); padding: 20px; border-radius: 4px; width: 100%; max-width: 450px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.9); backdrop-filter: blur(15px); }
+        .card { background: var(--card); border: 1px solid var(--gold); padding: 20px; border-radius: 4px; width: 100%; max-width: 450px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.9); backdrop-filter: blur(15px); margin-bottom: 20px; }
         .logo { font-family: 'MedievalSharp'; font-size: 3em; color: var(--accent); text-shadow: 0 0 15px rgba(139,0,0,0.7); margin-bottom: 15px; }
-        .btn { font-family: 'MedievalSharp'; padding: 12px; cursor: pointer; border: 1px solid var(--gold); transition: 0.3s; text-transform: uppercase; display: block; width: 100%; margin-bottom: 5px; text-decoration: none; text-align: center; }
+        input, select { width: 100%; padding: 12px; margin-bottom: 10px; background: rgba(0,0,0,0.8); border: 1px solid #444; color: white; font-family: 'MedievalSharp'; }
+        .btn { font-family: 'MedievalSharp'; padding: 12px; cursor: pointer; border: 1px solid var(--gold); transition: 0.3s; text-transform: uppercase; display: block; width: 100%; margin-bottom: 5px; text-decoration: none; text-align: center; color: var(--gold); }
         .btn-main { background: var(--accent); color: white; border: none; font-size: 1.1em; }
         .btn-sub { background: none; color: var(--gold); font-size: 0.8em; }
         .bar-container { height: 26px; background: #000; border: 1px solid #333; position: relative; margin: 10px 0; border-radius: 3px; overflow: hidden; }
         .bar-fill { height: 100%; transition: width 0.5s ease; background: linear-gradient(90deg, #600, #b00); width: 100%; }
-        .bar-label { position: absolute; width: 100%; text-align: center; line-height: 24px; font-size: 14px; color: white; font-weight: bold; z-index: 2; }
+        .bar-label { position: absolute; width: 100%; text-align: center; line-height: 24px; font-size: 14px; color: white; font-weight: bold; z-index: 2; text-shadow: 1px 1px 2px black; }
         .inv-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
         .inv-slot { background: rgba(0,0,0,0.6); border: 1px dashed var(--gold); padding: 5px; font-size: 0.7em; min-height: 60px; display: flex; flex-direction: column; justify-content: center; }
-        .player-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: rgba(255,255,255,0.05); margin-bottom: 5px; border-radius: 4px; }
+        .inv-slot b { color: var(--gold); font-size: 1em; }
         .skill-box { margin-top: 15px; padding: 10px; border: 1px solid var(--accent); background: rgba(139, 0, 0, 0.1); border-radius: 4px; text-align: left; }
+        .player-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: rgba(255,255,255,0.05); margin-bottom: 5px; border-radius: 4px; }
+        .dm-card { background: rgba(20, 20, 25, 0.9); border: 1px solid var(--gold); padding: 15px; margin-bottom: 10px; border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -34,25 +37,25 @@
 <div id="page-login" class="page active">
     <div class="card" style="margin-top: 10vh;">
         <div class="logo">Death's Armada</div>
-        <select id="login-select" style="width:100%; padding:10px; margin-bottom:10px; background:#000; color:#fff; border:1px solid var(--gold);"></select>
-        <input type="password" id="login-pin" placeholder="PIN KÓD" maxlength="4" style="width:100%; padding:10px; margin-bottom:10px; background:#000; color:#fff; border:1px solid var(--gold);">
+        <select id="login-select"></select>
+        <input type="password" id="login-pin" placeholder="PIN VAGY DM KÓD" maxlength="4">
         <button class="btn btn-main" onclick="login()">Belépés</button>
+        <button class="btn btn-sub" onclick="document.getElementById('modal-creator').style.display='flex'">✨ Új Hős Megidézése</button>
     </div>
 </div>
 
 <div id="page-lobby" class="page">
     <div class="card">
-        <h1 id="lobby-name" style="font-family:'MedievalSharp'; color:var(--gold); margin:0; font-size: 2.2em;">Betöltés...</h1>
-        <p id="lobby-class-display" style="margin:5px 0; font-style:italic; color:#aaa; font-size: 1.1em;">-</p>
+        <h1 id="lobby-name" style="font-family:'MedievalSharp'; color:var(--gold); margin:0;">Betöltés...</h1>
+        <p id="lobby-class-display" style="margin:5px 0; font-style:italic; color:#aaa;">-</p>
         
         <div class="bar-container">
             <div class="bar-fill" id="lobby-hp-fill"></div>
             <div class="bar-label" id="lobby-hp-text">0/0 HP</div>
         </div>
 
-        <div id="skill-container" class="skill-box">
-            <b style="color:var(--gold); font-family:'MedievalSharp';">Speciális Képesség:</b><br>
-            <span id="skill-name">-</span> <br>
+        <div class="skill-box">
+            <b style="color:var(--gold); font-family:'MedievalSharp';">Képesség:</b> <span id="skill-name">-</span><br>
             <small id="skill-desc" style="color:#bbb;">-</small>
         </div>
 
@@ -67,7 +70,7 @@
 
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:20px;">
             <button class="btn btn-main" style="background:#4a1a1a;">📜 KAMPÁNY</button>
-            <a href="https://IDE-IRD-AZ-ARENA-LINKET.hu" class="btn btn-main" target="_blank">⚔️ ARÉNA</a>
+            <a href="https://vesalud.github.io/arena" class="btn btn-main" style="background:#8b0000;" target="_blank">⚔️ ARÉNA</a>
         </div>
 
         <h3 style="font-family:'MedievalSharp'; color:var(--gold); margin-top:20px; text-align: left;">Kihívható Hősök</h3>
@@ -77,10 +80,37 @@
     </div>
 </div>
 
+<div id="page-dm" class="page">
+    <div style="width:100%; max-width:900px;">
+        <h1 style="font-family:'MedievalSharp'; color:var(--accent); text-align:center; text-shadow: 0 0 10px red;">Seregszemle (DM PANEL)</h1>
+        <div id="dm-player-list" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap:15px;"></div>
+        <button class="btn btn-sub" onclick="location.reload()" style="margin-top:20px;">Kilépés</button>
+    </div>
+</div>
+
+<div id="modal-creator" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); display:none; align-items:center; justify-content:center; z-index:100;">
+    <div class="card">
+        <h2 style="font-family:'MedievalSharp'; color:var(--gold);">Új Hős Megidézése</h2>
+        <input type="text" id="new-name" placeholder="Hős neve...">
+        <select id="new-class">
+            <option value="Harcos">Harcos (100 HP)</option>
+            <option value="Mágus">Mágus (70 HP)</option>
+            <option value="Lovag">Lovag (130 HP)</option>
+            <option value="Íjász">Íjász (90 HP)</option>
+            <option value="Bérgyilkos">Bérgyilkos (80 HP)</option>
+            <option value="Nekromanta">Nekromanta (110 HP)</option>
+        </select>
+        <input type="password" id="new-pin" placeholder="PIN kód (4 szám)" maxlength="4">
+        <button class="btn btn-main" onclick="saveNewHero()">Létrehozás</button>
+        <button class="btn btn-sub" onclick="document.getElementById('modal-creator').style.display='none'">Mégse</button>
+    </div>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <script>
+    // FIREBASE KONFIGURÁCIÓ
     const firebaseConfig = {
         apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU",
         authDomain: "dnd-tracker-4fe05.firebaseapp.com",
@@ -93,72 +123,143 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
+    // SPECIÁLIS KÉPESSÉG ADATOK
     const SKILLS = {
-        "Harcos": { name: "Vérszomj", desc: "Sebzés: 25 HP | CD: 3 kör (Önsebzés: 5 HP)" },
-        "Mágus": { name: "Tűzgolyó", desc: "Sebzés: 35 HP | CD: 5 kör" },
-        "Lovag": { name: "Szent Pajzs", desc: "Védelem: 50% csökkentés | CD: 4 kör" },
-        "Íjász": { name: "Dupla Lövés", desc: "Sebzés: 2x12 HP | CD: 3 kör" },
-        "Bérgyilkos": { name: "Mérgezett Tőr", desc: "Sebzés: 10 + 3 körön át 5 HP | CD: 5 kör" },
-        "Nekromanta": { name: "Életelszívás", desc: "Sebzés: 15 HP + 10 HP gyógyulás | CD: 4 kör" }
+        "Harcos": { name: "Vérszomj", desc: "25 HP sebzés | CD: 3 kör (-5 HP tőled)" },
+        "Mágus": { name: "Tűzgolyó", desc: "35 HP sebzés | CD: 5 kör" },
+        "Lovag": { name: "Szent Pajzs", desc: "50% védelem | CD: 4 kör" },
+        "Íjász": { name: "Dupla Lövés", desc: "2x12 HP sebzés | CD: 3 kör" },
+        "Bérgyilkos": { name: "Mérgezett Tőr", desc: "10 + 3x5 HP sebzés | CD: 5 kör" },
+        "Nekromanta": { name: "Életelszívás", desc: "15 HP sebzés + 10 HP gyógyulás | CD: 4 kör" }
     };
 
     let chars = {};
     let myId = null;
 
+    // ADATFIGYELÉS
     db.ref('characters').on('value', snap => {
         chars = snap.val() || {};
+        updateLoginList();
+        if (myId) updateLobbyUI();
+        if (document.getElementById('page-dm').classList.contains('active')) loadDMData();
+    });
+
+    function updateLoginList() {
         const sel = document.getElementById('login-select');
         const cur = sel.value;
         sel.innerHTML = '<option value="" disabled selected>Válaszd ki a hősöd...</option>';
-        Object.keys(chars).forEach(id => sel.innerHTML += `<option value="${id}">${chars[id].name}</option>`);
+        Object.keys(chars).forEach(id => {
+            sel.innerHTML += `<option value="${id}">${chars[id].name}</option>`;
+        });
         sel.value = cur;
-        if(myId) updateLobbyUI();
-    });
+    }
 
     function login() {
         const id = document.getElementById('login-select').value;
         const pin = document.getElementById('login-pin').value;
-        if (id && chars[id].pin.toString() === pin) { 
-            myId = id; 
-            document.getElementById('page-login').style.display = 'none';
-            document.getElementById('page-lobby').style.display = 'flex';
-            updateLobbyUI(); 
-        } else alert("Hibás adatok!");
+        
+        if (pin === "4469") {
+            switchPage('page-dm');
+            loadDMData();
+            return;
+        }
+
+        if (id && chars[id] && chars[id].pin.toString() === pin) {
+            myId = id;
+            switchPage('page-lobby');
+            updateLobbyUI();
+        } else {
+            alert("Hibás PIN vagy nincs kiválasztva hős!");
+        }
+    }
+
+    function switchPage(pId) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById(pId).classList.add('active');
+    }
+
+    function saveNewHero() {
+        const name = document.getElementById('new-name').value;
+        const cls = document.getElementById('new-class').value;
+        const pin = document.getElementById('new-pin').value;
+        
+        if(!name || !pin) { alert("Minden mezőt tölts ki!"); return; }
+        
+        const hpMap = { "Harcos":100, "Mágus":70, "Lovag":130, "Íjász":90, "Bérgyilkos":80, "Nekromanta":110 };
+        const hp = hpMap[cls];
+
+        db.ref('characters').push({
+            name, charClass: cls, pin, hp, maxHp: hp, wins: 0,
+            inventory: { weapon: "Pusztakéz", armor: "Rongyok", extra: "Mezítláb" }
+        });
+
+        document.getElementById('modal-creator').style.display = 'none';
+        alert("Hős megidézve!");
     }
 
     function updateLobbyUI() {
         const c = chars[myId];
-        if(!c) return;
+        if (!c) return;
 
-        // Név és Kaszt frissítése
         document.getElementById('lobby-name').innerText = c.name;
         document.getElementById('lobby-class-display').innerText = c.charClass;
         
-        // HP Csík
-        document.getElementById('lobby-hp-fill').style.width = (c.hp / c.maxHp * 100) + "%";
-        document.getElementById('lobby-hp-text').innerText = c.hp + "/" + c.maxHp + " HP";
+        const hpPct = (c.hp / c.maxHp) * 100;
+        document.getElementById('lobby-hp-fill').style.width = hpPct + "%";
+        document.getElementById('lobby-hp-text').innerText = `${c.hp} / ${c.maxHp} HP`;
 
-        // Képesség betöltése
-        const skill = SKILLS[c.charClass] || { name: "Alap ütés", desc: "Nincs különleges képesség." };
-        document.getElementById('skill-name').innerText = skill.name;
-        document.getElementById('skill-desc').innerText = skill.desc;
+        const sk = SKILLS[c.charClass] || { name: "Alap", desc: "Nincs képesség" };
+        document.getElementById('skill-name').innerText = sk.name;
+        document.getElementById('skill-desc').innerText = sk.desc;
 
-        // Inventory
         const inv = c.inventory || { weapon: "-", armor: "-", extra: "-" };
         document.getElementById('val-weapon').innerText = inv.weapon;
         document.getElementById('val-armor').innerText = inv.armor;
         document.getElementById('val-extra').innerText = inv.extra;
 
-        // Online lista
         const list = document.getElementById('online-players-list');
         list.innerHTML = "";
         Object.keys(chars).forEach(id => {
-            if(id !== myId) {
+            if (id !== myId) {
                 list.innerHTML += `<div class="player-item"><span>${chars[id].name}</span><span style="color:var(--gold); font-size:0.8em;">ONLINE</span></div>`;
             }
         });
     }
-</script>
 
+    function loadDMData() {
+        const cont = document.getElementById('dm-player-list');
+        cont.innerHTML = "";
+        Object.keys(chars).forEach(id => {
+            const p = chars[id];
+            cont.innerHTML += `
+                <div class="dm-card">
+                    <b style="color:var(--gold);">${p.name}</b> (${p.charClass})
+                    <div class="bar-container">
+                        <div class="bar-fill" style="width:${(p.hp/p.maxHp)*100}%;"></div>
+                        <div class="bar-label">${p.hp}/${p.maxHp} HP</div>
+                    </div>
+                    <div style="display:flex; gap:5px;">
+                        <button class="btn" style="flex:1; font-size:0.7em;" onclick="modHP('${id}', 10)">+10 HP</button>
+                        <button class="btn" style="flex:1; font-size:0.7em;" onclick="modHP('${id}', -10)">-10 HP</button>
+                        <button class="btn" style="flex:1; font-size:0.7em;" onclick="giveItemPrompt('${id}')">🎒 Tárgy</button>
+                    </div>
+                </div>`;
+        });
+    }
+
+    function modHP(id, amt) {
+        const newHp = Math.max(0, Math.min(chars[id].maxHp, chars[id].hp + amt));
+        db.ref(`characters/${id}`).update({ hp: newHp });
+    }
+
+    function giveItemPrompt(id) {
+        const slot = prompt("Melyik slot? (weapon / armor / extra)");
+        if (!['weapon', 'armor', 'extra'].includes(slot)) return alert("Érvénytelen slot!");
+        const itemName = prompt("Tárgy neve?");
+        if (itemName) {
+            db.ref(`characters/${id}/inventory/${slot}`).set(itemName);
+        }
+    }
+</script>
 </body>
 </html>
