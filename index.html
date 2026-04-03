@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Death's Armada - Hero Edition</title>
+    <title>Death's Armada - Full Edition</title>
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,600;1,700&family=MedievalSharp&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #c5a059; --bg: #050507; --card: rgba(15, 15, 18, 0.95); --accent: #8b0000; --text: #e0e0e0; }
@@ -28,27 +28,27 @@
         .btn-main { background: var(--accent); color: white; border: none; font-size: 1.1em; }
         .btn-sub { background: none; color: var(--gold); font-size: 0.8em; }
 
-        /* KREATÍV KÉP KERETEK - JAVÍTVA */
+        /* KREATÍV KÉP KERETEK - JAVÍTVA HOGY NE VÁGJA LE */
         .creator-container { display: flex; flex-direction: row; gap: 20px; align-items: stretch; max-width: 800px !important; }
         .preview-box { flex: 1; background: rgba(0,0,0,0.4); border-radius: 4px; padding: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-left: 1px solid rgba(197, 160, 89, 0.2); }
         .hero-img-frame { 
             width: 220px; 
             height: 220px; 
             border: 2px solid var(--gold); 
-            background-size: 100% 100%; /* KITÖLTI A NÉGYZETET */
+            background-size: 100% 100%; 
             background-repeat: no-repeat;
             background-position: center; 
             margin-bottom: 15px; 
             box-shadow: 0 0 15px rgba(0,0,0,0.5); 
         }
 
-        /* PROFIL / LOBBY NAGY KÉP - JAVÍTVA */
+        /* PROFIL / LOBBY NAGY KÉP - JAVÍTVA HOGY NE VÁGJA LE */
         .lobby-hero-portrait {
             width: 100%;
             height: 320px;
             border: 2px solid var(--gold);
             margin: 15px 0;
-            background-size: 100% 100%; /* KITÖLTI A NÉGYZETET */
+            background-size: 100% 100%; 
             background-repeat: no-repeat;
             background-position: center;
             box-shadow: 0 0 25px rgba(0,0,0,0.8), inset 0 0 40px rgba(0,0,0,0.6);
@@ -75,13 +75,78 @@
     <button class="btn-logout" onclick="logout()">Kilépés 🚪</button>
 </div>
 
+<div id="page-login" class="page active">
+    <div class="card" style="margin-top: 10vh;">
+        <div class="logo">Death's Armada</div>
+        <select id="login-select"></select>
+        <input type="password" id="login-pin" placeholder="PIN KÓD" maxlength="4">
+        <button class="btn btn-main" onclick="login()">Belépés</button>
+        <button class="btn btn-sub" onclick="openCreator()">✨ Új Hős Megidézése</button>
+    </div>
+</div>
+
+<div id="page-lobby" class="page">
+    <div class="card">
+        <h1 id="lobby-name" style="font-family:'MedievalSharp'; color:var(--gold); margin:0;">-</h1>
+        <p id="lobby-class-display" style="margin:5px 0; font-style:italic; color:#aaa; text-transform: uppercase; letter-spacing: 2px;">-</p>
+        
+        <div id="lobby-hero-img" class="lobby-hero-portrait"></div>
+        
+        <div class="bar-container">
+            <div class="bar-fill" id="lobby-hp-fill"></div>
+            <div class="bar-label" id="lobby-hp-text">0/0 HP</div>
+        </div>
+
+        <div class="skill-box">
+            <b style="color:var(--gold); font-family:'MedievalSharp';">Képesség:</b> <span id="skill-name">-</span><br>
+            <small id="skill-desc" style="color:#bbb;">-</small>
+        </div>
+
+        <div class="inv-grid">
+            <div class="inv-slot"><i>Kéz</i><b id="val-weapon">-</b></div>
+            <div class="inv-slot"><i>Test</i><b id="val-armor">-</b></div>
+            <div class="inv-slot"><i>Láb</i><b id="val-extra">-</b></div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:20px;">
+            <button class="btn btn-main" style="background:#4a1a1a;">📜 KAMPÁNY</button>
+            <button onclick="goToArena()" class="btn btn-main" style="background:#8b0000;">⚔️ ARÉNA</button>
+        </div>
+
+        <h3 style="font-family:'MedievalSharp'; color:var(--gold); margin-top:20px; text-align: left; border-bottom: 1px solid var(--gold);">Online Hősök</h3>
+        <div id="online-players-list" style="max-height: 120px; overflow-y: auto; margin-top: 10px;"></div>
+    </div>
+</div>
+
+<div id="modal-creator" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); display:none; align-items:center; justify-content:center; z-index:100;">
+    <div class="card creator-container">
+        <div style="flex: 1.2; text-align: left; padding-right: 15px;">
+            <h2 style="font-family:'MedievalSharp'; color:var(--gold); margin: 0 0 15px 0;">Megidézés</h2>
+            <input type="text" id="new-name" placeholder="Hős neve...">
+            <select id="new-class" onchange="updatePreview()">
+                <option value="Harcos">Harcos</option>
+                <option value="Mágus">Mágus</option>
+                <option value="Lovag">Lovag</option>
+                <option value="Íjász">Íjász</option>
+                <option value="Bérgyilkos">Bérgyilkos</option>
+                <option value="Nekromanta">Nekromanta</option>
+            </select>
+            <input type="password" id="new-pin" placeholder="PIN kód (4 szám)" maxlength="4">
+            <button class="btn btn-main" onclick="saveNewHero()" style="margin-top:10px;">Létrehozás</button>
+            <button class="btn btn-sub" onclick="document.getElementById('modal-creator').style.display='none'">Mégse</button>
+        </div>
+        <div class="preview-box">
+            <div id="preview-img" class="hero-img-frame"></div>
+            <h3 id="preview-skill-name" style="color:var(--gold); font-family:'MedievalSharp'; margin:5px 0;">-</h3>
+            <p id="preview-skill-desc" style="color:#bbb; font-size:0.85em; font-style:italic; text-align:center;">Válassz kasztot!</p>
+        </div>
+    </div>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <script>
-    // Itt a scriptjeid és a HERO_IMAGES lista jönnek, ugyanúgy ahogy eddig.
-    // A CSS változtatás miatt (background-size: 100% 100%) már nem fogja levágni a képeket.
-    
     const firebaseConfig = {
         apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU",
         authDomain: "dnd-tracker-4fe05.firebaseapp.com",
@@ -103,8 +168,6 @@
         "Nekromanta": "https://i.ibb.co/NnCwwCbR/Copilot-20260403-033301.png"
     };
 
-    // ... Innentől a kód többi része ugyanaz ...
-    
     const SKILLS = {
         "Harcos": { name: "Vérszomj", desc: "Brutális közelharci csapás, 25 HP sebzés." },
         "Mágus": { name: "Tűzgolyó", desc: "Hatalmas robbanás, 35 HP sebzés." },
