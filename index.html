@@ -12,26 +12,8 @@
         body { font-family: 'Crimson Text', serif; background-color: var(--bg); color: var(--text); margin: 0; height: 100vh; overflow: hidden; }
         .master-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.8)), url('https://i.pinimg.com/originals/26/2b/dd/262bdd02564bf6dabbe89df4f93e8e26.jpg'); background-size: cover; background-position: center; z-index: -1; }
         
-        /* JOBB FELSŐ KIJELENTKEZÉS GOMB */
-        .logout-corner {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-            display: none; /* Alapból rejtve, csak belépve látszik */
-        }
-        .btn-logout {
-            background: rgba(139, 0, 0, 0.6);
-            color: var(--gold);
-            border: 1px solid var(--gold);
-            padding: 8px 15px;
-            font-family: 'MedievalSharp';
-            cursor: pointer;
-            font-size: 0.8em;
-            text-transform: uppercase;
-            backdrop-filter: blur(5px);
-            transition: 0.3s;
-        }
+        .logout-corner { position: fixed; top: 20px; right: 20px; z-index: 1000; display: none; }
+        .btn-logout { background: rgba(139, 0, 0, 0.6); color: var(--gold); border: 1px solid var(--gold); padding: 8px 15px; font-family: 'MedievalSharp'; cursor: pointer; font-size: 0.8em; text-transform: uppercase; backdrop-filter: blur(5px); transition: 0.3s; }
         .btn-logout:hover { background: var(--accent); color: white; }
 
         .page { display: none; height: 100vh; padding: 20px; flex-direction: column; align-items: center; overflow-y: auto; }
@@ -42,6 +24,12 @@
         .btn { font-family: 'MedievalSharp'; padding: 12px; cursor: pointer; border: 1px solid var(--gold); transition: 0.3s; text-transform: uppercase; display: block; width: 100%; margin-bottom: 5px; text-decoration: none; text-align: center; color: var(--gold); }
         .btn-main { background: var(--accent); color: white; border: none; font-size: 1.1em; }
         .btn-sub { background: none; color: var(--gold); font-size: 0.8em; }
+
+        /* ÚJ CREATOR ELRENDEZÉS */
+        .creator-container { display: flex; flex-direction: row; gap: 20px; align-items: stretch; max-width: 800px !important; }
+        .preview-box { flex: 1; background: rgba(0,0,0,0.4); border-radius: 4px; padding: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-left: 1px solid rgba(197, 160, 89, 0.2); }
+        .hero-img-frame { width: 180px; height: 180px; border: 2px solid var(--gold); background-size: cover; background-position: center; margin-bottom: 15px; box-shadow: 0 0 15px rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; }
+
         .bar-container { height: 26px; background: #000; border: 1px solid #333; position: relative; margin: 10px 0; border-radius: 3px; overflow: hidden; }
         .bar-fill { height: 100%; transition: width 0.5s ease; background: linear-gradient(90deg, #600, #b00); width: 100%; }
         .bar-label { position: absolute; width: 100%; text-align: center; line-height: 24px; font-size: 14px; color: white; font-weight: bold; z-index: 2; text-shadow: 1px 1px 2px black; }
@@ -66,7 +54,7 @@
         <select id="login-select"></select>
         <input type="password" id="login-pin" placeholder="PIN KÓD" maxlength="4">
         <button class="btn btn-main" onclick="login()">Belépés</button>
-        <button class="btn btn-sub" onclick="document.getElementById('modal-creator').style.display='flex'">✨ Új Hős Megidézése</button>
+        <button class="btn btn-sub" onclick="openCreator()">✨ Új Hős Megidézése</button>
     </div>
 </div>
 
@@ -74,48 +62,55 @@
     <div class="card">
         <h1 id="lobby-name" style="font-family:'MedievalSharp'; color:var(--gold); margin:0;">-</h1>
         <p id="lobby-class-display" style="margin:5px 0; font-style:italic; color:#aaa;">-</p>
-        
         <div class="bar-container">
             <div class="bar-fill" id="lobby-hp-fill"></div>
             <div class="bar-label" id="lobby-hp-text">0/0 HP</div>
         </div>
-
         <div class="skill-box">
             <b style="color:var(--gold); font-family:'MedievalSharp';">Képesség:</b> <span id="skill-name">-</span><br>
             <small id="skill-desc" style="color:#bbb;">-</small>
         </div>
-
         <div class="inv-grid">
             <div class="inv-slot"><i>Kéz</i><b id="val-weapon">-</b></div>
             <div class="inv-slot"><i>Test</i><b id="val-armor">-</b></div>
             <div class="inv-slot"><i>Láb</i><b id="val-extra">-</b></div>
         </div>
-
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:20px;">
             <button class="btn btn-main" style="background:#4a1a1a;">📜 KAMPÁNY</button>
             <button onclick="goToArena()" class="btn btn-main" style="background:#8b0000;">⚔️ ARÉNA</button>
         </div>
-
         <h3 style="font-family:'MedievalSharp'; color:var(--gold); margin-top:20px; text-align: left;">Kihívható Hősök (ONLINE)</h3>
         <div id="online-players-list" style="max-height: 150px; overflow-y: auto;"></div>
     </div>
 </div>
 
 <div id="modal-creator" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); display:none; align-items:center; justify-content:center; z-index:100;">
-    <div class="card">
-        <h2 style="font-family:'MedievalSharp'; color:var(--gold);">Új Hős Megidézése</h2>
-        <input type="text" id="new-name" placeholder="Hős neve...">
-        <select id="new-class">
-            <option value="Harcos">Harcos (100 HP)</option>
-            <option value="Mágus">Mágus (70 HP)</option>
-            <option value="Lovag">Lovag (130 HP)</option>
-            <option value="Íjász">Íjász (90 HP)</option>
-            <option value="Bérgyilkos">Bérgyilkos (80 HP)</option>
-            <option value="Nekromanta">Nekromanta (110 HP)</option>
-        </select>
-        <input type="password" id="new-pin" placeholder="PIN kód (4 szám)" maxlength="4">
-        <button class="btn btn-main" onclick="saveNewHero()">Létrehozás</button>
-        <button class="btn btn-sub" onclick="document.getElementById('modal-creator').style.display='none'">Mégse</button>
+    <div class="card creator-container">
+        
+        <div style="flex: 1.2; text-align: left; padding-right: 15px;">
+            <h2 style="font-family:'MedievalSharp'; color:var(--gold); margin: 0 0 15px 0;">Megidézés</h2>
+            <input type="text" id="new-name" placeholder="Hős neve...">
+            <select id="new-class" onchange="updatePreview()">
+                <option value="Harcos">Harcos (100 HP)</option>
+                <option value="Mágus">Mágus (70 HP)</option>
+                <option value="Lovag">Lovag (130 HP)</option>
+                <option value="Íjász">Íjász (90 HP)</option>
+                <option value="Bérgyilkos">Bérgyilkos (80 HP)</option>
+                <option value="Nekromanta">Nekromanta (110 HP)</option>
+            </select>
+            <input type="password" id="new-pin" placeholder="PIN kód (4 szám)" maxlength="4">
+            <button class="btn btn-main" onclick="saveNewHero()" style="margin-top:10px;">Létrehozás</button>
+            <button class="btn btn-sub" onclick="document.getElementById('modal-creator').style.display='none'">Mégse</button>
+        </div>
+
+        <div class="preview-box">
+            <div id="preview-img" class="hero-img-frame">
+                <span id="placeholder-text" style="color:#444;">Nincs kép</span>
+            </div>
+            <h3 id="preview-skill-name" style="color:var(--gold); font-family:'MedievalSharp'; margin:5px 0; font-size:1.1em;">-</h3>
+            <p id="preview-skill-desc" style="color:#bbb; font-size:0.85em; font-style:italic; text-align:center;">Válassz kasztot!</p>
+        </div>
+
     </div>
 </div>
 
@@ -136,12 +131,22 @@
     const db = firebase.database();
 
     const SKILLS = {
-        "Harcos": { name: "Vérszomj", desc: "25 HP sebzés" },
-        "Mágus": { name: "Tűzgolyó", desc: "35 HP sebzés" },
-        "Lovag": { name: "Szent Pajzs", desc: "50% védelem" },
-        "Íjász": { name: "Dupla Lövés", desc: "2x12 HP sebzés" },
-        "Bérgyilkos": { name: "Mérgezett Tőr", desc: "Mérgezés" },
-        "Nekromanta": { name: "Életelszívás", desc: "15 HP szívás" }
+        "Harcos": { name: "Vérszomj", desc: "Brutális közelharci csapás, 25 HP sebzés." },
+        "Mágus": { name: "Tűzgolyó", desc: "Hatalmas robbanás, 35 HP sebzés." },
+        "Lovag": { name: "Szent Pajzs", desc: "Isteni védelem, ami elnyeli a sebzés 50%-át." },
+        "Íjász": { name: "Dupla Lövés", desc: "Két gyors nyílvessző, összesen 2x12 HP sebzés." },
+        "Bérgyilkos": { name: "Mérgezett Tőr", desc: "Lopakodó támadás, ami folyamatos mérgezést okoz." },
+        "Nekromanta": { name: "Életelszívás", desc: "Sebzi az ellenséget és 15 HP-t visszatölt neked." }
+    };
+
+    // Ide töltsd be a saját képeid linkjeit!
+    const HERO_IMAGES = {
+        "Bérgyilkos": "https://i.ibb.co/L9vXGqX/assassin.png", // A kép amit küldtél
+        "Harcos": "", 
+        "Mágus": "",
+        "Lovag": "",
+        "Íjász": "",
+        "Nekromanta": ""
     };
 
     let chars = {};
@@ -150,15 +155,36 @@
     db.ref('characters').on('value', snap => {
         chars = snap.val() || {};
         updateLoginList();
-        
         if (myId && chars[myId]) {
             setupPresence(myId);
             document.getElementById('logout-ui').style.display = 'block';
             showPage('page-lobby');
             updateLobbyUI();
         }
-        // Itt nem maradt más, csak a tiszta adatbetöltés!
     });
+
+    function updatePreview() {
+        const cls = document.getElementById('new-class').value;
+        const sk = SKILLS[cls];
+        const imgFrame = document.getElementById('preview-img');
+        const placeholder = document.getElementById('placeholder-text');
+
+        document.getElementById('preview-skill-name').innerText = sk.name;
+        document.getElementById('preview-skill-desc').innerText = sk.desc;
+
+        if (HERO_IMAGES[cls]) {
+            imgFrame.style.backgroundImage = `url('${HERO_IMAGES[cls]}')`;
+            placeholder.style.display = 'none';
+        } else {
+            imgFrame.style.backgroundImage = 'none';
+            placeholder.style.display = 'block';
+        }
+    }
+
+    function openCreator() {
+        document.getElementById('modal-creator').style.display = 'flex';
+        updatePreview();
+    }
 
     function showPage(pId) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -207,7 +233,6 @@
 
     function goToArena() {
         if (!myId) return;
-        // Csak ez az egy gombnyomás visz át az arénába!
         window.location.href = './arena.html';
     }
 
