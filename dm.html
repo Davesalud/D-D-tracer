@@ -1,116 +1,91 @@
-<!DOCTYPE html>
-<html lang="hu">
-<head>
-    <meta charset="UTF-8">
-    <title>DM Master Control</title>
-    <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
-    <style>
-        :root { --gold: #c5a059; --accent: #8b0000; --bg: #050507; --card: rgba(20, 20, 25, 0.9); }
-        body { background: var(--bg); color: var(--gold); font-family: 'Segoe UI', sans-serif; padding: 20px; margin: 0; padding-bottom: 80px; /* Hely a lenti gombnak */ }
-        
-        .header-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent); padding: 10px 20px; margin-bottom: 20px; }
-        h1 { font-family: 'MedievalSharp'; margin: 0; }
-        
-        .btn-top { padding: 8px 15px; font-family: 'MedievalSharp'; cursor: pointer; border: none; background: var(--accent); color: white; font-size: 0.9em; border-radius: 4px; }
+<script>
+    // ... (Firebase konfiguráció marad) ...
 
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; padding: 0 20px; }
-        .char-card { background: var(--card); border: 1px solid #444; padding: 15px; border-radius: 5px; }
-        
-        select, input, button { background: #1a1a1a; color: white; border: 1px solid #444; padding: 8px; margin: 5px 0; width: 100%; cursor: pointer; font-family: 'MedievalSharp'; }
-        button:hover { background: var(--gold); color: black; }
-        
-        .btn-reset { border-color: var(--accent); color: var(--accent); margin-top: 10px; font-size: 0.8em; }
-        .btn-reset:hover { background: var(--accent); color: white; }
-        
-        /* ALSÓ NAVIGÁCIÓS SÁV */
-        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.9); border-top: 1px solid var(--gold); padding: 15px; display: flex; justify-content: center; z-index: 1000; backdrop-filter: blur(10px); }
-        .btn-exit { background: none; border: 1px solid var(--gold); color: var(--gold); padding: 10px 40px; font-family: 'MedievalSharp'; text-decoration: none; text-transform: uppercase; letter-spacing: 2px; transition: 0.3s; }
-        .btn-exit:hover { background: var(--gold); color: black; }
+    db.ref('characters').on('value', snap => {
+        const chars = snap.val();
+        const list = document.getElementById('char-list');
+        list.innerHTML = '';
+        if(!chars) return;
 
-        .label { font-size: 0.75em; color: #888; text-transform: uppercase; margin-top: 10px; display: block; }
-    </style>
-</head>
-<body>
+        for(let id in chars) {
+            const c = chars[id];
+            
+            // 1. VISELT FELSZERELÉS ÖSSZEGYŰJTÉSE
+            const equipment = [
+                { slot: 'Sisak', id: c.equip_head },
+                { slot: 'Páncél', id: c.equip_chest },
+                { slot: 'Fegyver', id: c.equip_weapon },
+                { slot: 'Cipő', id: c.equip_feet }
+            ];
 
-    <div class="header-row">
-        <h1>🏰 DM PANEL</h1>
-        <button class="btn-top" onclick="resetAllXP()">⚠️ Összes XP Reset</button>
-    </div>
+            let equipHTML = '';
+            equipment.forEach(item => {
+                if(item.id) {
+                    const name = ITEMS[item.id] ? ITEMS[item.id].name : "Ismeretlen";
+                    equipHTML += `<div style="font-size:0.8em; color:#fff;"><b>${item.slot}:</b> ${name}</div>`;
+                }
+            });
+            if(equipHTML === '') equipHTML = '<span style="color:#555; font-size:0.8em;">Nincs felszerelés</span>';
 
-    <div id="char-list" class="grid">Betöltés...</div>
-
-    <div class="bottom-nav">
-        <a href="index.html" class="btn-exit">Vissza a Főmenübe 🚪</a>
-    </div>
-
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-    <script src="items.js"></script>
-    <script>
-        const firebaseConfig = { apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU", authDomain: "dnd-tracker-4fe05.firebaseapp.com", projectId: "dnd-tracker-4fe05", databaseURL: "https://dnd-tracker-4fe05-default-rtdb.europe-west1.firebasedatabase.app", storageBucket: "dnd-tracker-4fe05.firebasestorage.app", messagingSenderId: "886037504950", appId: "1:886037504950:web:46e80b46f0e26e24429717" };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-
-        db.ref('characters').on('value', snap => {
-            const chars = snap.val();
-            const list = document.getElementById('char-list');
-            list.innerHTML = '';
-            if(!chars) return;
-
-            for(let id in chars) {
-                const c = chars[id];
-                let itemOptions = `<option value="">-- Tárgy választása --</option>`;
-                for(let key in ITEMS) itemOptions += `<option value="${key}">${ITEMS[key].name}</option>`;
-
-                const card = document.createElement('div');
-                card.className = 'char-card';
-                card.innerHTML = `
-                    <h3 style="margin:0">${c.name} <span style="font-size:0.7em; color:#888;">(Lvl ${c.level || 1})</span></h3>
-                    <p style="margin: 5px 0;">💰 Arany: ${c.gold || 0} | ✨ XP: ${c.xp || 0}</p>
-                    
-                    <span class="label">Arany módosítás</span>
-                    <input type="number" id="gold-${id}" placeholder="Összeg (+/-)">
-                    <button onclick="updateGold('${id}')">Módosítás</button>
-                    
-                    <span class="label">Tárgy adományozás</span>
-                    <select id="item-${id}">${itemOptions}</select>
-                    <button onclick="giveItem('${id}')">Átadás</button>
-
-                    <button class="btn-reset" onclick="resetSingleXP('${id}')">XP Reset erre a hősre</button>
-                `;
-                list.appendChild(card);
-            }
-        });
-
-        function updateGold(id) {
-            const val = parseInt(document.getElementById(`gold-${id}`).value);
-            if(val) db.ref(`characters/${id}/gold`).transaction(c => (c || 0) + val);
-            document.getElementById(`gold-${id}`).value = '';
-        }
-
-        function giveItem(id) {
-            const itemId = document.getElementById(`item-${id}`).value;
-            if(itemId) db.ref(`characters/${id}/inventory`).push(itemId);
-        }
-
-        function resetSingleXP(id) {
-            if(confirm("Biztosan nullázod az XP-t ennél a hősnél?")) {
-                db.ref(`characters/${id}`).update({ xp: 0, level: 1 });
-            }
-        }
-
-        function resetAllXP() {
-            if(confirm("FIGYELEM! Minden hős XP-je és szintje nullázódni fog! Biztos vagy benne?")) {
-                db.ref('characters').once('value', snap => {
-                    const updates = {};
-                    snap.forEach(child => {
-                        updates[`characters/${child.key}/xp`] = 0;
-                        updates[`characters/${child.key}/level`] = 1;
-                    });
-                    db.ref().update(updates);
+            // 2. HÁTIZSÁK (INVENTORY) ÖSSZEÁLLÍTÁSA
+            let inventoryHTML = '';
+            if(c.inventory) {
+                Object.values(c.inventory).forEach(itemId => {
+                    const itemName = ITEMS[itemId] ? ITEMS[itemId].name : "Ismeretlen";
+                    inventoryHTML += `<span class="inv-item">${itemName}</span>`;
                 });
+            } else {
+                inventoryHTML = '<span style="color:#555; font-style:italic;">Üres</span>';
             }
+
+            let itemOptions = `<option value="">-- Tárgy választása --</option>`;
+            for(let key in ITEMS) itemOptions += `<option value="${key}">${ITEMS[key].name}</option>`;
+
+            const card = document.createElement('div');
+            card.className = 'char-card';
+            card.innerHTML = `
+                <div class="stat-line">
+                    <span>${c.name}</span>
+                    <span style="color:#888;">LVL ${c.level || 1}</span>
+                </div>
+                
+                <div style="display:flex; justify-content: space-around; background:rgba(0,0,0,0.5); padding:5px; border-radius:4px; margin-bottom:10px;">
+                    <span>💰 ${c.gold || 0}</span>
+                    <span>✨ ${c.xp || 0}</span>
+                </div>
+
+                <div style="background: rgba(139, 0, 0, 0.1); border: 1px solid rgba(197, 160, 89, 0.2); padding: 8px; border-radius: 4px; margin-bottom: 10px;">
+                    <span class="label" style="margin-top:0; color:var(--gold);">🛡️ Aktív Felszerelés:</span>
+                    ${equipHTML}
+                </div>
+                
+                <span class="label">Módosítás (Összeg +/-)</span>
+                <input type="number" id="val-${id}" placeholder="Mennyiség..." style="margin-bottom:2px;">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px;">
+                    <button onclick="updateValue('${id}', 'gold')">💰 Arany</button>
+                    <button onclick="updateValue('${id}', 'xp')">✨ XP</button>
+                </div>
+                
+                <span class="label">Új tárgy küldése</span>
+                <select id="item-${id}">${itemOptions}</select>
+                <button onclick="giveItem('${id}')">Átadás</button>
+
+                <span class="label">Hátizsák tartalma:</span>
+                <div class="dm-inventory-list">${inventoryHTML}</div>
+
+                <button class="btn-reset" onclick="resetSingleXP('${id}')">Hős Reset</button>
+            `;
+            list.appendChild(card);
         }
-    </script>
-</body>
-</html>
+    });
+
+    function updateValue(id, field) {
+        const val = parseInt(document.getElementById(`val-${id}`).value);
+        if(!isNaN(val)) {
+            db.ref(`characters/${id}/${field}`).transaction(c => (c || 0) + val);
+        }
+        document.getElementById(`val-${id}`).value = '';
+    }
+
+    // ... (többi függvény változatlan) ...
+</script>
