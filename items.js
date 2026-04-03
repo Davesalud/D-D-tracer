@@ -1,20 +1,20 @@
 const ITEMS = {
     "fakard_01": { 
         id: "fakard_01", 
-        name: "Ocska Fakard", 
-        type: "Fegyver", 
+        name: "Ócska Fakard", 
+        type: "fegyver", // JAVÍTVA: kisbetűvel kell!
         atk: 2, 
         def: 0, 
         rarity: "common", 
         img: "https://i.ibb.co/1YryWDNW/Copilot-20260403-152801.png" 
     },
-    "lovagpancel_01": { 
+    "szakadtfelso_01": { // JAVÍTVA: a kulcs egyezzen az ID-vel!
         id: "szakadtfelso_01", 
         name: "Szakadt Felső", 
-        type: "Páncél", 
+        type: "páncél", // JAVÍTVA: kisbetűvel kell!
         atk: 0, 
         def: 2, 
-        rarity: "rare", 
+        rarity: "common", // JAVÍTVA: egy szakadt felső inkább common :)
         img: "https://i.ibb.co/zw8sSP7/Copilot-20260403-153302.png" 
     }
 };
