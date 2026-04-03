@@ -3,125 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Death's Armada - ARENA v1.8 ⚔️</title>
+    <title>Death's Armada - ARENA v1.5 ⚔️</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #c5a059; --accent: #8b0000; --bg: #050507; }
         body { 
             background: var(--bg); color: white; font-family: 'MedievalSharp', cursive; margin: 0;
             background-image: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.95)), url('https://wallpaperaccess.com/full/1155861.jpg');
-            background-size: cover; min-height: 100vh; display: flex; flex-direction: column;
+            background-size: cover; height: 100vh; overflow: hidden; display: flex; flex-direction: column;
         }
 
-        .arena-header { padding: 10px; border-bottom: 2px solid var(--gold); text-align: center; background: rgba(0,0,0,0.8); }
-        .battlefield { display: flex; flex: 1; justify-content: center; align-items: center; padding: 20px; gap: 20px; flex-wrap: wrap; }
-        
-        .fighter-card { 
-            flex: 1; min-width: 300px; max-width: 340px; padding: 20px; border: 2px solid #333; 
-            background: rgba(15, 15, 20, 0.95); border-radius: 12px; text-align: center;
-            transition: 0.4s ease; position: relative;
+        @keyframes shake {
+            0%, 100% { transform: translate(0, 0) rotate(0); }
+            20%, 60% { transform: translate(-8px, 0) rotate(-1deg); }
+            40%, 80% { transform: translate(8px, 0) rotate(1deg); }
         }
+        .shake { animation: shake 0.4s ease-in-out; border-color: red !important; }
 
-        .center-ui { display: flex; flex-direction: column; align-items: center; gap: 15px; width: 350px; }
+        #flash-effect {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 0, 0, 0.4); opacity: 0; pointer-events: none; z-index: 999; transition: opacity 0.2s;
+        }
+        .flash-active { opacity: 1 !important; }
 
         .hero-portrait {
             width: 100%; height: 320px; border: 2px solid var(--gold); margin: 15px 0;
             background-size: cover; background-repeat: no-repeat; background-position: center 20%;
-            border-radius: 4px; background-color: #000;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8); border-radius: 4px; background-color: #000;
         }
 
-        @media (max-width: 900px) {
-            .battlefield { align-items: flex-start; padding: 10px; }
-            .center-ui { order: -1; width: 100%; margin-bottom: 10px; }
-            .fighter-card { width: 100%; max-width: 100%; min-width: auto; }
-            .hero-portrait { height: 220px; }
-            .back-btn-container { background: rgba(0,0,0,0.8); width: 100%; left: 0; bottom: 0; padding: 10px 0; justify-content: center; }
+        .dice-box { 
+            width: 100px; height: 100px; border: 3px solid var(--gold); display: flex; 
+            align-items: center; justify-content: center; font-size: 3.5em; 
+            background: rgba(139, 0, 0, 0.3); color: var(--gold); border-radius: 15px;
         }
+        .dice-rolling { animation: dice-spin 0.2s linear infinite; color: white; }
+        @keyframes dice-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
+        .arena-header { padding: 10px; border-bottom: 2px solid var(--gold); text-align: center; background: rgba(0,0,0,0.7); }
+        .battlefield { display: flex; flex: 1; justify-content: space-around; align-items: center; padding: 20px; gap: 20px; }
+        
+        .fighter-card { 
+            flex: 1; max-width: 340px; padding: 20px; border: 2px solid #333; 
+            background: rgba(15, 15, 20, 0.95); border-radius: 12px; text-align: center;
+            transition: 0.4s ease; position: relative;
+        }
         .turn-indicator {
             position: absolute; top: -15px; left: 50%; transform: translateX(-50%);
             background: var(--gold); color: black; padding: 4px 20px; font-size: 0.9em;
             border-radius: 20px; display: none; font-weight: bold; box-shadow: 0 0 15px var(--gold); z-index: 10;
         }
-        .fighter-card.active { border-color: var(--gold); transform: scale(1.02); box-shadow: 0 0 20px rgba(197, 160, 89, 0.3); }
+        .fighter-card.active { border-color: var(--gold); transform: translateY(-10px); box-shadow: 0 0 20px rgba(197, 160, 89, 0.3); }
         .fighter-card.active .turn-indicator { display: block; }
 
-        .hp-bar { width: 100%; height: 26px; background: #000; border: 1px solid #444; margin: 15px 0; overflow: hidden; position: relative; }
-        .hp-fill { height: 100%; background: linear-gradient(90deg, #8b0000, #ff0000); width: 100%; transition: 0.6s; }
-        .hp-text { position: absolute; width: 100%; text-align: center; font-size: 14px; top: 3px; text-shadow: 1px 1px 3px black; font-weight: bold; }
+        .hp-bar { width: 100%; height: 26px; background: #000; border: 1px solid #444; margin: 15px 0; overflow: hidden; position: relative; border-radius: 4px; }
+        .hp-fill { height: 100%; background: linear-gradient(90deg, #8b0000, #ff0000); width: 100%; transition: 0.6s ease-out; }
+        .hp-text { position: absolute; width: 100%; text-align: center; font-size: 14px; top: 3px; text-shadow: 1px 1px 3px black; font-weight: bold; z-index: 5; }
         
         .battle-log {
-            width: 100%; height: 150px; background: rgba(0,0,0,0.9);
+            width: 100%; max-width: 380px; height: 180px; background: rgba(0,0,0,0.9);
             border: 1px solid #444; padding: 12px; font-size: 0.85em; overflow-y: auto;
             text-align: left; color: #ccc; border-radius: 8px;
         }
-        
+        .log-entry { border-bottom: 1px solid #222; padding: 3px; }
+
         .btn { 
             background: var(--accent); color: white; border: 1px solid var(--gold); 
             padding: 14px; font-family: 'MedievalSharp'; cursor: pointer; text-transform: uppercase; width: 100%; margin-top: 10px;
         }
-        .btn:disabled { opacity: 0.3; cursor: not-allowed; }
-
+        .btn:disabled { background: #1a1a1a; color: #444; border-color: #222; cursor: not-allowed; }
+        
         #win-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.98); display: none; flex-direction: column;
+            background: rgba(0,0,0,0.96); display: none; flex-direction: column;
             align-items: center; justify-content: center; z-index: 1000; text-align: center;
         }
         .win-active { display: flex !important; }
 
-        .back-btn-container { position: fixed; bottom: 20px; left: 20px; z-index: 100; display: flex; gap: 10px; }
+        .back-btn-container { position: fixed; bottom: 20px; left: 20px; z-index: 100; }
         .back-link { 
-            color: var(--gold); background: rgba(0,0,0,0.8); border: 1px solid var(--gold); 
-            padding: 12px 20px; cursor: pointer; font-family: 'MedievalSharp'; text-transform: uppercase; border-radius: 4px;
+            color: var(--gold); text-decoration: none; background: rgba(0,0,0,0.6); 
+            border: 1px solid var(--gold); padding: 12px 20px; cursor: pointer; 
+            font-family: 'MedievalSharp'; font-size: 1em; transition: 0.3s;
+            text-transform: uppercase; border-radius: 4px;
         }
-
-        .dice-box { 
-            width: 90px; height: 90px; border: 3px solid var(--gold); display: flex; 
-            align-items: center; justify-content: center; font-size: 3.5em; 
-            background: rgba(139, 0, 0, 0.3); color: var(--gold); border-radius: 15px;
-        }
-        .dice-rolling { animation: dice-spin 0.2s linear infinite; }
-        @keyframes dice-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .btn-forfeit { border-color: #ff0000; color: #ff0000; }
+        .btn-forfeit:hover { background: #8b0000; color: white; }
     </style>
 </head>
 <body>
 
+<div id="flash-effect"></div>
+
 <div id="win-screen">
-    <h1 id="win-title" style="font-size: 4em; color: var(--gold); margin: 0;">GYŐZELEM!</h1>
-    <div id="winner-name" style="font-size: 2.5em; margin-bottom: 10px;">-</div>
-    <div id="win-msg" style="font-style: italic; color: #aaa; margin-bottom: 30px;"></div>
-    <button class="btn" style="width: 250px;" onclick="exitArena()">Vissza a Főmenübe</button>
+    <h1 id="win-title" style="font-size: 5em; color: var(--gold); margin-bottom: 10px;">GYŐZELEM!</h1>
+    <div id="winner-name" style="font-size: 2.5em; margin-bottom: 20px;">-</div>
+    <div id="win-msg" style="font-size: 1.2em; color: #aaa; margin-bottom: 40px; font-style: italic;"></div>
+    <button class="btn" style="width: 250px;" onclick="resetArena()">Új viadal keresése</button>
 </div>
 
-<div class="arena-header"><h2 id="turn-display" style="margin:5px;">Dicsőség vagy Halál</h2></div>
+<div class="arena-header"><h2 id="turn-display">Dicsőség vagy Halál</h2></div>
 
 <div class="battlefield">
     <div id="p-card" class="fighter-card">
         <div class="turn-indicator">TE JÖSSZ!</div>
-        <h3 id="p-name" style="margin:5px;">Te</h3>
+        <h3 id="p-name">Te</h3>
         <div id="p-img" class="hero-portrait"></div>
-        <div class="hp-bar"><div id="p-hp-fill" class="hp-fill"></div><div class="hp-text" id="p-hp-val">0/0 HP</div></div>
+        <div class="hp-bar">
+            <div id="p-hp-fill" class="hp-fill"></div>
+            <div class="hp-text" id="p-hp-val">0/0 HP</div>
+        </div>
         <button id="btn-attack" class="btn" onclick="performAction('attack')" disabled>⚔️ Támadás</button>
         <button id="btn-skill" class="btn" style="background:#4a1a1a;" onclick="performAction('skill')" disabled>✨ Képesség</button>
     </div>
 
-    <div class="center-ui">
+    <div class="center-ui" style="display:flex; flex-direction:column; align-items:center; gap:15px;">
         <div id="dice" class="dice-box">?</div>
         <div id="log" class="battle-log"></div>
+        <button class="btn" style="font-size:0.6em; width:auto; padding:5px 15px; opacity:0.3;" onclick="resetArena()">🔄 Szoba Reset</button>
     </div>
 
     <div id="e-card" class="fighter-card">
-        <div class="turn-indicator">ELLENFÉL!</div>
-        <h3 id="e-name" style="margin:5px;">Ellenfél</h3>
+        <div class="turn-indicator">ELLENFÉL TÁMAD!</div>
+        <h3 id="e-name">Ellenfél</h3>
         <div id="e-img" class="hero-portrait"></div>
-        <div class="hp-bar"><div id="e-hp-fill" class="hp-fill"></div><div class="hp-text" id="e-hp-val">0/0 HP</div></div>
+        <div class="hp-bar">
+            <div id="e-hp-fill" class="hp-fill"></div>
+            <div class="hp-text" id="e-hp-val">0/0 HP</div>
+        </div>
         <div id="e-status" style="margin-top:10px; color:var(--gold); font-style: italic;">Várakozás...</div>
     </div>
 </div>
 
 <div class="back-btn-container">
-    <button id="exit-btn" class="back-link" onclick="exitArena()">⬅ Vissza a Főmenübe</button>
-    <button id="forfeit-btn" class="back-link" onclick="forfeit()" style="display: none; border-color: #ff0000; color: #ff0000;">🏳️ Megfutamodás</button>
+    <button id="exit-btn" class="back-link" onclick="safeExit()">⬅ Vissza</button>
+    <button id="forfeit-btn" class="back-link btn-forfeit" onclick="forfeit()" style="display: none;">🏳️ Megfutamodás</button>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -167,7 +183,7 @@
             bRef.set({
                 p1: { id: myId, name: c.name, hp: c.maxHp, maxHp: c.maxHp, class: c.charClass, status: "active" },
                 p2: { id: "waiting", name: "Ellenfél", hp: 0, maxHp: 100, class: "" },
-                turn: myId, lastRoll: "?", log: ["Várakozás ellenfélre..."]
+                turn: myId, lastRoll: "?", log: ["Kihívót várunk az Arénába..."]
             });
         });
     }
@@ -177,7 +193,7 @@
             const c = s.val();
             bRef.update({
                 "p2": { id: myId, name: c.name, hp: c.maxHp, maxHp: c.maxHp, class: c.charClass, status: "active" },
-                "log": ["A viadal elkezdődött!"]
+                "log": ["A viadal megkezdődött! Nincs menekvés!"]
             });
         });
     }
@@ -188,6 +204,7 @@
         const opp = isP1 ? b.p2 : b.p1;
         const hasOpponent = (opp && opp.id !== "waiting");
 
+        // Gombok kezelése
         document.getElementById('exit-btn').style.display = hasOpponent ? 'none' : 'block';
         document.getElementById('forfeit-btn').style.display = hasOpponent ? 'block' : 'none';
 
@@ -213,25 +230,34 @@
         document.getElementById('btn-attack').disabled = !myTurn;
         document.getElementById('btn-skill').disabled = !myTurn;
         document.getElementById('dice').innerText = b.lastRoll;
-        document.getElementById('log').innerHTML = b.log ? b.log.map(l => `<div style="padding:2px; border-bottom:1px solid #222">${l}</div>`).reverse().join('') : "";
+        document.getElementById('log').innerHTML = b.log ? b.log.map(l => `<div class="log-entry">${l}</div>`).reverse().join('') : "";
 
+        if (window.lastHp !== undefined && window.lastHp > me.hp) triggerHit('p-card');
+        if (window.lastOppHp !== undefined && window.lastOppHp > opp.hp) triggerHit('e-card');
+        window.lastHp = me.hp; window.lastOppHp = opp.hp;
+
+        // GYŐZELMI LOGIKA
         if (hasOpponent && (me.hp <= 0 || opp.hp <= 0)) {
-            const ws = document.getElementById('win-screen');
+            const winScreen = document.getElementById('win-screen');
+            const winnerName = document.getElementById('winner-name');
+            const winMsg = document.getElementById('win-msg');
+            const winTitle = document.getElementById('win-title');
+
             if (me.hp > 0) {
-                document.getElementById('win-title').innerText = "GYŐZELEM!";
-                document.getElementById('winner-name').innerText = me.name;
-                document.getElementById('win-msg').innerText = opp.status === "coward" ? "Az ellenfeled elmenekült!" : "Látványos győzelmet arattál!";
+                winnerName.innerText = me.name;
+                winTitle.innerText = "GYŐZELEM!";
+                winMsg.innerText = opp.status === "coward" ? "Az ellenfeled egy gyáva nyúl volt és elmenekült!" : "Becsületes harcban diadalmaskodtál!";
             } else {
-                document.getElementById('win-title').innerText = "VERESÉG!";
-                document.getElementById('winner-name').innerText = opp.name;
-                document.getElementById('win-msg').innerText = me.status === "coward" ? "Gyáván elmenekültél..." : "Hősiesen küzdöttél.";
+                winnerName.innerText = opp.name;
+                winTitle.innerText = "VERESÉG!";
+                winMsg.innerText = me.status === "coward" ? "Gyáván megfutamodtál, a nevedet sárba tiporják..." : "Hősiesen estél el a csatában.";
             }
-            ws.classList.add('win-active');
+            winScreen.classList.add('win-active');
         }
     }
 
     function forfeit() {
-        if(confirm("Valóban megfutamodsz? Ez gyávaság!")) {
+        if(confirm("Valóban megfutamodsz? A nevedre örök szégyen vár!")) {
             bRef.once('value').then(snap => {
                 const b = snap.val();
                 const isP1 = b.p1.id === myId;
@@ -239,11 +265,19 @@
                 updates[isP1 ? 'p1/hp' : 'p2/hp'] = 0;
                 updates[isP1 ? 'p1/status' : 'p2/status'] = "coward";
                 let nLog = b.log || [];
-                nLog.push(`🏳️ ${(isP1 ? b.p1.name : b.p2.name)} megfutamodott!`);
+                nLog.push(`🏳️ ${(isP1 ? b.p1.name : b.p2.name)} elmenekült! Micsoda gyáva nyúl!`);
                 updates['log'] = nLog;
                 bRef.update(updates);
             });
         }
+    }
+
+    function triggerHit(id) {
+        const card = document.getElementById(id);
+        const flash = document.getElementById('flash-effect');
+        if (card) card.classList.add('shake');
+        if (flash) { flash.classList.add('flash-active'); setTimeout(() => flash.classList.remove('flash-active'), 200); }
+        setTimeout(() => { if (card) card.classList.remove('shake'); }, 500);
     }
 
     function performAction(type) {
@@ -253,24 +287,27 @@
             dice.classList.remove('dice-rolling');
             bRef.once('value', snap => {
                 const b = snap.val();
+                if(!b) return;
                 const roll = Math.floor(Math.random() * 20) + 1;
                 const isP1 = b.p1.id === myId;
                 const me = isP1 ? b.p1 : b.p2;
                 const opp = isP1 ? b.p2 : b.p1;
-                let dmg = 0, msg = "";
+                let dmg = 0, heal = 0, msg = "";
 
                 if (type === 'attack') {
                     if (roll >= 8) {
-                        dmg = 15; if (roll === 20) dmg = 30;
-                        msg = `${me.name} ütött: ${dmg} sebzés!`;
-                    } else msg = `${me.name} elvétette!`;
+                        dmg = 15; if (roll === 20) { dmg = 30; msg = "🎯 KRITIKUS! "; }
+                        msg += `${me.name} eltalálta! (-${dmg} HP)`;
+                    } else msg = `🛡️ ${me.name} elvétette!`;
                 } else {
                     dmg = SKILLS[me.class] || 20;
-                    msg = `${me.name} képessége: ${dmg} sebzés!`;
+                    if (me.class === "Nekromanta") heal = 15;
+                    msg = `✨ ${me.name} képessége: -${dmg} HP!`;
                 }
 
                 const updates = {};
                 updates[isP1 ? 'p2/hp' : 'p1/hp'] = Math.max(0, (isP1 ? b.p2.hp : b.p1.hp) - dmg);
+                updates[isP1 ? 'p1/hp' : 'p2/hp'] = Math.min(me.maxHp, me.hp + heal);
                 updates['turn'] = opp.id;
                 updates['lastRoll'] = roll;
                 let nLog = b.log || []; nLog.push(`[D20: ${roll}] ${msg}`);
@@ -281,14 +318,8 @@
         }, 1000);
     }
 
-    // ÚJ: Kilépéskor törli a harcot és visszavisz a főmenübe
-    function exitArena() {
-        bRef.remove().then(() => {
-            window.location.replace('index.html');
-        }).catch(() => {
-            window.location.replace('index.html');
-        });
-    }
+    function resetArena() { bRef.remove().then(() => location.reload()); }
+    function safeExit() { bRef.remove().then(() => window.location.replace('index.html')); }
 </script>
 </body>
 </html>
