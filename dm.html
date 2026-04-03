@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <title>DM Master Control</title>
+    <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
+    <style>
+        body { background: #050507; color: #c5a059; font-family: 'Segoe UI', sans-serif; padding: 20px; }
+        h1 { font-family: 'MedievalSharp'; border-bottom: 2px solid #8b0000; padding-bottom: 10px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .char-card { background: rgba(20, 20, 25, 0.9); border: 1px solid #444; padding: 15px; border-radius: 5px; }
+        select, input, button { background: #1a1a1a; color: white; border: 1px solid #c5a059; padding: 8px; margin: 5px 0; width: 100%; cursor: pointer; }
+        button:hover { background: #c5a059; color: black; }
+        .label { font-size: 0.8em; color: #888; text-transform: uppercase; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1>🏰 DUNGEON MASTER PANEL</h1>
+    <div id="char-list" class="grid">Betöltés...</div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="items.js"></script>
+    <script>
+        const firebaseConfig = { apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU", authDomain: "dnd-tracker-4fe05.firebaseapp.com", projectId: "dnd-tracker-4fe05", databaseURL: "https://dnd-tracker-4fe05-default-rtdb.europe-west1.firebasedatabase.app", storageBucket: "dnd-tracker-4fe05.firebasestorage.app", messagingSenderId: "886037504950", appId: "1:886037504950:web:46e80b46f0e26e24429717" };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        db.ref('characters').on('value', snap => {
+            const chars = snap.val();
+            const list = document.getElementById('char-list');
+            list.innerHTML = '';
+            for(let id in chars) {
+                const c = chars[id];
+                let itemOptions = `<option value="">-- Tárgy választása --</option>`;
+                for(let key in ITEMS) itemOptions += `<option value="${key}">${ITEMS[key].name}</option>`;
+
+                const card = document.createElement('div');
+                card.className = 'char-card';
+                card.innerHTML = `
+                    <h3>${c.name}</h3>
+                    <p>💰 Arany: ${c.gold || 0}</p>
+                    <input type="number" id="gold-${id}" placeholder="Összeg (+/-)">
+                    <button onclick="updateGold('${id}')">Arany Módosítás</button>
+                    <div class="label">Tárgy Adományozás</div>
+                    <select id="item-${id}">${itemOptions}</select>
+                    <button onclick="giveItem('${id}')">Tárgy Átadása</button>
+                `;
+                list.appendChild(card);
+            }
+        });
+
+        function updateGold(id) {
+            const val = parseInt(document.getElementById(`gold-${id}`).value);
+            if(val) db.ref(`characters/${id}/gold`).transaction(c => (c || 0) + val);
+        }
+
+        function giveItem(id) {
+            const itemId = document.getElementById(`item-${id}`).value;
+            if(itemId) db.ref(`characters/${id}/inventory`).push(itemId);
+        }
+    </script>
+</body>
+</html>
