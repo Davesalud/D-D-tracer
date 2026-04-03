@@ -5,18 +5,43 @@
     <title>DM Master Control</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
     <style>
-        body { background: #050507; color: #c5a059; font-family: 'Segoe UI', sans-serif; padding: 20px; }
-        h1 { font-family: 'MedievalSharp'; border-bottom: 2px solid #8b0000; padding-bottom: 10px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
-        .char-card { background: rgba(20, 20, 25, 0.9); border: 1px solid #444; padding: 15px; border-radius: 5px; }
-        select, input, button { background: #1a1a1a; color: white; border: 1px solid #c5a059; padding: 8px; margin: 5px 0; width: 100%; cursor: pointer; }
-        button:hover { background: #c5a059; color: black; }
-        .label { font-size: 0.8em; color: #888; text-transform: uppercase; margin-top: 10px; }
+        :root { --gold: #c5a059; --accent: #8b0000; --bg: #050507; --card: rgba(20, 20, 25, 0.9); }
+        body { background: var(--bg); color: var(--gold); font-family: 'Segoe UI', sans-serif; padding: 20px; margin: 0; padding-bottom: 80px; /* Hely a lenti gombnak */ }
+        
+        .header-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent); padding: 10px 20px; margin-bottom: 20px; }
+        h1 { font-family: 'MedievalSharp'; margin: 0; }
+        
+        .btn-top { padding: 8px 15px; font-family: 'MedievalSharp'; cursor: pointer; border: none; background: var(--accent); color: white; font-size: 0.9em; border-radius: 4px; }
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; padding: 0 20px; }
+        .char-card { background: var(--card); border: 1px solid #444; padding: 15px; border-radius: 5px; }
+        
+        select, input, button { background: #1a1a1a; color: white; border: 1px solid #444; padding: 8px; margin: 5px 0; width: 100%; cursor: pointer; font-family: 'MedievalSharp'; }
+        button:hover { background: var(--gold); color: black; }
+        
+        .btn-reset { border-color: var(--accent); color: var(--accent); margin-top: 10px; font-size: 0.8em; }
+        .btn-reset:hover { background: var(--accent); color: white; }
+        
+        /* ALSÓ NAVIGÁCIÓS SÁV */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.9); border-top: 1px solid var(--gold); padding: 15px; display: flex; justify-content: center; z-index: 1000; backdrop-filter: blur(10px); }
+        .btn-exit { background: none; border: 1px solid var(--gold); color: var(--gold); padding: 10px 40px; font-family: 'MedievalSharp'; text-decoration: none; text-transform: uppercase; letter-spacing: 2px; transition: 0.3s; }
+        .btn-exit:hover { background: var(--gold); color: black; }
+
+        .label { font-size: 0.75em; color: #888; text-transform: uppercase; margin-top: 10px; display: block; }
     </style>
 </head>
 <body>
-    <h1>🏰 DUNGEON MASTER PANEL</h1>
+
+    <div class="header-row">
+        <h1>🏰 DM PANEL</h1>
+        <button class="btn-top" onclick="resetAllXP()">⚠️ Összes XP Reset</button>
+    </div>
+
     <div id="char-list" class="grid">Betöltés...</div>
+
+    <div class="bottom-nav">
+        <a href="index.html" class="btn-exit">Vissza a Főmenübe 🚪</a>
+    </div>
 
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -30,6 +55,8 @@
             const chars = snap.val();
             const list = document.getElementById('char-list');
             list.innerHTML = '';
+            if(!chars) return;
+
             for(let id in chars) {
                 const c = chars[id];
                 let itemOptions = `<option value="">-- Tárgy választása --</option>`;
@@ -38,13 +65,18 @@
                 const card = document.createElement('div');
                 card.className = 'char-card';
                 card.innerHTML = `
-                    <h3>${c.name}</h3>
-                    <p>💰 Arany: ${c.gold || 0}</p>
+                    <h3 style="margin:0">${c.name} <span style="font-size:0.7em; color:#888;">(Lvl ${c.level || 1})</span></h3>
+                    <p style="margin: 5px 0;">💰 Arany: ${c.gold || 0} | ✨ XP: ${c.xp || 0}</p>
+                    
+                    <span class="label">Arany módosítás</span>
                     <input type="number" id="gold-${id}" placeholder="Összeg (+/-)">
-                    <button onclick="updateGold('${id}')">Arany Módosítás</button>
-                    <div class="label">Tárgy Adományozás</div>
+                    <button onclick="updateGold('${id}')">Módosítás</button>
+                    
+                    <span class="label">Tárgy adományozás</span>
                     <select id="item-${id}">${itemOptions}</select>
-                    <button onclick="giveItem('${id}')">Tárgy Átadása</button>
+                    <button onclick="giveItem('${id}')">Átadás</button>
+
+                    <button class="btn-reset" onclick="resetSingleXP('${id}')">XP Reset erre a hősre</button>
                 `;
                 list.appendChild(card);
             }
@@ -53,11 +85,31 @@
         function updateGold(id) {
             const val = parseInt(document.getElementById(`gold-${id}`).value);
             if(val) db.ref(`characters/${id}/gold`).transaction(c => (c || 0) + val);
+            document.getElementById(`gold-${id}`).value = '';
         }
 
         function giveItem(id) {
             const itemId = document.getElementById(`item-${id}`).value;
             if(itemId) db.ref(`characters/${id}/inventory`).push(itemId);
+        }
+
+        function resetSingleXP(id) {
+            if(confirm("Biztosan nullázod az XP-t ennél a hősnél?")) {
+                db.ref(`characters/${id}`).update({ xp: 0, level: 1 });
+            }
+        }
+
+        function resetAllXP() {
+            if(confirm("FIGYELEM! Minden hős XP-je és szintje nullázódni fog! Biztos vagy benne?")) {
+                db.ref('characters').once('value', snap => {
+                    const updates = {};
+                    snap.forEach(child => {
+                        updates[`characters/${child.key}/xp`] = 0;
+                        updates[`characters/${child.key}/level`] = 1;
+                    });
+                    db.ref().update(updates);
+                });
+            }
         }
     </script>
 </body>
