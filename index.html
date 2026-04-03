@@ -10,24 +10,53 @@
         * { box-sizing: border-box; -webkit-user-select: none; user-select: none; outline: none; }
         input, select { user-select: text !important; }
         body { font-family: 'Crimson Text', serif; background-color: var(--bg); color: var(--text); margin: 0; height: 100vh; overflow: hidden; }
+        
         .master-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.8)), url('https://i.pinimg.com/originals/26/2b/dd/262bdd02564bf6dabbe89df4f93e8e26.jpg'); background-size: cover; background-position: center; z-index: -1; }
+        
         .logout-corner { position: fixed; top: 20px; right: 20px; z-index: 1000; display: none; }
         .btn-logout { background: rgba(139, 0, 0, 0.6); color: var(--gold); border: 1px solid var(--gold); padding: 8px 15px; font-family: 'MedievalSharp'; cursor: pointer; font-size: 0.8em; text-transform: uppercase; transition: 0.3s; }
+        
         .page { display: none; height: 100vh; padding: 20px; flex-direction: column; align-items: center; overflow-y: auto; }
         .page.active { display: flex; }
-        .card { background: var(--card); border: 1px solid var(--gold); padding: 20px; border-radius: 4px; width: 100%; max-width: 450px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.9); backdrop-filter: blur(15px); margin-bottom: 20px; }
+        
+        .card { background: var(--card); border: 1px solid var(--gold); padding: 20px; border-radius: 4px; width: 100%; max-width: 450px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.9); backdrop-filter: blur(15px); margin-bottom: 20px; position: relative; }
         .logo { font-family: 'MedievalSharp'; font-size: 3em; color: var(--accent); text-shadow: 0 0 15px rgba(139,0,0,0.7); margin-bottom: 15px; }
         input, select { width: 100%; padding: 12px; margin-bottom: 10px; background: rgba(0,0,0,0.8); border: 1px solid #444; color: white; font-family: 'MedievalSharp'; }
         .btn { font-family: 'MedievalSharp'; padding: 12px; cursor: pointer; border: 1px solid var(--gold); transition: 0.3s; text-transform: uppercase; display: block; width: 100%; margin-bottom: 5px; text-decoration: none; text-align: center; color: var(--gold); }
         .btn-main { background: var(--accent); color: white; border: none; font-size: 1.1em; }
         .btn-sub { background: none; color: var(--gold); font-size: 0.8em; }
+        
         .lobby-hero-portrait { width: 100%; height: 300px; border: 2px solid var(--gold); margin: 15px 0; background-size: cover; background-position: center 20%; border-radius: 4px; }
+        
+        /* HP és XP Csíkok stílusa */
         .bar-container { height: 24px; background: #000; border: 1px solid #333; position: relative; margin-top: 10px; border-radius: 3px; overflow: hidden; }
         .bar-fill { height: 100%; transition: width 0.5s ease; background: linear-gradient(90deg, #600, #b00); width: 0%; }
         .bar-label { position: absolute; width: 100%; text-align: center; line-height: 22px; font-size: 13px; color: white; font-weight: bold; z-index: 2; text-shadow: 1px 1px 2px black; }
+        
         .xp-container { height: 8px; background: #111; border: 1px solid #333; margin-top: 5px; border-radius: 4px; overflow: hidden; }
         .xp-fill { height: 100%; background: linear-gradient(90deg, #004cff, #00d4ff); width: 0%; transition: 1s; }
-        .gold-display { color: var(--gold); font-family: 'MedievalSharp'; font-size: 1.3em; margin: 10px 0; }
+        
+        /* Új stílusok a HP számokhoz és az Arany kockához */
+        .stat-text { font-size: 14px; color: #ccc; margin-top: 3px; display: flex; justify-content: space-between; font-weight: bold; }
+        
+        .gold-box { 
+            position: absolute; 
+            bottom: 135px; /* Az Online hősök lista felett */
+            right: 20px; 
+            background: rgba(0,0,0,0.8); 
+            border: 2px solid var(--gold); 
+            padding: 8px 15px; 
+            border-radius: 6px; 
+            font-family: 'MedievalSharp'; 
+            font-size: 1.2em; 
+            color: var(--gold); 
+            box-shadow: 0 0 10px rgba(197, 160, 89, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 10;
+        }
+
         .inv-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
         .inv-slot { background: rgba(0,0,0,0.6); border: 1px dashed var(--gold); padding: 5px; font-size: 0.7em; min-height: 50px; display: flex; flex-direction: column; justify-content: center; }
         .inv-slot b { color: var(--gold); }
@@ -62,12 +91,16 @@
         
         <div class="bar-container">
             <div class="bar-fill" id="lobby-hp-fill"></div>
-            <div class="bar-label" id="lobby-hp-text">0/0 HP</div>
         </div>
-        <div class="xp-container"><div id="lobby-xp-fill" class="xp-fill"></div></div>
-        <div id="xp-text" style="font-size: 10px; color: #888; text-align: right; margin-top: 2px;">0 / 250 XP</div>
+        <div class="stat-text">
+            <span>Életerő:</span>
+            <span id="lobby-hp-text">0 / 0 HP</span>
+        </div>
 
-        <div class="gold-display">💰 <span id="lobby-gold">0</span> Arany</div>
+        <div class="xp-container">
+            <div id="lobby-xp-fill" class="xp-fill"></div>
+        </div>
+        <div id="xp-text" style="font-size: 11px; color: #aaa; text-align: right; margin-top: 2px; font-weight: bold;">XP: 0 / 250</div>
 
         <div class="inv-grid">
             <div class="inv-slot"><i>Kéz</i><b id="val-weapon">-</b></div>
@@ -79,7 +112,14 @@
             <button class="btn btn-main" style="background:#4a1a1a;">📜 KAMPÁNY</button>
             <button onclick="goToArena()" class="btn btn-main" style="background:#8b0000;">⚔️ ARÉNA</button>
         </div>
-        <h3 style="font-family:'MedievalSharp'; color:var(--gold); margin-top:20px; text-align: left; border-bottom: 1px solid var(--gold);">Online Hősök</h3>
+
+        <div class="gold-box">
+            <span>💰</span>
+            <span id="lobby-gold">0</span>
+            <span>Arany</span>
+        </div>
+
+        <h3 style="font-family:'MedievalSharp'; color:var(--gold); margin-top:40px; text-align: left; border-bottom: 1px solid var(--gold);">Online Hősök</h3>
         <div id="online-players-list" style="max-height: 100px; overflow-y: auto; margin-top: 10px;"></div>
     </div>
 </div>
@@ -156,7 +196,7 @@
         document.getElementById('lobby-class-display').innerText = c.charClass;
         document.getElementById('lobby-hero-img').style.backgroundImage = `url('${HERO_IMAGES[c.charClass]}')`;
         
-        // HP Kijelzés
+        // HP Kijelzés (Csík és Számok)
         document.getElementById('lobby-hp-fill').style.width = (c.hp / c.maxHp * 100) + "%";
         document.getElementById('lobby-hp-text').innerText = `${Math.ceil(c.hp)} / ${c.maxHp} HP`;
 
@@ -170,7 +210,7 @@
 
         let prog = ((xp - prev) / (next - prev)) * 100;
         document.getElementById('lobby-xp-fill').style.width = Math.min(100, Math.max(0, prog)) + "%";
-        document.getElementById('xp-text').innerText = `${xp} / ${next} XP`;
+        document.getElementById('xp-text').innerText = `XP: ${xp} / ${next}`;
 
         // Online lista
         const list = document.getElementById('online-players-list');
