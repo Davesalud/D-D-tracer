@@ -7,33 +7,13 @@
     <style>
         :root { --gold: #c5a059; --bg: #050507; --slot-bg: rgba(20, 20, 25, 0.85); }
         body { background: var(--bg); color: var(--gold); font-family: 'MedievalSharp', serif; margin: 0; padding: 20px; }
-
         .inventory-container { display: flex; gap: 40px; justify-content: center; align-items: flex-start; margin-top: 20px; }
-
-        /* BAL OLDAL: KARAKTER */
         .char-column { display: flex; flex-direction: column; align-items: center; gap: 15px; }
         .stats-bar { display: flex; gap: 20px; background: rgba(30, 30, 35, 0.9); padding: 10px 20px; border: 1px solid var(--gold); border-radius: 8px; }
-
-        .char-frame { 
-            position: relative; width: 350px; height: 500px; 
-            border: 2px solid var(--gold); background: #111; overflow: hidden; 
-        }
+        .char-frame { position: relative; width: 350px; height: 500px; border: 2px solid var(--gold); background: #111; overflow: hidden; }
+        .char-img { width: 100%; height: 100%; object-fit: cover; opacity: 0.6; position: absolute; top: 0; left: 0; z-index: 1; }
+        .equip-slot { position: absolute; width: 70px; height: 70px; background: var(--slot-bg); border: 1px solid var(--gold); display: flex; align-items: center; justify-content: center; z-index: 10; border-radius: 4px; font-size: 0.6em; color: #555; text-transform: uppercase; }
         
-        /* Ez javítja a kép fedését a bal oldalon */
-        .char-img { 
-            width: 100%; height: 100%; object-fit: cover; 
-            opacity: 0.6; position: absolute; top: 0; left: 0; z-index: 1;
-        }
-
-        .equip-slot { 
-            position: absolute; width: 70px; height: 70px; 
-            background: var(--slot-bg); border: 1px solid var(--gold); 
-            display: flex; align-items: center; justify-content: center;
-            z-index: 10; border-radius: 4px; font-size: 0.6em; color: #555;
-            text-transform: uppercase;
-        }
-
-        /* Slot pozíciók */
         .equip-slot[data-type="sisak"]   { top: 20px; left: 50%; transform: translateX(-50%); }
         .equip-slot[data-type="páncél"]  { top: 160px; left: 50%; transform: translateX(-50%); }
         .equip-slot[data-type="fegyver"] { top: 160px; left: 15px; }
@@ -41,25 +21,11 @@
         .equip-slot[data-type="lábvért"] { bottom: 80px; left: 50%; transform: translateX(-50%); }
         .equip-slot[data-type="cipő"]    { bottom: 10px; left: 50%; transform: translateX(-50%); }
 
-        /* JOBB OLDAL: HÁTIZSÁK */
         .backpack-panel { background: rgba(20, 20, 25, 0.95); border: 1px solid var(--gold); padding: 20px; border-radius: 10px; }
-        .backpack-grid { 
-            display: grid; grid-template-columns: repeat(4, 75px); 
-            grid-template-rows: repeat(4, 75px); gap: 10px; 
-        }
-        
-        /* Halvány üres slotok */
-        .inv-slot { 
-            width: 75px; height: 75px; background: rgba(255,255,255,0.02); 
-            border: 1px solid #333; border-radius: 4px;
-            display: flex; align-items: center; justify-content: center;
-        }
-
-        .item-icon { 
-            width: 65px; height: 65px; cursor: grab; 
-            background-size: cover; background-position: center; z-index: 20;
-        }
-        .drag-over { background: rgba(197, 160, 89, 0.2) !important; }
+        .backpack-grid { display: grid; grid-template-columns: repeat(4, 75px); grid-template-rows: repeat(4, 75px); gap: 10px; }
+        .inv-slot { width: 75px; height: 75px; background: rgba(255,255,255,0.02); border: 1px solid #333; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+        .item-icon { width: 65px; height: 65px; cursor: grab; background-size: cover; background-position: center; z-index: 20; }
+        .drag-over { background: rgba(197, 160, 89, 0.2) !important; border-color: white !important; }
     </style>
 </head>
 <body>
@@ -73,15 +39,14 @@
         </div>
         <div class="char-frame">
             <img id="hero-image" src="" class="char-img">
-            <div class="equip-slot" data-type="sisak" ondrop="handleDrop(event)" ondragover="allowDrop(event)">SISAK</div>
-            <div class="equip-slot" data-type="páncél" ondrop="handleDrop(event)" ondragover="allowDrop(event)">PÁNCÉL</div>
-            <div class="equip-slot" data-type="fegyver" ondrop="handleDrop(event)" ondragover="allowDrop(event)">FEGYVER</div>
-            <div class="equip-slot" data-type="pajzs" ondrop="handleDrop(event)" ondragover="allowDrop(event)">PAJZS</div>
-            <div class="equip-slot" data-type="lábvért" ondrop="handleDrop(event)" ondragover="allowDrop(event)">LÁBVÉRT</div>
-            <div class="equip-slot" data-type="cipő" ondrop="handleDrop(event)" ondragover="allowDrop(event)">CIPŐ</div>
+            <div class="equip-slot" data-type="sisak" ondrop="handleDrop(event)" ondragover="allowDrop(event)" ondragleave="removeDragOver(event)">SISAK</div>
+            <div class="equip-slot" data-type="páncél" ondrop="handleDrop(event)" ondragover="allowDrop(event)" ondragleave="removeDragOver(event)">PÁNCÉL</div>
+            <div class="equip-slot" data-type="fegyver" ondrop="handleDrop(event)" ondragover="allowDrop(event)" ondragleave="removeDragOver(event)">FEGYVER</div>
+            <div class="equip-slot" data-type="pajzs" ondrop="handleDrop(event)" ondragover="allowDrop(event)" ondragleave="removeDragOver(event)">PAJZS</div>
+            <div class="equip-slot" data-type="lábvért" ondrop="handleDrop(event)" ondragover="allowDrop(event)" ondragleave="removeDragOver(event)">LÁBVÉRT</div>
+            <div class="equip-slot" data-type="cipő" ondrop="handleDrop(event)" ondragover="allowDrop(event)" ondragleave="removeDragOver(event)">CIPŐ</div>
         </div>
     </div>
-
     <div class="backpack-panel">
         <h2>HÁTIZSÁK</h2>
         <div id="backpack-grid" class="backpack-grid"></div>
@@ -93,60 +58,62 @@
 <script src="items.js"></script>
 
 <script>
-    const firebaseConfig = { 
-        apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU", 
-        authDomain: "dnd-tracker-4fe05.firebaseapp.com", 
-        projectId: "dnd-tracker-4fe05", 
-        databaseURL: "https://dnd-tracker-4fe05-default-rtdb.europe-west1.firebasedatabase.app", 
-        storageBucket: "dnd-tracker-4fe05.firebasestorage.app", 
-        messagingSenderId: "886037504950", 
-        appId: "1:886037504950:web:46e80b46f0e26e24429717" 
-    };
+    const firebaseConfig = { apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU", authDomain: "dnd-tracker-4fe05.firebaseapp.com", projectId: "dnd-tracker-4fe05", databaseURL: "https://dnd-tracker-4fe05-default-rtdb.europe-west1.firebasedatabase.app", storageBucket: "dnd-tracker-4fe05.firebasestorage.app", messagingSenderId: "886037504950", appId: "1:886037504950:web:46e80b46f0e26e24429717" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Ha nincs ID, akkor a "Teszt harcos"-t tölti be alapból
     const charId = new URLSearchParams(window.location.search).get('id') || "Teszt harcos";
 
-    // 16 slotos hátizsák generálása
     const grid = document.getElementById('backpack-grid');
     for (let i = 0; i < 16; i++) {
         const slot = document.createElement('div');
         slot.className = 'inv-slot';
         slot.ondrop = handleDrop;
         slot.ondragover = allowDrop;
-        slot.ondragleave = (e) => e.target.classList.remove('drag-over');
+        slot.ondragleave = removeDragOver;
         grid.appendChild(slot);
     }
 
     function allowDrop(ev) {
         ev.preventDefault();
-        if(ev.target.classList.contains('inv-slot') || ev.target.classList.contains('equip-slot')) {
-            ev.target.classList.add('drag-over');
-        }
+        ev.currentTarget.classList.add('drag-over');
+    }
+
+    function removeDragOver(ev) {
+        ev.currentTarget.classList.remove('drag-over');
     }
 
     function handleDrop(ev) {
         ev.preventDefault();
-        ev.target.classList.remove('drag-over');
+        ev.currentTarget.classList.remove('drag-over');
+        
         const itemId = ev.dataTransfer.getData("itemId");
         const fbKey = ev.dataTransfer.getData("fbKey"); 
         const itemType = ev.dataTransfer.getData("itemType").toLowerCase();
         const target = ev.currentTarget;
 
+        // FELVÉTEL: Hátizsák -> Test
         if (target.classList.contains('equip-slot')) {
-            if (itemType === target.dataset.type) {
-                db.ref(`characters/${charId}/equip_${itemType}`).set(itemId);
-                if(fbKey) db.ref(`characters/${charId}/inventory/${fbKey}`).remove();
+            const slotType = target.dataset.type;
+            if (itemType === slotType) {
+                db.ref(`characters/${charId}/equip_${slotType}`).set(itemId);
+                if(fbKey && fbKey !== "undefined") db.ref(`characters/${charId}/inventory/${fbKey}`).remove();
             } else {
-                alert("Ez nem jó helyre megy!");
+                alert("Ez a tárgy nem ide való!");
             }
-        } else if (target.classList.contains('inv-slot')) {
-            const sourceEl = document.querySelector(`[data-item-id="${itemId}"]:not([id])`);
-            if (sourceEl) {
-                const sSlot = sourceEl.parentElement.dataset.type;
-                db.ref(`characters/${charId}/inventory`).push(itemId);
-                db.ref(`characters/${charId}/equip_${sSlot}`).remove();
+        } 
+        // LEVÉTEL: Test -> Hátizsák
+        else if (target.classList.contains('inv-slot')) {
+            if (!fbKey || fbKey === "undefined") {
+                const slots = ['sisak', 'páncél', 'fegyver', 'pajzs', 'lábvért', 'cipő'];
+                slots.forEach(s => {
+                    db.ref(`characters/${charId}/equip_${s}`).once('value', snap => {
+                        if(snap.val() === itemId) {
+                            db.ref(`characters/${charId}/equip_${s}`).remove();
+                            db.ref(`characters/${charId}/inventory`).push(itemId);
+                        }
+                    });
+                });
             }
         }
     }
@@ -168,23 +135,33 @@
         document.getElementById('char-name').innerText = c.name;
         document.getElementById('hero-image').src = c.image || c.img || "";
 
-        // Felszerelés slotok frissítése
         document.querySelectorAll('.equip-slot').forEach(slot => {
             const type = slot.dataset.type;
             const id = c[`equip_${type}`];
             slot.innerHTML = type;
             if(id && ITEMS[id]) {
-                slot.innerHTML = `<div class="item-icon" draggable="true" data-item-id="${id}" data-type="${type}" ondragstart="event.dataTransfer.setData('itemId','${id}'); event.dataTransfer.setData('itemType','${type}')" style="background-image: url('${ITEMS[id].img}')"></div>`;
+                const div = document.createElement('div');
+                div.className = 'item-icon';
+                div.draggable = true;
+                div.dataset.itemId = id;
+                div.dataset.type = type;
+                div.style.backgroundImage = `url('${ITEMS[id].img}')`;
+                div.ondragstart = (e) => {
+                    e.dataTransfer.setData("itemId", id);
+                    e.dataTransfer.setData("itemType", type);
+                    e.dataTransfer.setData("fbKey", "undefined");
+                };
+                slot.innerHTML = "";
+                slot.appendChild(div);
             }
         });
 
-        // Hátizsák frissítése
-        const slots = document.querySelectorAll('.inv-slot');
-        slots.forEach(s => s.innerHTML = '');
+        const invSlots = document.querySelectorAll('.inv-slot');
+        invSlots.forEach(s => s.innerHTML = '');
         if(c.inventory) {
             let i = 0;
             Object.entries(c.inventory).forEach(([key, id]) => {
-                if(ITEMS[id] && slots[i]) {
+                if(ITEMS[id] && invSlots[i]) {
                     const div = document.createElement('div');
                     div.className = 'item-icon';
                     div.draggable = true;
@@ -194,7 +171,7 @@
                         e.dataTransfer.setData("fbKey", key); 
                         e.dataTransfer.setData("itemType", ITEMS[id].type); 
                     };
-                    slots[i].appendChild(div);
+                    invSlots[i].appendChild(div);
                     i++;
                 }
             });
