@@ -34,7 +34,7 @@
 <body>
 
 <div id="win-screen">
-    <h1 id="win-title" style="color: var(--gold); font-size: 3em; margin: 0;">GYŐZELEM!</h1>
+    <h1 id="win-title" style="color: var(--gold); font-size: 3em; margin: 0;">-</h1>
     <div id="winner-name" style="font-size: 1.8em;">-</div>
     <div id="rewards">
         <p class="reward-text" id="reward-xp">+0 XP</p>
@@ -102,7 +102,7 @@
         bRef = db.ref('battles/' + currentRoom);
         db.ref(`characters/${myId}`).once('value', s => {
             const c = s.val();
-            if(c.hp <= 0) { alert("Nincs életerőd! Várj a gyógyulásra."); safeExit(); return; }
+            if(!c || c.hp <= 0) { alert("Nincs életerőd! Várj a gyógyulásra."); safeExit(); return; }
             bRef.set({
                 p1: { id: myId, name: c.name, hp: c.hp, maxHp: c.maxHp, class: c.charClass, cd: 0 },
                 p2: { id: "waiting", name: "Ellenfél", hp: 0, maxHp: 100, cd: 0 },
@@ -116,7 +116,7 @@
         currentRoom = id; bRef = db.ref('battles/' + currentRoom);
         db.ref(`characters/${myId}`).once('value', s => {
             const c = s.val();
-            if(c.hp <= 0) { alert("Nincs életerőd! Várj a gyógyulásra."); safeExit(); return; }
+            if(!c || c.hp <= 0) { alert("Nincs életerőd! Várj a gyógyulásra."); safeExit(); return; }
             bRef.update({ "p2": { id: myId, name: c.name, hp: c.hp, maxHp: c.maxHp, class: c.charClass, cd: 0 }, "log": ["Harc indul!"] });
             listen();
         });
@@ -200,42 +200,34 @@
 
         db.ref(`characters/${myId}`).once('value', s => {
             const c = s.val();
-            let newXp = (c.xp || 0) + xpGain;
-            let newGold = Math.max(0, (c.gold || 0) + goldGain);
-            let newLvl = c.level || 1;
+            let currentXp = (c.xp || 0) + xpGain;
+            let currentGold = Math.max(0, (c.gold || 0) + goldGain);
+            let currentLvl = c.level || 1;
 
-            // Szintugrás logika
-            while (newLvl < 30) {
-                let req = 0;
-                if (newLvl === 1) req = 250;
-                else if (newLvl === 2) req = 750;
-                else if (newLvl < 10) req = 750 + (newLvl-2) * 500;
-                else if (newLvl < 20) req = 4750 + (newLvl-9) * 750; // Becsült halmozott
-                else req = 12250 + (newLvl-19) * 1000;
+            // Szint számítás a kért táblázat alapján
+            while (currentLvl < 30) {
+                let nextXpLimit = 0;
+                if(currentLvl == 1) nextXpLimit = 250;
+                else if(currentLvl == 2) nextXpLimit = 750;
+                else if(currentLvl < 10) nextXpLimit = 750 + ((currentLvl - 2) * 500);
+                else if(currentLvl < 20) nextXpLimit = 4750 + ((currentLvl - 9) * 750);
+                else nextXpLimit = 12250 + ((currentLvl - 19) * 1000);
 
-                // Egyszerűsített szabályod alapján:
-                let nextLevelXp = 0;
-                if(newLvl == 1) nextLevelXp = 250;
-                else if(newLvl == 2) nextLevelXp = 750;
-                else if(newLvl < 10) nextLevelXp = 750 + ((newLvl-2)*500);
-                else if(newLvl < 20) nextLevelXp = 4750 + ((newLvl-9)*750);
-                else nextLevelXp = 12250 + ((newLvl-19)*1000);
-
-                if (newXp >= nextLevelXp) newLvl++;
+                if (currentXp >= nextXpLimit) currentLvl++;
                 else break;
             }
 
             db.ref(`characters/${myId}`).update({
-                xp: newXp,
-                gold: newGold,
-                level: Math.min(30, newLvl),
-                hp: Math.ceil(finalHp)
+                xp: currentXp,
+                gold: currentGold,
+                level: currentLvl,
+                hp: Math.max(0, Math.ceil(finalHp))
             });
 
             document.getElementById('win-screen').classList.add('win-active');
             document.getElementById('win-title').innerText = isWin ? "GYŐZELEM!" : "VERESÉG!";
             document.getElementById('reward-xp').innerText = `+${xpGain} XP`;
-            document.getElementById('reward-gold').innerText = goldGain > 0 ? `+${goldGain} Arany` : `${goldGain} Arany`;
+            document.getElementById('reward-gold').innerText = goldGain >= 0 ? `+${goldGain} Arany` : `${goldGain} Arany`;
         });
     }
 
