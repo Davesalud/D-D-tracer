@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Death's Armada - ARENA v2.6 ⚔️</title>
+    <title>Death's Armada - ARENA v2.8 ⚔️</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #c5a059; --accent: #8b0000; --bg: #050507; }
@@ -12,7 +12,7 @@
             background-image: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.95)), url('https://wallpaperaccess.com/full/1155861.jpg');
             background-size: cover; height: 100vh; overflow: hidden; display: flex; flex-direction: column;
         }
-        .arena-header { padding: 10px; border-bottom: 2px solid var(--gold); text-align: center; background: rgba(0,0,0,0.8); }
+        .arena-header { padding: 10px; border-bottom: 2px solid var(--gold); text-align: center; background: rgba(0,0,0,0.8); display: flex; justify-content: space-between; align-items: center; }
         .battlefield { display: flex; flex: 1; justify-content: space-around; align-items: center; padding: 10px; gap: 10px; }
         .fighter-card { flex: 1; max-width: 320px; padding: 15px; border: 2px solid #333; background: rgba(15, 15, 20, 0.95); border-radius: 12px; text-align: center; position: relative; }
         .fighter-card.active { border-color: var(--gold); box-shadow: 0 0 15px var(--gold); }
@@ -26,27 +26,35 @@
         .battle-log { width: 100%; max-width: 280px; height: 120px; background: rgba(0,0,0,0.8); border: 1px solid #444; padding: 8px; font-size: 0.85em; overflow-y: auto; color: #ccc; border-radius: 5px; }
         .btn { background: var(--accent); color: white; border: 1px solid var(--gold); padding: 12px; font-family: 'MedievalSharp'; cursor: pointer; width: 100%; margin-top: 5px; text-transform: uppercase; }
         .btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        .btn-exit { background: #222; width: auto; padding: 5px 15px; font-size: 0.8em; margin: 0 10px; }
+        
         #win-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.98); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; text-align: center; }
         .win-active { display: flex !important; }
-        .reward-text { color: var(--gold); margin: 5px 0; font-size: 1.2em; }
     </style>
 </head>
 <body>
 
 <div id="win-screen">
-    <h1 id="win-title" style="color: var(--gold); font-size: 3em; margin: 0;">-</h1>
-    <div id="winner-name" style="font-size: 1.8em;">-</div>
-    <div id="rewards">
-        <p class="reward-text" id="reward-xp">+0 XP</p>
-        <p class="reward-text" id="reward-gold">+0 Arany</p>
+    <h1 id="win-title" style="color: var(--gold); font-size: 3.5em; margin: 0; text-shadow: 0 0 20px rgba(197,160,89,0.5);">GYŐZELEM!</h1>
+    <div id="winner-name" style="font-size: 1.5em; color: #ccc; margin-bottom: 10px;">-</div>
+    
+    <div id="rewards" style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; border: 1px solid rgba(197,160,89,0.3); width: 200px; margin: 10px auto;">
+        <p class="reward-text" id="reward-xp" style="margin: 5px 0; color: #4facfe; font-weight: bold;">+0 XP</p>
+        <p class="reward-text" id="reward-gold" style="margin: 5px 0; color: #c5a059; font-weight: bold;">+0 Arany</p>
     </div>
-    <div style="display: flex; flex-direction: column; gap: 10px; width: 260px; margin-top: 20px;">
-        <button class="btn" onclick="location.reload()">⚔️ Új keresés</button>
-        <button class="btn" style="background:#222;" onclick="safeExit()">⬅ Főmenü</button>
+
+    <div style="display: flex; flex-direction: column; gap: 12px; width: 280px; margin-top: 25px;">
+        <button class="btn" style="background: var(--accent);" onclick="location.reload()">⚔️ KÖVETKEZŐ ELLENFÉL</button>
+        <button class="btn" style="background: #1a1a1a; border-color: #444;" onclick="safeExit()">🏰 VISSZATÉRÉS A VÁRBA</button>
+        <button class="btn" style="background: none; border: 1px dashed var(--gold); font-size: 0.8em;" onclick="safeExit()">📜 KARAKTERLAP</button>
     </div>
 </div>
 
-<div class="arena-header"><h2 id="turn-display">KERESÉS...</h2></div>
+<div class="arena-header">
+    <button class="btn btn-exit" onclick="surrender()">🏃 MEGFUTAMODÁS</button>
+    <h2 id="turn-display" style="margin:0; flex:1;">KERESÉS...</h2>
+    <div style="width:100px;"></div>
+</div>
 
 <div class="battlefield">
     <div id="p-card" class="fighter-card">
@@ -83,16 +91,21 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const myId = localStorage.getItem('selectedCharId');
-    let currentRoom = null, bRef = null, rewarded = false;
+    let currentRoom = null, bRef = null, rewarded = false, myHpAtEnd = 0;
 
     const HERO_IMGS = { "Harcos":"https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png", "Mágus":"https://i.ibb.co/yFz5bcXv/Copilot-20260403-033651.png", "Lovag":"https://i.ibb.co/Fk3n339M/Copilot-20260403-034043.png", "Íjász":"https://i.ibb.co/whd2jNpB/Copilot-20260403-034402.png", "Bérgyilkos":"https://i.ibb.co/b525CsLg/Copilot-20260403-032807.png", "Nekromanta":"https://i.ibb.co/NnCwwCbR/Copilot-20260403-033301.png" };
-    const SKILLS = { "Harcos": 30, "Mágus": 45, "Lovag": 25, "Íjász": 32, "Bérgyilkos": 35, "Nekromanta": 28 };
 
     function findMatch() {
         db.ref('battles').once('value', snap => {
             const rooms = snap.val();
             let found = null;
-            if (rooms) { for (let id in rooms) { if (rooms[id].p2 && rooms[id].p2.id === "waiting") { found = id; break; } } }
+            if (rooms) { 
+                for (let id in rooms) { 
+                    if (rooms[id].p2 && rooms[id].p2.id === "waiting" && rooms[id].p1.id !== myId) { 
+                        found = id; break; 
+                    } 
+                } 
+            }
             found ? joinBattle(found) : createNewBattle();
         });
     }
@@ -102,12 +115,12 @@
         bRef = db.ref('battles/' + currentRoom);
         db.ref(`characters/${myId}`).once('value', s => {
             const c = s.val();
-            if(!c || c.hp <= 0) { alert("Nincs életerőd! Várj a gyógyulásra."); safeExit(); return; }
             bRef.set({
                 p1: { id: myId, name: c.name, hp: c.hp, maxHp: c.maxHp, class: c.charClass, cd: 0 },
-                p2: { id: "waiting", name: "Ellenfél", hp: 0, maxHp: 100, cd: 0 },
-                turn: myId, lastRoll: "?", log: ["Keresés..."]
+                p2: { id: "waiting", name: "Várakozás...", hp: 0, maxHp: 100, cd: 0 },
+                turn: myId, lastRoll: "?", log: ["Ellenfelet keresünk..."]
             });
+            bRef.onDisconnect().remove();
             listen();
         });
     }
@@ -116,7 +129,6 @@
         currentRoom = id; bRef = db.ref('battles/' + currentRoom);
         db.ref(`characters/${myId}`).once('value', s => {
             const c = s.val();
-            if(!c || c.hp <= 0) { alert("Nincs életerőd! Várj a gyógyulásra."); safeExit(); return; }
             bRef.update({ "p2": { id: myId, name: c.name, hp: c.hp, maxHp: c.maxHp, class: c.charClass, cd: 0 }, "log": ["Harc indul!"] });
             listen();
         });
@@ -128,36 +140,32 @@
         const isP1 = b.p1.id === myId;
         const me = isP1 ? b.p1 : b.p2;
         const opp = isP1 ? b.p2 : b.p1;
-        const hasOpp = (opp.id !== "waiting");
+        myHpAtEnd = me.hp;
 
         document.getElementById('p-name').innerText = me.name;
         document.getElementById('p-img').style.backgroundImage = `url('${HERO_IMGS[me.class]}')`;
         document.getElementById('p-hp-fill').style.width = (me.hp/me.maxHp*100)+"%";
-        document.getElementById('p-hp-val').innerText = Math.ceil(me.hp) + " HP";
+        document.getElementById('p-hp-val').innerText = Math.ceil(me.hp) + " / " + me.maxHp + " HP";
 
-        if(hasOpp) {
+        if(opp.id !== "waiting") {
             document.getElementById('e-name').innerText = opp.name;
             document.getElementById('e-img').style.backgroundImage = `url('${HERO_IMGS[opp.class]}')`;
             document.getElementById('e-hp-fill').style.width = (opp.hp/opp.maxHp*100)+"%";
-            document.getElementById('e-hp-val').innerText = Math.ceil(opp.hp) + " HP";
+            document.getElementById('e-hp-val').innerText = Math.ceil(opp.hp) + " / " + opp.maxHp + " HP";
         }
 
-        const myTurn = (b.turn === myId && hasOpp && me.hp > 0 && opp.hp > 0);
-        document.getElementById('turn-display').innerText = myTurn ? "TE KÖVETKEZEL!" : (hasOpp ? "ELLENFÉL..." : "KERESÉS...");
+        const myTurn = (b.turn === myId && opp.id !== "waiting" && me.hp > 0 && opp.hp > 0);
+        document.getElementById('turn-display').innerText = myTurn ? "TE KÖVETKEZEL!" : (opp.id === "waiting" ? "KERESÉS..." : "ELLENFÉL...");
         document.getElementById('p-card').classList.toggle('active', myTurn);
-        
         document.getElementById('btn-attack').disabled = !myTurn;
-        const sBtn = document.getElementById('btn-skill');
-        const currentCD = me.cd || 0;
-        sBtn.disabled = (!myTurn || currentCD > 0);
-        sBtn.innerText = currentCD > 0 ? `⏳ CD: ${currentCD}` : "✨ Speciál";
+        document.getElementById('btn-skill').disabled = (!myTurn || me.cd > 0);
 
         document.getElementById('dice').innerText = b.lastRoll;
         document.getElementById('log').innerHTML = b.log ? b.log.map(l => `<div>${l}</div>`).reverse().join('') : "";
 
-        if (hasOpp && (me.hp <= 0 || opp.hp <= 0) && !rewarded) {
+        if (opp.id !== "waiting" && (me.hp <= 0 || opp.hp <= 0) && !rewarded) {
             rewarded = true;
-            processEndGame(me.hp > 0, me.hp);
+            processEndGame(me.hp > 0);
         }
     }
 
@@ -171,67 +179,44 @@
                 const roll = Math.floor(Math.random() * 20) + 1;
                 const isP1 = b.p1.id === myId;
                 const me = isP1 ? b.p1 : b.p2;
-                let dmg = 0, msg = "", newCD = Math.max(0, (me.cd || 0) - 1);
-
-                if (type === 'attack') {
-                    dmg = (roll === 1) ? 0 : (roll === 20 ? 35 : Math.floor(Math.random() * 10) + 10);
-                    msg = roll === 1 ? `❌ Mellé!` : (roll === 20 ? `🎯 KRITIKUS! (${dmg})` : `⚔️ Találat! (${dmg})`);
-                } else {
-                    if (roll > 10) { dmg = SKILLS[me.class]; msg = `✨ SPECIÁL! (${dmg})`; newCD = 3; }
-                    else { dmg = 0; msg = `☁️ Nem sikerült... (Dobás: ${roll})`; newCD = 0; }
-                }
-
+                let dmg = (roll === 1) ? 0 : (roll === 20 ? 30 : Math.floor(Math.random() * 10) + 8);
+                
                 const updates = {};
                 updates[isP1 ? 'p2/hp' : 'p1/hp'] = Math.max(0, (isP1 ? b.p2.hp : b.p1.hp) - dmg);
-                updates[isP1 ? 'p1/cd' : 'p2/cd'] = newCD;
                 updates['turn'] = isP1 ? b.p2.id : b.p1.id;
                 updates['lastRoll'] = roll;
-                let nLog = b.log || []; nLog.push(`[${roll}] ${msg}`);
-                if (nLog.length > 5) nLog.shift();
-                updates['log'] = nLog;
+                let nLog = b.log || []; nLog.push(`${me.name}: ${roll === 20 ? 'KRITIKUS!' : 'Támadás'} (${dmg})`);
+                updates['log'] = nLog.slice(-5);
                 bRef.update(updates);
             });
         }, 600);
     }
 
-    function processEndGame(isWin, finalHp) {
+    function surrender() {
+        if(confirm("Biztosan megfutamodsz? (Vereségnek számít!)")) {
+            if(!rewarded) { rewarded = true; processEndGame(false); }
+        }
+    }
+
+    function processEndGame(isWin) {
         const xpGain = isWin ? 15 : 3;
         const goldGain = isWin ? 7 : -2;
-
         db.ref(`characters/${myId}`).once('value', s => {
             const c = s.val();
-            let currentXp = (c.xp || 0) + xpGain;
-            let currentGold = Math.max(0, (c.gold || 0) + goldGain);
-            let currentLvl = c.level || 1;
-
-            // Szint számítás a kért táblázat alapján
-            while (currentLvl < 30) {
-                let nextXpLimit = 0;
-                if(currentLvl == 1) nextXpLimit = 250;
-                else if(currentLvl == 2) nextXpLimit = 750;
-                else if(currentLvl < 10) nextXpLimit = 750 + ((currentLvl - 2) * 500);
-                else if(currentLvl < 20) nextXpLimit = 4750 + ((currentLvl - 9) * 750);
-                else nextXpLimit = 12250 + ((currentLvl - 19) * 1000);
-
-                if (currentXp >= nextXpLimit) currentLvl++;
-                else break;
+            let newXp = (c.xp || 0) + xpGain, newGold = Math.max(0, (c.gold || 0) + goldGain), lvl = c.level || 1;
+            while(lvl < 30) {
+                let req = lvl == 1 ? 250 : (lvl == 2 ? 750 : (lvl < 10 ? 750 + (lvl-2)*500 : (lvl < 20 ? 4750 + (lvl-9)*750 : 12250 + (lvl-19)*1000)));
+                if(newXp >= req) lvl++; else break;
             }
-
-            db.ref(`characters/${myId}`).update({
-                xp: currentXp,
-                gold: currentGold,
-                level: currentLvl,
-                hp: Math.max(0, Math.ceil(finalHp))
-            });
-
+            db.ref(`characters/${myId}`).update({ xp: newXp, gold: newGold, level: lvl, hp: Math.max(0, myHpAtEnd) });
             document.getElementById('win-screen').classList.add('win-active');
             document.getElementById('win-title').innerText = isWin ? "GYŐZELEM!" : "VERESÉG!";
-            document.getElementById('reward-xp').innerText = `+${xpGain} XP`;
-            document.getElementById('reward-gold').innerText = goldGain >= 0 ? `+${goldGain} Arany` : `${goldGain} Arany`;
+            document.getElementById('reward-xp').innerText = `XP: +${xpGain}`;
+            document.getElementById('reward-gold').innerText = `ARANY: ${goldGain > 0 ? '+' + goldGain : goldGain}`;
         });
     }
 
-    function safeExit() { if(bRef) bRef.off(); window.location.replace('index.html'); }
+    function safeExit() { if(bRef) bRef.off(); if(currentRoom) db.ref('battles/'+currentRoom).remove(); window.location.replace('index.html'); }
     findMatch();
 </script>
 </body>
