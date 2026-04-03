@@ -147,22 +147,17 @@
     let chars = {};
     let myId = localStorage.getItem('selectedCharId');
 
-    // --- JAVÍTOTT RÉSZ ---
     db.ref('characters').on('value', snap => {
         chars = snap.val() || {};
         updateLoginList();
         
-        // Ha van elmentett hősünk, CSUPÁN betöltjük az adatait, de nem irányítunk át magunktól!
         if (myId && chars[myId]) {
             setupPresence(myId);
             document.getElementById('logout-ui').style.display = 'block';
             showPage('page-lobby');
             updateLobbyUI();
-        } else {
-            // Ha nincs belépve, mutassuk a bejelentkezőt
-            showPage('page-login');
-            document.getElementById('logout-ui').style.display = 'none';
         }
+        // Itt nem maradt más, csak a tiszta adatbetöltés!
     });
 
     function showPage(pId) {
@@ -212,7 +207,7 @@
 
     function goToArena() {
         if (!myId) return;
-        // Az Aréna elérése
+        // Csak ez az egy gombnyomás visz át az arénába!
         window.location.href = './arena.html';
     }
 
