@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Death's Armada - ARENA v2.3 ⚔️</title>
+    <title>Death's Armada - ARENA v2.4 ⚔️</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #c5a059; --accent: #8b0000; --bg: #050507; }
@@ -16,7 +16,7 @@
         .arena-header { padding: 10px; border-bottom: 2px solid var(--gold); text-align: center; background: rgba(0,0,0,0.8); }
         .battlefield { display: flex; flex: 1; justify-content: space-around; align-items: center; padding: 10px; gap: 10px; }
         
-        .fighter-card { flex: 1; max-width: 320px; padding: 15px; border: 2px solid #333; background: rgba(15, 15, 20, 0.95); border-radius: 12px; text-align: center; position: relative; }
+        .fighter-card { flex: 1; max-width: 320px; padding: 15px; border: 2px solid #333; background: rgba(15, 15, 20, 0.95); border-radius: 12px; text-align: center; position: relative; transition: 0.3s; }
         .fighter-card.active { border-color: var(--gold); box-shadow: 0 0 15px var(--gold); }
         
         .hero-portrait { width: 100%; height: 200px; border: 1px solid var(--gold); margin: 10px 0; background-size: cover; background-position: center 20%; border-radius: 4px; background-color: #000; }
@@ -71,10 +71,10 @@
     </div>
 
     <div id="e-card" class="fighter-card">
-        <h3 id="e-name">Ellenfél</h3>
+        <h3 id="e-name">Várakozás...</h3>
         <div class="hp-bar"><div id="e-hp-fill" class="hp-fill"></div><div class="hp-text" id="e-hp-val">---</div></div>
         <div id="e-img" class="hero-portrait"></div>
-        <div id="e-status" style="font-size: 0.8em; color: var(--gold);">Várakozás...</div>
+        <div id="e-status" style="font-size: 0.8em; color: var(--gold); font-style: italic;">Ellenfélre várva...</div>
     </div>
 </div>
 
@@ -109,7 +109,11 @@
             const rooms = snap.val();
             let found = null;
             if (rooms) {
-                for (let id in rooms) { if (rooms[id].p2 && rooms[id].p2.id === "waiting") { found = id; break; } }
+                for (let id in rooms) { 
+                    if (rooms[id].p2 && rooms[id].p2.id === "waiting" && rooms[id].p1.id !== myId) { 
+                        found = id; break; 
+                    } 
+                }
             }
             found ? joinBattle(found) : createNewBattle();
         });
@@ -123,7 +127,7 @@
             bRef.set({
                 p1: { id: myId, name: c.name, hp: c.maxHp, maxHp: c.maxHp, class: c.charClass },
                 p2: { id: "waiting", name: "Ellenfél", hp: 0, maxHp: 100 },
-                turn: myId, lastRoll: "?", log: ["Keresés..."]
+                turn: myId, lastRoll: "?", log: ["Várjuk az ellenfelet..."]
             });
             listen();
         });
@@ -133,7 +137,10 @@
         currentRoom = id; bRef = db.ref('battles/' + currentRoom);
         db.ref(`characters/${myId}`).once('value', s => {
             const c = s.val();
-            bRef.update({ "p2": { id: myId, name: c.name, hp: c.maxHp, maxHp: c.maxHp, class: c.charClass }, "log": ["Harc indul!"] });
+            bRef.update({ 
+                "p2": { id: myId, name: c.name, hp: c.maxHp, maxHp: c.maxHp, class: c.charClass }, 
+                "log": ["A viadal elkezdődött!"] 
+            });
             listen();
         });
     }
@@ -144,27 +151,37 @@
         const isP1 = b.p1.id === myId;
         const me = isP1 ? b.p1 : b.p2;
         const opp = isP1 ? b.p2 : b.p1;
-        const hasOpp = (opp.id !== "waiting");
+        const hasOpp = (opp && opp.id !== "waiting");
+
+        // Nevek és UI fixálása
+        document.getElementById('p-name').innerText = me.name || "Te";
+        if (hasOpp) {
+            document.getElementById('e-name').innerText = opp.name;
+            document.getElementById('e-status').style.display = 'none';
+            document.getElementById('e-img').style.backgroundImage = `url('${HERO_IMGS[opp.class]}')`;
+        }
 
         document.getElementById('exit-btn').style.display = hasOpp ? 'none' : 'block';
         document.getElementById('forfeit-btn').style.display = hasOpp ? 'block' : 'none';
-
         document.getElementById('p-img').style.backgroundImage = `url('${HERO_IMGS[me.class]}')`;
-        if(hasOpp) document.getElementById('e-img').style.backgroundImage = `url('${HERO_IMGS[opp.class]}')`;
 
+        // Életerő
         document.getElementById('p-hp-fill').style.width = (me.hp/me.maxHp*100)+"%";
         document.getElementById('p-hp-val').innerText = Math.ceil(me.hp) + " HP";
-        document.getElementById('e-hp-fill').style.width = (opp.hp/opp.maxHp*100)+"%";
+        document.getElementById('e-hp-fill').style.width = hasOpp ? (opp.hp/opp.maxHp*100)+"%" : "0%";
         document.getElementById('e-hp-val').innerText = hasOpp ? Math.ceil(opp.hp) + " HP" : "---";
 
+        // Körök kezelése
         const myTurn = (b.turn === myId && hasOpp && me.hp > 0 && opp.hp > 0);
-        document.getElementById('turn-display').innerText = myTurn ? "TE KÖVETKEZEL!" : (hasOpp ? "ELLENFÉL..." : "KERESÉS...");
+        document.getElementById('turn-display').innerText = myTurn ? "TE KÖVETKEZEL!" : (hasOpp ? "ELLENFÉL KÖRE..." : "VÁRAKOZÁS...");
         document.getElementById('p-card').classList.toggle('active', myTurn);
         document.getElementById('btn-attack').disabled = !myTurn;
         document.getElementById('btn-skill').disabled = !myTurn;
+        
         document.getElementById('dice').innerText = b.lastRoll;
         document.getElementById('log').innerHTML = b.log ? b.log.map(l => `<div>${l}</div>`).reverse().join('') : "";
 
+        // Játék vége
         if (hasOpp && (me.hp <= 0 || opp.hp <= 0)) {
             const ws = document.getElementById('win-screen');
             ws.classList.add('win-active');
@@ -174,7 +191,7 @@
                 document.getElementById('win-msg').innerText = "Fuss csak, gyáva nyúl, a sötétség úgyis elér!";
             } else {
                 document.getElementById('win-title').innerText = "GYŐZELEM!";
-                document.getElementById('win-msg').innerText = "A dicsőség a tiéd!";
+                document.getElementById('win-msg').innerText = "Hatalmas győzelmet arattál!";
             }
         }
     }
@@ -192,22 +209,22 @@
                 let dmg = 0, msg = "";
 
                 if (type === 'attack') {
-                    if (roll === 1) { dmg = 0; msg = `❌ MELLÉÜTÉS! ${me.name} elvétette.`; }
+                    if (roll === 1) { dmg = 0; msg = `❌ HIBA! ${me.name} melléütött.`; }
                     else if (roll === 20) { 
                         dmg = Math.floor(Math.random() * 10) + 30; 
-                        msg = `🎯 KRITIKUS! ${me.name} hatalmasat üt! (${dmg})`; 
+                        msg = `🎯 KRITIKUS! ${me.name} hatalmasat sújt! (${dmg})`; 
                     }
                     else { 
                         dmg = Math.floor(Math.random() * 12) + 10; 
-                        msg = `⚔️ ${me.name} betalált! (${dmg})`; 
+                        msg = `⚔️ ${me.name} betalált! (${dmg} sebzés)`; 
                     }
                 } else {
                     if (roll > 10) {
                         dmg = SKILLS[me.class] + Math.floor(roll/2);
-                        msg = `✨ SIKERES SPECIÁL! ${me.name} bevetette erejét! (${dmg})`;
+                        msg = `✨ SIKERES SPECIÁL! ${me.name} ereje elsöprő! (${dmg})`;
                     } else {
                         dmg = 0;
-                        msg = `☁️ A képesség elszállt... (Dobás: ${roll} <= 10)`;
+                        msg = `☁️ Kudarc! Túl kevés a koncentráció. (Dobás: ${roll})`;
                     }
                 }
 
@@ -238,7 +255,7 @@
         }
     }
 
-    function rematch() { bRef.once('value', s => { const b = s.val(); bRef.update({ "p1/hp": b.p1.maxHp, "p2/hp": b.p2.maxHp, "turn": b.p1.id, "log": ["Újraindul a harc!"], "lastRoll": "?" }); document.getElementById('win-screen').classList.remove('win-active'); }); }
+    function rematch() { bRef.once('value', s => { const b = s.val(); bRef.update({ "p1/hp": b.p1.maxHp, "p2/hp": b.p2.maxHp, "turn": b.p1.id, "log": ["Újabb kör kezdődik!"], "lastRoll": "?" }); document.getElementById('win-screen').classList.remove('win-active'); }); }
     function findNewMatch() { bRef.off(); bRef.remove(); location.reload(); }
     function safeExit() { bRef.off(); bRef.once('value', s => { if(!s.val() || s.val().p2.id === "waiting") bRef.remove(); window.location.replace('index.html'); }); }
 
