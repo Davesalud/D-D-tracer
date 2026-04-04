@@ -2,7 +2,7 @@
 <html lang="hu">
 <head>
     <meta charset="UTF-8">
-    <title>DM Master Control</title>
+    <title>DM Master Control - Death's Armada</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #c5a059; --accent: #8b0000; --bg: #050507; --card: rgba(20, 20, 25, 0.9); }
@@ -14,24 +14,28 @@
         .btn-top { padding: 8px 15px; font-family: 'MedievalSharp'; cursor: pointer; border: none; background: var(--accent); color: white; font-size: 0.9em; border-radius: 4px; }
 
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; padding: 0 20px; }
-        .char-card { background: var(--card); border: 1px solid #444; padding: 15px; border-radius: 5px; display: flex; flex-direction: column; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .char-card { background: var(--card); border: 1px solid #444; padding: 15px; border-radius: 5px; display: flex; flex-direction: column; box-shadow: 0 4px 15px rgba(0,0,0,0.5); position: relative; }
         
         select, input, button { background: #1a1a1a; color: white; border: 1px solid #444; padding: 8px; margin: 5px 0; width: 100%; cursor: pointer; font-family: 'MedievalSharp'; }
         button:hover { background: var(--gold); color: black; }
         
-        .btn-reset { border-color: var(--accent); color: var(--accent); margin-top: 15px; font-size: 0.75em; width: auto; align-self: center; background: none; }
+        /* ÚJ: Online státusz és Törlés gomb */
+        .online-status { font-size: 0.75em; margin-bottom: 10px; display: block; font-family: 'MedievalSharp'; }
+        .status-active { color: #00ff00; text-shadow: 0 0 5px rgba(0,255,0,0.5); }
+        .status-offline { color: #888; }
+        
+        .full-delete-btn { background: #440000; color: #ff4444; border: 1px solid #ff4444; font-size: 0.7em; padding: 4px; margin-bottom: 10px; }
+        .full-delete-btn:hover { background: #ff4444; color: white; }
 
-        /* LELTÁR ÉS TÖRLÉS */
         .dm-inventory-list { background: rgba(0,0,0,0.3); border: 1px solid #333; padding: 8px; margin-top: 10px; border-radius: 4px; font-size: 0.85em; max-height: 120px; overflow-y: auto; }
         .inv-item { display: flex; justify-content: space-between; align-items: center; background: #222; border: 1px solid #444; padding: 4px 8px; margin-bottom: 4px; border-radius: 3px; color: #ccc; }
-        .del-btn { color: #ff4444; cursor: pointer; font-weight: bold; padding: 0 5px; border: 1px solid transparent; }
-        .del-btn:hover { border-color: #ff4444; border-radius: 3px; }
+        .del-btn { color: #ff4444; cursor: pointer; font-weight: bold; padding: 0 5px; }
 
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.95); border-top: 1px solid var(--gold); padding: 15px; display: flex; justify-content: center; z-index: 1000; backdrop-filter: blur(10px); }
-        .btn-exit { background: none; border: 1px solid var(--gold); color: var(--gold); padding: 10px 40px; font-family: 'MedievalSharp'; text-decoration: none; text-transform: uppercase; letter-spacing: 2px; }
+        .btn-exit { background: none; border: 1px solid var(--gold); color: var(--gold); padding: 10px 40px; font-family: 'MedievalSharp'; text-decoration: none; text-transform: uppercase; letter-spacing: 2px; text-align: center; }
         
         .label { font-size: 0.7em; color: #888; text-transform: uppercase; margin-top: 10px; display: block; font-weight: bold; }
-        .stat-line { display: flex; justify-content: space-between; font-weight: bold; border-bottom: 1px solid var(--accent); padding-bottom: 5px; margin-bottom: 10px; font-family: 'MedievalSharp'; }
+        .stat-line { display: flex; justify-content: space-between; font-weight: bold; border-bottom: 1px solid var(--accent); padding-bottom: 5px; margin-bottom: 5px; font-family: 'MedievalSharp'; }
         .equip-box { background: rgba(139, 0, 0, 0.1); border: 1px solid rgba(197, 160, 89, 0.2); padding: 8px; border-radius: 4px; margin-bottom: 10px; }
     </style>
 </head>
@@ -39,7 +43,7 @@
 
     <div class="header-row">
         <h1>🏰 DM MASTER CONTROL</h1>
-        <button class="btn-top" onclick="resetAllXP()">⚠️ Mindent Töröl</button>
+        <button class="btn-top" onclick="resetAllXP()">⚠️ Szintek Nullázása</button>
     </div>
 
     <div id="char-list" class="grid">A sereg gyülekezik...</div>
@@ -56,6 +60,18 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        // Időformázó segédfüggvény
+        function timeSince(date) {
+            if (!date) return "Soha nem volt aktív";
+            const seconds = Math.floor((new Date() - date) / 1000);
+            if (seconds < 60) return "Éppen most";
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return minutes + " perce";
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return hours + " órája";
+            return Math.floor(hours / 24) + " napja";
+        }
+
         db.ref('characters').on('value', snap => {
             const chars = snap.val();
             const list = document.getElementById('char-list');
@@ -65,23 +81,29 @@
             for(let id in chars) {
                 const c = chars[id];
                 
-                // 1. VISELT FELSZERELÉS
+                // Online/Offline státusz számítása (5 percen belül online)
+                const isOnline = c.lastSeen && (new Date() - c.lastSeen) < 300000;
+                const statusText = isOnline ? "● Online" : "Utoljára látva: " + timeSince(c.lastSeen);
+                const statusClass = isOnline ? "status-active" : "status-offline";
+
+                // Viselt felszerelés listázása
                 const equipment = [
-                    { slot: '🛡️ Sisak', id: c.equip_head },
-                    { slot: '🛡️ Páncél', id: c.equip_chest },
-                    { slot: '⚔️ Fegyver', id: c.equip_weapon },
-                    { slot: '👢 Cipő', id: c.equip_feet }
+                    { slot: '🛡️ Sisak', id: c.equip_sisak },
+                    { slot: '⚔️ Fegyver', id: c.equip_fegyver },
+                    { slot: '🛡️ Páncél', id: c.equip_páncél },
+                    { slot: '🛡️ Pajzs', id: c.equip_pajzs },
+                    { slot: '👢 Lábvért', id: c.equip_lábvért },
+                    { slot: '👞 Cipő', id: c.equip_cipő }
                 ];
                 let equipHTML = '';
                 equipment.forEach(item => {
-                    if(item.id) {
-                        const name = ITEMS[item.id] ? ITEMS[item.id].name : "Ismeretlen";
-                        equipHTML += `<div style="font-size:0.8em; color:#eee;"><b>${item.slot}:</b> ${name}</div>`;
+                    if(item.id && ITEMS[item.id]) {
+                        equipHTML += `<div style="font-size:0.75em; color:#eee;"><b>${item.slot}:</b> ${ITEMS[item.id].name}</div>`;
                     }
                 });
                 if(!equipHTML) equipHTML = '<span style="color:#444; font-size:0.8em;">Nincs felszerelés</span>';
 
-                // 2. HÁTIZSÁK + TÖRLÉS GOMB
+                // Hátizsák elemek
                 let inventoryHTML = '';
                 if(c.inventory) {
                     for(let itemKey in c.inventory) {
@@ -103,11 +125,15 @@
                 const card = document.createElement('div');
                 card.className = 'char-card';
                 card.innerHTML = `
+                    <button class="full-delete-btn" onclick="deleteCharacter('${id}', '${c.name}')">❌ KARAKTER TÖRLÉSE</button>
+                    
                     <div class="stat-line">
                         <span>${c.name}</span>
                         <span style="color:#888;">LVL ${c.level || 1}</span>
                     </div>
                     
+                    <span class="online-status ${statusClass}">${statusText}</span>
+
                     <div style="display:flex; justify-content: space-around; background:rgba(0,0,0,0.5); padding:6px; border-radius:4px; margin-bottom:10px;">
                         <span>💰 ${c.gold || 0}</span>
                         <span>✨ ${c.xp || 0} XP</span>
@@ -118,25 +144,32 @@
                         ${equipHTML}
                     </div>
                     
-                    <span class="label">Módosítás (Érték +/-)</span>
+                    <span class="label">Érték módosítása (+/-)</span>
                     <input type="number" id="val-${id}" placeholder="Összeg...">
                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px;">
-                        <button onclick="updateValue('${id}', 'gold')">💰 Aranyat ad</button>
-                        <button onclick="updateValue('${id}', 'xp')">✨ XP-t ad</button>
+                        <button onclick="updateValue('${id}', 'gold')">💰 Arany</button>
+                        <button onclick="updateValue('${id}', 'xp')">✨ XP</button>
                     </div>
                     
                     <span class="label">Új tárgy küldése</span>
                     <select id="item-${id}">${itemOptions}</select>
                     <button onclick="giveItem('${id}')">🎁 Tárgy Átadása</button>
 
-                    <span class="label">Hátizsák (Törléshez ✕):</span>
+                    <span class="label">Hátizsák:</span>
                     <div class="dm-inventory-list">${inventoryHTML}</div>
-
-                    <button class="btn-reset" onclick="resetSingleXP('${id}')">Karakter Reset</button>
                 `;
                 list.appendChild(card);
             }
         });
+
+        // ÚJ: Karakter végleges törlése
+        function deleteCharacter(id, name) {
+            if(confirm(`FIGYELEM! Biztosan végleg kitörlöd a "${name}" nevű karaktert a játékból?`)) {
+                db.ref(`characters/${id}`).remove()
+                    .then(() => alert("Karakter törölve."))
+                    .catch(e => alert("Hiba történt: " + e));
+            }
+        }
 
         function updateValue(id, field) {
             const val = parseInt(document.getElementById(`val-${id}`).value);
@@ -149,16 +182,9 @@
             if(itemId) db.ref(`characters/${id}/inventory`).push(itemId);
         }
 
-        // TÁRGY TÖRLÉSE A LELTÁRBÓL
         function removeItem(charId, itemKey) {
-            if(confirm("Végleg törlöd ezt a tárgyat a hőstől?")) {
+            if(confirm("Törlöd a tárgyat a leltárból?")) {
                 db.ref(`characters/${charId}/inventory/${itemKey}`).remove();
-            }
-        }
-
-        function resetSingleXP(id) {
-            if(confirm("Biztosan nullázod ezt a hőst?")) {
-                db.ref(`characters/${id}`).update({ xp: 0, level: 1, gold: 50 });
             }
         }
 
