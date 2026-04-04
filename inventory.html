@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hős Leltár - Végleges Javított</title>
+    <title>Hős Leltár - Új Háttérrel</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
     <style>
         :root { 
@@ -26,24 +26,26 @@
             overflow-x: hidden;
         }
 
-        /* --- PROFI HÁTTÉR RÉTEG (Nincs pixelesedés, nincs ismétlődés) --- */
+        /* --- FRISSÍTETT HÁTTÉR RÉTEG (Új kép, eredeti méret, éles) --- */
         body::before {
             content: "";
             position: fixed;
-            top: 100px;
+            top: 100px; /* A header magassága alá pozícionálva */
             left: 0;
             width: 100%;
             height: calc(100% - 100px);
-            background-image: url('https://i.ibb.co/9mhtFZ4v/Copilot-20260404-231038.png');
             
-            /* Beállítások, hogy ne legyen pixeles */
-            background-size: contain;    /* Megőrzi az eredeti élességet */
-            background-repeat: no-repeat; /* Csak egy darab lovag jelenik meg */
+            /* ÚJ KÉP LINKJE */
+            background-image: url('https://i.ibb.co/y1rJBhv/Copilot-20260404-235606.png');
+            
+            /* JAVÍTÁS: Nem nagyítja, eredeti méretben hagyja ('auto'), és nem ismétli */
+            background-size: auto; 
+            background-repeat: no-repeat; 
             background-position: center 20%; /* Középre teszi, kicsit feljebb tolva */
             
-            opacity: 0.15; /* Finom, hangulatos háttér */
+            opacity: 0.2; /* Halványítás, hogy ne zavarja az előteret */
             z-index: 0;
-            pointer-events: none;
+            pointer-events: none; /* Átengedi a kattintásokat a tartalomhoz */
         }
 
         .header { 
@@ -51,7 +53,7 @@
             text-align: center; 
             border-bottom: 2px solid var(--accent); 
             width: 100%; 
-            height: 60px;
+            height: 60px; /* Fix magasság a pontos illesztéshez */
             background: var(--bg); 
             position: relative;
             z-index: 10;
@@ -78,6 +80,7 @@
             z-index: 5;
         }
 
+        /* Karakter Panel */
         .char-view { 
             position: relative; 
             width: 320px; 
@@ -111,6 +114,7 @@
             pointer-events: none; 
         }
 
+        /* Slotok */
         .slot, .inv-slot { 
             width: 64px; 
             height: 64px; 
@@ -138,6 +142,7 @@
         .slot[data-slot="lábvért"] { top: 320px; left: 128px; }
         .slot[data-slot="cipő"] { top: 410px; left: 128px; }
 
+        /* Hátizsák */
         .bag-container { 
             background: var(--card); 
             border: 2px solid #333; 
