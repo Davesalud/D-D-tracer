@@ -12,7 +12,6 @@
         body { font-family: 'Crimson Text', serif; background-color: var(--bg); color: var(--text); margin: 0; height: 100vh; overflow: hidden; }
         .master-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.8)), url('https://i.pinimg.com/originals/26/2b/dd/262bdd02564bf6dabbe89df4f93e8e26.jpg'); background-size: cover; background-position: center; z-index: -1; }
         
-        /* ÚJ: Kereső lista stílusa */
         .search-container { position: relative; width: 100%; margin-bottom: 15px; }
         #search-results { 
             position: absolute; top: 100%; left: 0; width: 100%; 
@@ -62,19 +61,16 @@
 <body>
 <div class="master-bg"></div>
 <div id="logout-ui" class="logout-corner"><button class="btn-logout" onclick="logout()">Kilépés 🚪</button></div>
-
 <div class="dm-trigger" onclick="enterDM()">🔑</div>
 
 <div id="page-login" class="page active">
     <div class="card" style="margin-top: 10vh;">
         <div class="logo">Death's Armada</div>
         <div style="margin-bottom: 20px; font-style: italic; color: #888;">Kezdd el írni a hősöd nevét...</div>
-        
         <div class="search-container">
             <input type="text" id="hero-search" placeholder="Hős neve..." autocomplete="off">
             <div id="search-results"></div>
         </div>
-
         <input type="password" id="login-pin" placeholder="PIN KÓD (4 SZÁM)" maxlength="4" inputmode="numeric">
         <button class="btn btn-main" onclick="login()">Belépés</button>
         <button class="btn btn-sub" onclick="openCreator()">✨ Új Hős Megidézése</button>
@@ -84,23 +80,19 @@
 <div id="page-lobby" class="page">
     <div class="card">
         <div style="display:flex; justify-content: space-between; align-items: center;"><h1 id="lobby-name" style="font-family:'MedievalSharp'; color:var(--gold); margin:0;">-</h1><span id="lobby-lvl" style="color: var(--gold); font-family:'MedievalSharp'; font-size: 1.2em; border: 1px solid var(--gold); padding: 2px 10px;">LVL 1</span></div><p id="lobby-class-display" style="margin:5px 0; font-style:italic; color:#aaa; text-transform: uppercase; letter-spacing: 2px;">-</p><div id="lobby-hero-img" class="lobby-hero-portrait"></div><div class="bar-container"><div class="bar-fill" id="lobby-hp-fill"></div></div><div class="hp-count-text" id="lobby-hp-val">0 / 0 HP</div><div class="xp-container"><div id="lobby-xp-fill" class="xp-fill"></div></div><div id="xp-text" style="font-size: 11px; color: #888; text-align: right; margin-top: 4px; font-weight: bold;">XP: 0 / 250</div>
-
         <div class="nav-grid">
             <a href="inventory.html" class="nav-btn-box"><span>🎒</span><b>Leltár</b></a>
             <a href="shop.html" class="nav-btn-box"><span>⚖️</span><b>Bolt</b></a>
         </div>
-        
         <div class="stat-row">
             <div class="stat-box">⚔️ <span id="lobby-atk">12-18</span></div>
             <div class="stat-box">🛡️ <span id="lobby-def">5</span></div>
             <div class="gold-status-box" style="margin:0;">💰 <span id="lobby-gold">0</span></div>
         </div>
-
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:20px;">
             <button class="btn btn-main" style="background:#4a1a1a;">📜 KAMPÁNY</button>
             <button onclick="goToArena()" class="btn btn-main" style="background:#8b0000;">⚔️ ARÉNA</button>
         </div>
-
         <h3 style="font-family:'MedievalSharp'; color:var(--gold); margin-top:30px; text-align: left; border-bottom: 1px solid var(--gold); padding-bottom: 5px;">Online Hősök</h3><div id="online-players-list" style="max-height: 120px; overflow-y: auto; margin-top: 10px;"></div></div>
 </div>
 
@@ -115,7 +107,24 @@
     
     let chars = {}, myId = localStorage.getItem('selectedCharId'), selectedIdFromSearch = null;
 
-    // DM LOGIN
+    // AKTÍV REGENERÁCIÓ (Amíg az oldal nyitva van)
+    setInterval(() => { 
+        if (myId) { 
+            const now = Date.now();
+            db.ref(`characters/${myId}`).once('value').then(snap => {
+                const c = snap.val();
+                if (c && c.hp < c.maxHp) {
+                    db.ref(`characters/${myId}`).update({ 
+                        hp: Math.min(c.maxHp, c.hp + 10),
+                        lastUpdate: now 
+                    });
+                } else {
+                    db.ref(`characters/${myId}`).update({ lastUpdate: now });
+                }
+            });
+        } 
+    }, 60000);
+
     function enterDM() {
         const pin = prompt("Dungeon Master azonosítás:");
         if(pin === "4469") { window.location.href = 'dm.html'; } else if(pin !== null) { alert("Hibás kód!"); }
@@ -131,7 +140,6 @@
         "Nekromanta": { skill: "Lélekcsapolás", desc: "Életerő: 110 HP | Sebzés: 15-22\nPasszív: A sebzés egy részét életerőként visszakapja." }
     };
 
-    // Firebase figyelés
     db.ref('characters').on('value', snap => { 
         chars = snap.val() || {}; 
         if (myId && chars[myId]) { 
@@ -142,7 +150,6 @@
         } 
     });
 
-    // KERESŐ LOGIKA
     const searchInput = document.getElementById('hero-search');
     const searchResults = document.getElementById('search-results');
 
@@ -150,7 +157,6 @@
         const text = e.target.value.toLowerCase();
         searchResults.innerHTML = "";
         if(text.length < 1) { searchResults.style.display = "none"; return; }
-
         let found = false;
         Object.keys(chars).forEach(id => {
             if(chars[id].name.toLowerCase().startsWith(text)) {
@@ -169,17 +175,29 @@
         searchResults.style.display = found ? "block" : "none";
     });
 
-    // BELÉPÉS
+    // BELÉPÉS ÉS OFFLINE GYÓGYULÁS
     function login() { 
         const pin = document.getElementById('login-pin').value; 
         if (selectedIdFromSearch && chars[selectedIdFromSearch] && chars[selectedIdFromSearch].pin.toString() === pin) { 
-            myId = selectedIdFromSearch; 
+            const targetId = selectedIdFromSearch;
+            const hero = chars[targetId];
+            const now = Date.now();
+            
+            // Kiszámoljuk az elmaradt gyógyulást
+            if (hero.lastUpdate && hero.hp < hero.maxHp) {
+                const diffMinutes = Math.floor((now - hero.lastUpdate) / 60000);
+                if (diffMinutes > 0) {
+                    const extraHp = diffMinutes * 10;
+                    const newHp = Math.min(hero.maxHp, hero.hp + extraHp);
+                    db.ref(`characters/${targetId}`).update({ hp: newHp });
+                }
+            }
+
+            myId = targetId; 
             localStorage.setItem('selectedCharId', myId); 
-            db.ref(`characters/${myId}/status`).set("online"); 
+            db.ref(`characters/${myId}`).update({ status: "online", lastUpdate: now }); 
             location.reload(); 
-        } else {
-            alert("Helytelen hős vagy PIN!"); 
-        }
+        } else alert("Helytelen hős vagy PIN!"); 
     }
 
     function updateLobbyUI() {
@@ -191,20 +209,20 @@
         document.getElementById('lobby-hero-img').style.backgroundImage = `url('${HERO_IMAGES[c.charClass]}')`;
         document.getElementById('lobby-hp-fill').style.width = (c.hp / c.maxHp) * 100 + "%"; 
         document.getElementById('lobby-hp-val').innerText = `${Math.ceil(c.hp)} / ${c.maxHp} HP`;
-        
         let lvl = c.level || 1, xp = c.xp || 0, nextLevelXP = (lvl == 1 ? 250 : (lvl == 2 ? 750 : (lvl < 10 ? 750 + (lvl-2)*500 : (lvl < 20 ? 4750 + (lvl-9)*750 : 12250 + (lvl-19)*1000))));
         document.getElementById('lobby-xp-fill').style.width = (xp / nextLevelXP * 100) + "%"; 
         document.getElementById('xp-text').innerText = `XP: ${xp} / ${nextLevelXP}`;
-        
-        const list = document.getElementById('online-players-list'); 
-        list.innerHTML = "";
-        Object.keys(chars).forEach(id => { 
-            if (id !== myId && chars[id].status === "online") 
-            list.innerHTML += `<div class="player-item"><span>${chars[id].name}</span><b style="color: #4CAF50;">ONLINE</b></div>`; 
-        });
+        const list = document.getElementById('online-players-list'); list.innerHTML = "";
+        Object.keys(chars).forEach(id => { if (id !== myId && chars[id].status === "online") list.innerHTML += `<div class="player-item"><span>${chars[id].name}</span><b style="color: #4CAF50;">ONLINE</b></div>`; });
     }
 
-    function logout() { db.ref(`characters/${myId}/status`).set("offline").then(() => { localStorage.removeItem('selectedCharId'); location.reload(); }); }
+    function logout() { 
+        db.ref(`characters/${myId}`).update({ status: "offline", lastUpdate: Date.now() }).then(() => { 
+            localStorage.removeItem('selectedCharId'); 
+            location.reload(); 
+        }); 
+    }
+
     function openCreator() { document.getElementById('modal-creator').style.display = 'flex'; updatePreview(); }
     function updatePreview() { const cls = document.getElementById('new-class').value; document.getElementById('preview-img').style.backgroundImage = `url('${HERO_IMAGES[cls]}')`; document.getElementById('preview-skill-name').innerText = CLASS_DATA[cls].skill; document.getElementById('preview-desc').innerText = CLASS_DATA[cls].desc; }
     
@@ -212,7 +230,7 @@
         const name = document.getElementById('new-name').value, cls = document.getElementById('new-class').value, pin = document.getElementById('new-pin').value;
         if (!name || !pin || pin.length < 4) { alert("Kérlek adj meg egy felhasználónevet és egy 4 jegyű PIN kódot!"); return; }
         const hpMap = { "Harcos": 120, "Mágus": 80, "Lovag": 150, "Íjász": 100, "Bérgyilkos": 90, "Nekromanta": 110 };
-        db.ref('characters').push({ name, charClass: cls, pin, hp: hpMap[cls], maxHp: hpMap[cls], level: 1, xp: 0, gold: 50, status: "offline" });
+        db.ref('characters').push({ name, charClass: cls, pin, hp: hpMap[cls], maxHp: hpMap[cls], level: 1, xp: 0, gold: 50, status: "offline", lastUpdate: Date.now() });
         document.getElementById('modal-creator').style.display = 'none'; alert("A hősöd készen áll a kalandra!");
     }
     function goToArena() { window.location.href = 'arena.html'; }
