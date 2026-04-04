@@ -6,37 +6,75 @@
     <title>Hős Leltár - Javított Drag & Drop</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
     <style>
-        :root { --gold: #c5a059; --accent: #8b0000; --bg: #050507; --card: rgba(20, 20, 25, 0.9); }
+        :root { --gold: #c5a059; --accent: #8b0000; --bg: #050507; --card: rgba(20, 20, 25, 0.8); }
+        
         body { 
-            background: var(--bg); color: white; font-family: 'MedievalSharp', cursive; 
-            margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh;
-            background-image: radial-gradient(circle, #1a1a1a 0%, #050507 100%);
+            background: var(--bg); 
+            color: white; 
+            font-family: 'MedievalSharp', cursive; 
+            margin: 0; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            min-height: 100vh;
+            
+            /* ÚJ HÁTTÉR BEÁLLÍTÁSA: A fejléc alatt jelenik meg, halványítva */
+            background-image: 
+                linear-gradient(to bottom, var(--bg) 0%, rgba(5, 5, 7, 0.7) 15%, rgba(5, 5, 7, 0.8) 100%),
+                url('https://i.ibb.co/9mhtFZ4v/Copilot-20260404-231038.png');
+            background-attachment: fixed;
+            background-size: cover;
+            background-position: center;
         }
-        .header { padding: 20px; text-align: center; border-bottom: 2px solid var(--accent); width: 100%; margin-bottom: 20px; background: rgba(0,0,0,0.5); }
+
+        .header { 
+            padding: 20px; 
+            text-align: center; 
+            border-bottom: 2px solid var(--accent); /* Ez a piros csík */
+            width: 100%; 
+            margin-bottom: 20px; 
+            background: var(--bg); /* Ez eltakarja a képet a csík felett */
+            position: relative;
+            z-index: 10;
+        }
+
         .stat-bar { background: rgba(0,0,0,0.8); border: 1px solid var(--gold); padding: 8px 20px; border-radius: 5px; display: inline-flex; gap: 25px; margin-top: 15px; }
 
-        .main-container { display: flex; gap: 50px; justify-content: center; flex-wrap: wrap; padding: 20px; align-items: flex-start; }
+        .main-container { 
+            display: flex; 
+            gap: 50px; 
+            justify-content: center; 
+            flex-wrap: wrap; 
+            padding: 20px; 
+            align-items: flex-start;
+            position: relative;
+            z-index: 5;
+        }
 
         /* Karakter Panel */
         .char-view { 
             position: relative; width: 320px; height: 520px; 
-            border: 3px solid #333; background: #000; border-radius: 12px;
+            border: 3px solid #333; background: rgba(0,0,0,0.6); border-radius: 12px;
+            backdrop-filter: blur(3px); /* Kicsit elmossa a hátteret a karakter mögött */
         }
+
         #hero-img { 
-            width: 100%; height: 100%; object-fit: cover; opacity: 0.5; 
+            width: 100%; height: 100%; object-fit: cover; opacity: 0.7; 
             position: absolute; top: 0; left: 0; z-index: 1; border-radius: 10px;
         }
+
         .slots-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; }
 
         /* Slotok */
         .slot, .inv-slot { 
             width: 64px; height: 64px; border: 1px solid #444;
-            background: rgba(20, 20, 25, 0.85); display: flex; align-items: center; justify-content: center;
-            font-size: 0.65em; text-align: center; color: #666; pointer-events: auto;
+            background: rgba(10, 10, 15, 0.9); display: flex; align-items: center; justify-content: center;
+            font-size: 0.65em; text-align: center; color: #aaa; pointer-events: auto;
             transition: 0.2s; position: absolute;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
-        .inv-slot { position: static; border-color: #222; background: rgba(255,255,255,0.03); }
-        .slot:hover, .inv-slot:hover { border-color: var(--gold); }
+        .inv-slot { position: static; border-color: #333; background: rgba(20, 20, 25, 0.85); }
+        .slot:hover, .inv-slot:hover { border-color: var(--gold); background: rgba(30, 30, 40, 0.95); }
 
         /* Slot pozíciók */
         .slot[data-slot="sisak"] { top: 30px; left: 128px; }
@@ -50,6 +88,8 @@
         .bag-container { 
             background: var(--card); border: 2px solid #333; padding: 20px; 
             border-radius: 12px; width: 340px; 
+            backdrop-filter: blur(5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
         }
         .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 15px; min-height: 300px; }
 
@@ -57,9 +97,11 @@
         .item:active { cursor: grabbing; transform: scale(1.1); }
 
         .btn-back { 
-            margin: 40px 0; padding: 12px 40px; background: #1a1a1a; border: 1px solid var(--gold);
+            margin: 40px 0; padding: 12px 40px; background: rgba(0,0,0,0.8); border: 1px solid var(--gold);
             color: var(--gold); font-family: 'MedievalSharp'; cursor: pointer; text-decoration: none;
+            z-index: 10; transition: 0.3s;
         }
+        .btn-back:hover { background: var(--accent); color: white; }
     </style>
 </head>
 <body>
@@ -68,7 +110,7 @@
     <h1 id="char-name">Karakter betöltése...</h1>
     <div class="stat-bar">
         <span>⚔️ ATK: <b id="stat-atk">0</b></span>
-        <span>🛡️ DEF: <b id="stat-def">0</b></span>
+        <span>🛡️ DEF: <b id="stat-def">0</b></b></span>
     </div>
 </div>
 
@@ -98,6 +140,7 @@
 <script src="items.js"></script>
 
 <script>
+    // ... (Firebase és a többi JS kód változatlan marad) ...
     const firebaseConfig = { 
         apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU", 
         authDomain: "dnd-tracker-4fe05.firebaseapp.com", 
@@ -128,7 +171,6 @@
         const imgEl = document.getElementById('hero-img');
         if(c.charClass) imgEl.src = HERO_IMAGES[c.charClass] || "";
 
-        // Slotok ürítése
         document.querySelectorAll('.slot').forEach(s => { s.innerHTML = s.dataset.slot.toUpperCase(); });
 
         let totalAtk = 10, totalDef = 5;
@@ -143,7 +185,6 @@
         document.getElementById('stat-atk').innerText = totalAtk;
         document.getElementById('stat-def').innerText = totalDef;
 
-        // Hátizsák
         const grid = document.getElementById('inventory-grid');
         grid.innerHTML = '';
         const inv = c.inventory || {};
@@ -157,7 +198,6 @@
                 grid.appendChild(slot);
             }
         });
-        // Üres helyek pótlása (hogy mindig legyen hova dobni)
         for(let i = Object.keys(inv).length; i < 16; i++) {
             const slot = document.createElement('div');
             slot.className = 'inv-slot';
@@ -167,7 +207,6 @@
     });
 
     function allowDrop(ev) { ev.preventDefault(); }
-
     function drag(ev) {
         ev.dataTransfer.setData("itemId", ev.target.dataset.itemid);
         ev.dataTransfer.setData("source", ev.target.dataset.source);
@@ -179,21 +218,14 @@
         const itemId = ev.dataTransfer.getData("itemId");
         const source = ev.dataTransfer.getData("source");
         const fbKey = ev.dataTransfer.getData("fbKey");
-
-        // Célpont keresés felfelé
         let target = ev.target;
         while (target && !target.classList.contains('slot') && !target.classList.contains('inv-slot') && target.id !== 'inventory-grid') {
             target = target.parentElement;
         }
         if (!target) return;
-
         const targetSlot = target.dataset.slot;
         const isInv = target.classList.contains('inv-slot') || target.id === 'inventory-grid';
-
-        // Egymásra pakolás tiltása
         if (target.querySelector('.item')) return;
-
-        // Felszerelés
         if (targetSlot) {
             if (ITEMS[itemId].type === targetSlot) {
                 const updates = {};
@@ -202,9 +234,7 @@
                 else updates[`equip_${source}`] = null;
                 db.ref(`characters/${myId}`).update(updates);
             }
-        } 
-        // Hátizsákba tétel
-        else if (isInv) {
+        } else if (isInv) {
             if (source !== "inventory") {
                 const updates = {};
                 updates[`equip_${source}`] = null;
