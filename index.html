@@ -191,21 +191,25 @@
         listArena.innerHTML = "";
 
         Object.keys(chars).forEach(id => {
+            if (id === myId) return;
             const p = chars[id];
-            if (id !== myId && p.status !== "offline" && (now - (p.lastUpdate || 0) < 300000)) {
-                const item = `
-                    <div class="player-mini-card">
-                        <span class="p-name">${p.name}</span>
-                        <span class="p-stat" style="color:${p.status === 'searching' ? '#ff9800' : '#4CAF50'}">
-                            ${p.status === 'searching' ? 'Várakozik' : 'Lobby'}
-                        </span>
-                    </div>`;
+            const isOnline = (now - (p.lastUpdate || 0) < 300000); // 5 percen belüli aktivitás
 
-                if (p.status === "searching") {
-                    listArena.innerHTML += item;
-                } else {
-                    listOnline.innerHTML += item;
-                }
+            const item = `
+                <div class="player-mini-card">
+                    <span class="p-name">${p.name}</span>
+                    <span class="p-stat" style="color:${p.status === 'searching' ? '#ff9800' : '#4CAF50'}">
+                        ${p.status === 'searching' ? 'Várakozik' : 'Lobby'}
+                    </span>
+                </div>`;
+
+            // JAVÍTOTT LOGIKA:
+            if (p.status === "searching") {
+                // Az arénában várakozókat akkor is mutassa, ha picit inaktívabbak
+                listArena.innerHTML += item;
+            } else if (p.status === "online" && isOnline) {
+                // A lobby-ban lévőket csak akkor, ha tényleg aktívak
+                listOnline.innerHTML += item;
             }
         });
     }
