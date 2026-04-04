@@ -12,8 +12,8 @@
         body { font-family: 'Crimson Text', serif; background-color: var(--bg); color: var(--text); margin: 0; height: 100vh; overflow: hidden; }
         .master-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.8)), url('https://i.pinimg.com/originals/26/2b/dd/262bdd02564bf6dabbe89df4f93e8e26.jpg'); background-size: cover; background-position: center; z-index: -1; }
         
-        /* NAVIGÁCIÓS GOMBOK - EGY VONALBAN MARADNAK */
-        .nav-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 25px 0; align-items: center; }
+        /* NAVIGÁCIÓS GOMBOK */
+        .nav-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0; align-items: center; }
         
         .img-btn { 
             display: flex; 
@@ -31,13 +31,8 @@
             box-shadow: 0 5px 15px rgba(0,0,0,0.5); 
         }
 
-        /* A GOMBOK KERETE EGY VONALBAN MARAD (nincs margin-top eltolás) */
-        .btn-felszereles { background-image: url('https://i.ibb.co/F4FDF8gF/Copilot-20260405-001049.png'); }
-        .btn-kereskedo { background-image: url('https://i.ibb.co/0HSGQK0/Copilot-20260405-001515.png'); }
-
-        /* A HÁTTÉRKÉPEK ELTOLÁSA A GOMBON BELÜL */
-        .btn-felszereles { background-position: center calc(50% - 3mm); }
-        .btn-kereskedo { background-position: center calc(50% + 3mm); }
+        .btn-felszereles { background-image: url('https://i.ibb.co/F4FDF8gF/Copilot-20260405-001049.png'); background-position: center calc(50% - 3mm); }
+        .btn-kereskedo { background-image: url('https://i.ibb.co/0HSGQK0/Copilot-20260405-001515.png'); background-position: center calc(50% + 3mm); }
 
         .img-btn:hover { transform: translateY(-3px); box-shadow: 0 0 15px rgba(197, 160, 89, 0.4); border-color: #fff; }
         .img-btn span { width: 100%; background: rgba(0, 0, 0, 0.7); color: var(--gold); font-family: 'MedievalSharp'; text-align: center; padding: 5px 0; font-size: 0.9em; text-transform: uppercase; border-top: 1px solid rgba(197, 160, 89, 0.3); }
@@ -47,6 +42,11 @@
         .player-item { background: rgba(255,255,255,0.05); padding: 8px; border-left: 3px solid var(--gold); border-radius: 2px; display: flex; flex-direction: column; }
         .player-name { font-family: 'MedievalSharp'; color: white; font-size: 0.85em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .status-tag { font-size: 0.7em; font-weight: bold; text-transform: uppercase; margin-top: 2px; }
+
+        /* STATOK - KÖZÉPEN ÉS NAGYOBBAN */
+        .stat-row { display: flex; justify-content: center; gap: 15px; margin: 20px 0; width: 100%; }
+        .stat-box { background: rgba(0,0,0,0.85); border: 1px solid var(--gold); padding: 8px 15px; border-radius: 4px; color: var(--gold); font-family: 'MedievalSharp'; font-size: 1.1em; display: flex; align-items: center; gap: 8px; min-width: 100px; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        .gold-status-box { background: rgba(0,0,0,0.85); border: 2px solid var(--gold); padding: 8px 15px; border-radius: 6px; color: var(--gold); font-family: 'MedievalSharp'; font-size: 1.2em; display: flex; align-items: center; gap: 8px; justify-content: center; }
 
         /* ALAP UI ELEMEK */
         .search-container { position: relative; width: 100%; margin-bottom: 15px; }
@@ -61,15 +61,12 @@
         input, select { width: 100%; padding: 12px; margin-bottom: 15px; background: rgba(0,0,0,0.8); border: 1px solid #444; color: white; font-family: 'MedievalSharp'; }
         .btn { font-family: 'MedievalSharp'; padding: 15px; cursor: pointer; border: 1px solid var(--gold); transition: 0.3s; text-transform: uppercase; display: block; width: 100%; margin-bottom: 10px; text-decoration: none; text-align: center; color: var(--gold); }
         .btn-main { background: var(--accent); color: white; border: none; font-size: 1.1em; }
-        .lobby-hero-portrait { width: 100%; height: 350px; border: 2px solid var(--gold); margin: 20px 0; background-size: cover; background-position: center 20%; border-radius: 4px; box-shadow: inset 0 0 50px black; }
+        .lobby-hero-portrait { width: 100%; height: 320px; border: 2px solid var(--gold); margin: 15px 0; background-size: cover; background-position: center 20%; border-radius: 4px; box-shadow: inset 0 0 50px black; }
         .bar-container { height: 24px; background: #000; border: 1px solid #333; position: relative; margin-top: 10px; border-radius: 3px; overflow: hidden; }
         .bar-fill { height: 100%; transition: width 0.5s ease; background: linear-gradient(90deg, #600, #b00); width: 0%; }
         .hp-count-text { font-size: 14px; color: #ccc; margin-top: 4px; font-weight: bold; font-family: 'MedievalSharp'; }
         .xp-container { height: 8px; background: #111; border: 1px solid #333; margin-top: 5px; border-radius: 4px; overflow: hidden; }
         .xp-fill { height: 100%; background: linear-gradient(90deg, #004cff, #00d4ff); width: 0%; transition: 1s; }
-        .stat-row { display: flex; justify(center); gap: 10px; margin-top: 15px; }
-        .stat-box { background: rgba(0,0,0,0.85); border: 1px solid var(--gold); padding: 5px 12px; border-radius: 4px; color: var(--gold); font-family: 'MedievalSharp'; font-size: 0.9em; display: flex; align-items: center; gap: 5px; min-width: 80px; justify-content: center; }
-        .gold-status-box { background: rgba(0,0,0,0.85); border: 2px solid var(--gold); padding: 6px 15px; border-radius: 6px; color: var(--gold); font-family: 'MedievalSharp'; font-size: 1.1em; display: flex; align-items: center; gap: 8px; justify-content: center; margin-bottom: 20px; }
         #modal-creator { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; align-items: center; justify-content: center; z-index: 2000; }
         .creator-container { display: flex; flex-direction: row; gap: 30px; max-width: 900px !important; padding: 40px !important; }
         .hero-img-frame { width: 250px; height: 250px; border: 3px solid var(--gold); background-size: cover; background-position: center 20%; margin-bottom: 15px; }
@@ -98,7 +95,9 @@
     <div class="card">
         <div style="display:flex; justify-content: space-between; align-items: center;"><h1 id="lobby-name" style="font-family:'MedievalSharp'; color:var(--gold); margin:0;">-</h1><span id="lobby-lvl" style="color: var(--gold); font-family:'MedievalSharp'; font-size: 1.2em; border: 1px solid var(--gold); padding: 2px 10px;">LVL 1</span></div>
         <p id="lobby-class-display" style="margin:5px 0; font-style:italic; color:#aaa; text-transform: uppercase;">-</p>
+        
         <div id="lobby-hero-img" class="lobby-hero-portrait"></div>
+        
         <div class="bar-container"><div class="bar-fill" id="lobby-hp-fill"></div></div>
         <div class="hp-count-text" id="lobby-hp-val">0 / 0 HP</div>
         <div class="xp-container"><div id="lobby-xp-fill" class="xp-fill"></div></div>
@@ -112,10 +111,10 @@
         <div class="stat-row">
             <div class="stat-box">⚔️ <span id="lobby-atk">12-18</span></div>
             <div class="stat-box">🛡️ <span id="lobby-def">5</span></div>
-            <div class="gold-status-box" style="margin:0;">💰 <span id="lobby-gold">0</span></div>
+            <div class="gold-status-box">💰 <span id="lobby-gold">0</span></div>
         </div>
         
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:20px;">
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
             <button class="btn btn-main" style="background:#4a1a1a;">📜 KAMPÁNY</button>
             <button onclick="goToArena()" class="btn btn-main" style="background:#8b0000;">⚔️ ARÉNA</button>
         </div>
@@ -196,7 +195,9 @@
         list.innerHTML = "";
         Object.keys(chars).forEach(id => {
             const p = chars[id];
+            // Aki online vagy keresőben van az elmúlt 5 percben
             if (id !== myId && p.status !== "offline" && (now - (p.lastUpdate || 0) < 300000)) {
+                // Ha a státusz "searching", akkor írja ki, hogy Kihívóra vár
                 let s = p.status === "searching" ? `<span class="status-tag" style="color:#ff9800;">⚔️ Kihívóra vár</span>` : `<span class="status-tag" style="color:#4CAF50;">● Online</span>`;
                 list.innerHTML += `<div class="player-item"><span class="player-name">${p.name}</span>${s}</div>`;
             }
