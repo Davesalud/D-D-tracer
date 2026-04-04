@@ -11,6 +11,18 @@
         input, select { user-select: text !important; }
         body { font-family: 'Crimson Text', serif; background-color: var(--bg); color: var(--text); margin: 0; height: 100vh; overflow: hidden; }
         .master-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.8)), url('https://i.pinimg.com/originals/26/2b/dd/262bdd02564bf6dabbe89df4f93e8e26.jpg'); background-size: cover; background-position: center; z-index: -1; }
+        
+        /* ÚJ: Kereső lista stílusa */
+        .search-container { position: relative; width: 100%; margin-bottom: 15px; }
+        #search-results { 
+            position: absolute; top: 100%; left: 0; width: 100%; 
+            background: rgba(20, 20, 25, 0.95); border: 1px solid var(--gold); 
+            border-top: none; z-index: 100; max-height: 150px; overflow-y: auto; 
+            display: none; box-shadow: 0 10px 20px rgba(0,0,0,0.8);
+        }
+        .search-item { padding: 12px; cursor: pointer; border-bottom: 1px solid #333; text-align: left; font-family: 'MedievalSharp'; color: white; }
+        .search-item:hover { background: var(--accent); color: white; }
+
         .logout-corner { position: fixed; top: 20px; right: 20px; z-index: 1000; display: none; }
         .btn-logout { background: rgba(139, 0, 0, 0.6); color: var(--gold); border: 1px solid var(--gold); padding: 8px 15px; font-family: 'MedievalSharp'; cursor: pointer; font-size: 0.8em; text-transform: uppercase; transition: 0.3s; }
         .page { display: none; height: 100vh; padding: 20px; flex-direction: column; align-items: center; overflow-y: auto; }
@@ -28,7 +40,6 @@
         .xp-container { height: 8px; background: #111; border: 1px solid #333; margin-top: 5px; border-radius: 4px; overflow: hidden; }
         .xp-fill { height: 100%; background: linear-gradient(90deg, #004cff, #00d4ff); width: 0%; transition: 1s; }
         
-        /* Navigációs rács stílusa */
         .nav-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; margin-bottom: 20px; }
         .nav-btn-box { background: rgba(0,0,0,0.7); border: 1px solid var(--gold); padding: 12px; color: var(--gold); text-decoration: none; font-family: 'MedievalSharp'; display: flex; flex-direction: column; align-items: center; transition: 0.3s; border-radius: 4px; }
         .nav-btn-box:hover { background: rgba(197, 160, 89, 0.15); box-shadow: 0 0 10px rgba(197,160,89,0.3); }
@@ -44,7 +55,6 @@
         .hero-img-frame { width: 250px; height: 250px; border: 3px solid var(--gold); background-size: cover; background-position: center 20%; margin-bottom: 15px; box-shadow: 0 0 20px rgba(197,160,89,0.3); }
         .player-item { display: flex; justify-content: space-between; padding: 10px; background: rgba(255,255,255,0.05); margin-bottom: 8px; border-left: 3px solid var(--gold); font-size: 0.9em; }
 
-        /* DM Belépő Gomb Stílusa */
         .dm-trigger { position: fixed; bottom: 15px; right: 15px; width: 35px; height: 35px; background: rgba(0,0,0,0.5); border: 1px solid rgba(197,160,89,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 9999; transition: 0.3s; opacity: 0.4; }
         .dm-trigger:hover { opacity: 1; border-color: var(--gold); background: rgba(139,0,0,0.2); }
     </style>
@@ -56,7 +66,19 @@
 <div class="dm-trigger" onclick="enterDM()">🔑</div>
 
 <div id="page-login" class="page active">
-    <div class="card" style="margin-top: 10vh;"><div class="logo">Death's Armada</div><div style="margin-bottom: 20px; font-style: italic; color: #888;">Válassz egy hőst és lépj be a sötétségbe...</div><select id="login-select"><option value="" disabled selected>Hős keresése...</option></select><input type="password" id="login-pin" placeholder="PIN KÓD (4 SZÁM)" maxlength="4" inputmode="numeric"><button class="btn btn-main" onclick="login()">Belépés</button><button class="btn btn-sub" onclick="openCreator()">✨ Új Hős Megidézése</button></div>
+    <div class="card" style="margin-top: 10vh;">
+        <div class="logo">Death's Armada</div>
+        <div style="margin-bottom: 20px; font-style: italic; color: #888;">Kezdd el írni a hősöd nevét...</div>
+        
+        <div class="search-container">
+            <input type="text" id="hero-search" placeholder="Hős neve..." autocomplete="off">
+            <div id="search-results"></div>
+        </div>
+
+        <input type="password" id="login-pin" placeholder="PIN KÓD (4 SZÁM)" maxlength="4" inputmode="numeric">
+        <button class="btn btn-main" onclick="login()">Belépés</button>
+        <button class="btn btn-sub" onclick="openCreator()">✨ Új Hős Megidézése</button>
+    </div>
 </div>
 
 <div id="page-lobby" class="page">
@@ -91,14 +113,12 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     
-    // DM BELÉPÉS LOGIKA
+    let chars = {}, myId = localStorage.getItem('selectedCharId'), selectedIdFromSearch = null;
+
+    // DM LOGIN
     function enterDM() {
         const pin = prompt("Dungeon Master azonosítás:");
-        if(pin === "4469") { // Itt írd át a PIN-t ha akarod!
-            window.location.href = 'dm.html';
-        } else if(pin !== null) {
-            alert("Hibás kód!");
-        }
+        if(pin === "4469") { window.location.href = 'dm.html'; } else if(pin !== null) { alert("Hibás kód!"); }
     }
 
     const HERO_IMAGES = { "Harcos": "https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png", "Mágus": "https://i.ibb.co/yFz5bcXv/Copilot-20260403-033651.png", "Lovag": "https://i.ibb.co/Fk3n339M/Copilot-20260403-034043.png", "Íjász": "https://i.ibb.co/whd2jNpB/Copilot-20260403-034402.png", "Bérgyilkos": "https://i.ibb.co/b525CsLg/Copilot-20260403-032807.png", "Nekromanta": "https://i.ibb.co/NnCwwCbR/Copilot-20260403-033301.png" };
@@ -110,22 +130,84 @@
         "Bérgyilkos": { skill: "Hátbatámadás", desc: "Életerő: 90 HP | Sebzés: 18-28\nPasszív: Esély a támadás teljes elkerülésére." },
         "Nekromanta": { skill: "Lélekcsapolás", desc: "Életerő: 110 HP | Sebzés: 15-22\nPasszív: A sebzés egy részét életerőként visszakapja." }
     };
-    let chars = {}, myId = localStorage.getItem('selectedCharId');
-    setInterval(() => { if(myId && chars[myId]) { const c = chars[myId]; if(c.hp < c.maxHp) db.ref(`characters/${myId}`).update({ hp: Math.min(c.maxHp, c.hp + 10) }); } }, 60000);
-    db.ref('characters').on('value', snap => { chars = snap.val() || {}; updateLoginList(); if (myId && chars[myId]) { document.getElementById('page-login').style.display = 'none'; document.getElementById('page-lobby').classList.add('active'); document.getElementById('logout-ui').style.display = 'block'; updateLobbyUI(); } });
-    function updateLobbyUI() {
-        const c = chars[myId]; document.getElementById('lobby-name').innerText = c.name; document.getElementById('lobby-lvl').innerText = `LVL ${c.level || 1}`; document.getElementById('lobby-gold').innerText = c.gold || 0; document.getElementById('lobby-class-display').innerText = c.charClass; document.getElementById('lobby-hero-img').style.backgroundImage = `url('${HERO_IMAGES[c.charClass]}')`;
-        document.getElementById('lobby-hp-fill').style.width = (c.hp / c.maxHp) * 100 + "%"; document.getElementById('lobby-hp-val').innerText = `${Math.ceil(c.hp)} / ${c.maxHp} HP`;
-        let lvl = c.level || 1, xp = c.xp || 0, nextLevelXP = (lvl == 1 ? 250 : (lvl == 2 ? 750 : (lvl < 10 ? 750 + (lvl-2)*500 : (lvl < 20 ? 4750 + (lvl-9)*750 : 12250 + (lvl-19)*1000))));
-        document.getElementById('lobby-xp-fill').style.width = (xp / nextLevelXP * 100) + "%"; document.getElementById('xp-text').innerText = `XP: ${xp} / ${nextLevelXP}`;
-        const list = document.getElementById('online-players-list'); list.innerHTML = "";
-        Object.keys(chars).forEach(id => { if (id !== myId && chars[id].status === "online") list.innerHTML += `<div class="player-item"><span>${chars[id].name}</span><b style="color: #4CAF50;">ONLINE</b></div>`; });
+
+    // Firebase figyelés
+    db.ref('characters').on('value', snap => { 
+        chars = snap.val() || {}; 
+        if (myId && chars[myId]) { 
+            document.getElementById('page-login').style.display = 'none'; 
+            document.getElementById('page-lobby').classList.add('active'); 
+            document.getElementById('logout-ui').style.display = 'block'; 
+            updateLobbyUI(); 
+        } 
+    });
+
+    // KERESŐ LOGIKA
+    const searchInput = document.getElementById('hero-search');
+    const searchResults = document.getElementById('search-results');
+
+    searchInput.addEventListener('input', (e) => {
+        const text = e.target.value.toLowerCase();
+        searchResults.innerHTML = "";
+        if(text.length < 1) { searchResults.style.display = "none"; return; }
+
+        let found = false;
+        Object.keys(chars).forEach(id => {
+            if(chars[id].name.toLowerCase().startsWith(text)) {
+                const div = document.createElement('div');
+                div.className = "search-item";
+                div.innerText = chars[id].name;
+                div.onclick = () => {
+                    searchInput.value = chars[id].name;
+                    selectedIdFromSearch = id;
+                    searchResults.style.display = "none";
+                };
+                searchResults.appendChild(div);
+                found = true;
+            }
+        });
+        searchResults.style.display = found ? "block" : "none";
+    });
+
+    // BELÉPÉS
+    function login() { 
+        const pin = document.getElementById('login-pin').value; 
+        if (selectedIdFromSearch && chars[selectedIdFromSearch] && chars[selectedIdFromSearch].pin.toString() === pin) { 
+            myId = selectedIdFromSearch; 
+            localStorage.setItem('selectedCharId', myId); 
+            db.ref(`characters/${myId}/status`).set("online"); 
+            location.reload(); 
+        } else {
+            alert("Helytelen hős vagy PIN!"); 
+        }
     }
-    function login() { const id = document.getElementById('login-select').value, pin = document.getElementById('login-pin').value; if (id && chars[id] && chars[id].pin.toString() === pin) { myId = id; localStorage.setItem('selectedCharId', id); db.ref(`characters/${id}/status`).set("online"); location.reload(); } else alert("Helytelen hős vagy PIN!"); }
+
+    function updateLobbyUI() {
+        const c = chars[myId]; 
+        document.getElementById('lobby-name').innerText = c.name; 
+        document.getElementById('lobby-lvl').innerText = `LVL ${c.level || 1}`; 
+        document.getElementById('lobby-gold').innerText = c.gold || 0; 
+        document.getElementById('lobby-class-display').innerText = c.charClass; 
+        document.getElementById('lobby-hero-img').style.backgroundImage = `url('${HERO_IMAGES[c.charClass]}')`;
+        document.getElementById('lobby-hp-fill').style.width = (c.hp / c.maxHp) * 100 + "%"; 
+        document.getElementById('lobby-hp-val').innerText = `${Math.ceil(c.hp)} / ${c.maxHp} HP`;
+        
+        let lvl = c.level || 1, xp = c.xp || 0, nextLevelXP = (lvl == 1 ? 250 : (lvl == 2 ? 750 : (lvl < 10 ? 750 + (lvl-2)*500 : (lvl < 20 ? 4750 + (lvl-9)*750 : 12250 + (lvl-19)*1000))));
+        document.getElementById('lobby-xp-fill').style.width = (xp / nextLevelXP * 100) + "%"; 
+        document.getElementById('xp-text').innerText = `XP: ${xp} / ${nextLevelXP}`;
+        
+        const list = document.getElementById('online-players-list'); 
+        list.innerHTML = "";
+        Object.keys(chars).forEach(id => { 
+            if (id !== myId && chars[id].status === "online") 
+            list.innerHTML += `<div class="player-item"><span>${chars[id].name}</span><b style="color: #4CAF50;">ONLINE</b></div>`; 
+        });
+    }
+
     function logout() { db.ref(`characters/${myId}/status`).set("offline").then(() => { localStorage.removeItem('selectedCharId'); location.reload(); }); }
     function openCreator() { document.getElementById('modal-creator').style.display = 'flex'; updatePreview(); }
     function updatePreview() { const cls = document.getElementById('new-class').value; document.getElementById('preview-img').style.backgroundImage = `url('${HERO_IMAGES[cls]}')`; document.getElementById('preview-skill-name').innerText = CLASS_DATA[cls].skill; document.getElementById('preview-desc').innerText = CLASS_DATA[cls].desc; }
-    function updateLoginList() { const sel = document.getElementById('login-select'), currentVal = sel.value; sel.innerHTML = '<option value="" disabled selected>Válassz egy hőst...</option>'; Object.keys(chars).forEach(id => { sel.innerHTML += `<option value="${id}">${chars[id].name}</option>`; }); if(currentVal) sel.value = currentVal; }
+    
     function saveNewHero() {
         const name = document.getElementById('new-name').value, cls = document.getElementById('new-class').value, pin = document.getElementById('new-pin').value;
         if (!name || !pin || pin.length < 4) { alert("Kérlek adj meg egy felhasználónevet és egy 4 jegyű PIN kódot!"); return; }
