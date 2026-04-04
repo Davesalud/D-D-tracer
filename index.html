@@ -14,36 +14,22 @@
         
         /* NAVIGÁCIÓS GOMBOK */
         .nav-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0; align-items: center; }
-        
-        .img-btn { 
-            display: flex; 
-            align-items: flex-end; 
-            justify-content: center; 
-            height: 110px; 
-            border: 1px solid var(--gold); 
-            border-radius: 4px; 
-            text-decoration: none; 
-            background-size: cover; 
-            background-position: center; 
-            position: relative; 
-            overflow: hidden; 
-            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5); 
-        }
-
+        .img-btn { display: flex; align-items: flex-end; justify-content: center; height: 110px; border: 1px solid var(--gold); border-radius: 4px; text-decoration: none; background-size: cover; background-position: center; position: relative; overflow: hidden; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
         .btn-felszereles { background-image: url('https://i.ibb.co/F4FDF8gF/Copilot-20260405-001049.png'); background-position: center calc(50% - 3mm); }
         .btn-kereskedo { background-image: url('https://i.ibb.co/0HSGQK0/Copilot-20260405-001515.png'); background-position: center calc(50% + 3mm); }
-
         .img-btn:hover { transform: translateY(-3px); box-shadow: 0 0 15px rgba(197, 160, 89, 0.4); border-color: #fff; }
         .img-btn span { width: 100%; background: rgba(0, 0, 0, 0.7); color: var(--gold); font-family: 'MedievalSharp'; text-align: center; padding: 5px 0; font-size: 0.9em; text-transform: uppercase; border-top: 1px solid rgba(197, 160, 89, 0.3); }
 
-        /* KÉTOSZLOPOS ONLINE LISTA */
-        #online-players-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; max-height: 120px; overflow-y: auto; text-align: left; }
-        .player-item { background: rgba(255,255,255,0.05); padding: 8px; border-left: 3px solid var(--gold); border-radius: 2px; display: flex; flex-direction: column; }
-        .player-name { font-family: 'MedievalSharp'; color: white; font-size: 0.85em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .status-tag { font-size: 0.7em; font-weight: bold; text-transform: uppercase; margin-top: 2px; }
+        /* KÉT KÜLÖN LISTA DOBOZ */
+        .online-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+        .status-container { background: rgba(0,0,0,0.4); border: 1px solid rgba(197, 160, 89, 0.2); padding: 10px; border-radius: 4px; min-height: 120px; text-align: left; }
+        .status-header { font-family: 'MedievalSharp'; color: var(--gold); font-size: 0.85em; text-transform: uppercase; border-bottom: 1px solid rgba(197, 160, 89, 0.3); margin-bottom: 8px; padding-bottom: 3px; display: flex; justify-content: space-between; }
+        .scroll-area { max-height: 100px; overflow-y: auto; }
+        .player-mini-card { background: rgba(255,255,255,0.03); padding: 5px 8px; margin-bottom: 5px; border-left: 2px solid var(--gold); border-radius: 2px; }
+        .p-name { font-family: 'MedievalSharp'; font-size: 0.8em; color: white; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .p-stat { font-size: 0.65em; font-weight: bold; text-transform: uppercase; }
 
-        /* STATOK - KÖZÉPEN ÉS NAGYOBBAN */
+        /* STATOK */
         .stat-row { display: flex; justify-content: center; gap: 15px; margin: 20px 0; width: 100%; }
         .stat-box { background: rgba(0,0,0,0.85); border: 1px solid var(--gold); padding: 8px 15px; border-radius: 4px; color: var(--gold); font-family: 'MedievalSharp'; font-size: 1.1em; display: flex; align-items: center; gap: 8px; min-width: 100px; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
         .gold-status-box { background: rgba(0,0,0,0.85); border: 2px solid var(--gold); padding: 8px 15px; border-radius: 6px; color: var(--gold); font-family: 'MedievalSharp'; font-size: 1.2em; display: flex; align-items: center; gap: 8px; justify-content: center; }
@@ -119,8 +105,16 @@
             <button onclick="goToArena()" class="btn btn-main" style="background:#8b0000;">⚔️ ARÉNA</button>
         </div>
 
-        <h3 style="font-family:'MedievalSharp'; color:var(--gold); margin-top:30px; text-align: left; border-bottom: 1px solid var(--gold); padding-bottom: 5px;">Online Hősök</h3>
-        <div id="online-players-list"></div>
+        <div class="online-grid">
+            <div class="status-container">
+                <div class="status-header">Hősök <span>●</span></div>
+                <div id="list-online" class="scroll-area"></div>
+            </div>
+            <div class="status-container">
+                <div class="status-header">Aréna <span>⚔️</span></div>
+                <div id="list-arena" class="scroll-area"></div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -191,15 +185,27 @@
         document.getElementById('lobby-hp-fill').style.width = (c.hp / c.maxHp) * 100 + "%";
         document.getElementById('lobby-hp-val').innerText = `${Math.ceil(c.hp)} / ${c.maxHp} HP`;
         
-        const list = document.getElementById('online-players-list');
-        list.innerHTML = "";
+        const listOnline = document.getElementById('list-online');
+        const listArena = document.getElementById('list-arena');
+        listOnline.innerHTML = "";
+        listArena.innerHTML = "";
+
         Object.keys(chars).forEach(id => {
             const p = chars[id];
-            // Aki online vagy keresőben van az elmúlt 5 percben
             if (id !== myId && p.status !== "offline" && (now - (p.lastUpdate || 0) < 300000)) {
-                // Ha a státusz "searching", akkor írja ki, hogy Kihívóra vár
-                let s = p.status === "searching" ? `<span class="status-tag" style="color:#ff9800;">⚔️ Kihívóra vár</span>` : `<span class="status-tag" style="color:#4CAF50;">● Online</span>`;
-                list.innerHTML += `<div class="player-item"><span class="player-name">${p.name}</span>${s}</div>`;
+                const item = `
+                    <div class="player-mini-card">
+                        <span class="p-name">${p.name}</span>
+                        <span class="p-stat" style="color:${p.status === 'searching' ? '#ff9800' : '#4CAF50'}">
+                            ${p.status === 'searching' ? 'Várakozik' : 'Lobby'}
+                        </span>
+                    </div>`;
+
+                if (p.status === "searching") {
+                    listArena.innerHTML += item;
+                } else {
+                    listOnline.innerHTML += item;
+                }
             }
         });
     }
