@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Death's Armada - ARENA ⚔️</title>
+    <title>Death's Armada - ARENA v3.0 ⚔️</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #c5a059; --accent: #8b0000; --bg: #050507; }
@@ -30,23 +30,22 @@
         
         #win-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.98); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; text-align: center; padding: 20px; }
         .win-active { display: flex !important; }
-        .futo-kep { width: 220px; height: 220px; border: 2px solid var(--gold); border-radius: 50%; margin: 20px 0; background-size: cover; background-position: center; }
+        .futo-kep { width: 200px; height: 200px; border: 3px solid var(--gold); border-radius: 15px; margin: 15px 0; background-size: cover; background-position: center; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
     </style>
 </head>
 <body>
 
 <div id="win-screen">
-    <h1 id="win-title" style="color: var(--gold); font-size: 2.5em; margin: 0;">GYŐZELEM!</h1>
-    <div id="win-subtitle" style="font-size: 1.2em; color: #ccc; margin: 10px 0;">-</div>
+    <h1 id="win-title" style="color: var(--gold); font-size: 2.8em; margin: 0;">GYŐZELEM!</h1>
     
     <div id="futo-ui" style="display:none; flex-direction:column; align-items:center;">
         <div class="futo-kep" style="background-image: url('https://i.ibb.co/R4N45SWs/Copilot-20260405-020111.png');"></div>
-        <h2 style="color: #ff4444;">Hová menekülsz te kisnyuszimuszi?</h2>
+        <h2 style="color: #ff4444; margin: 10px 0;">Hová menekülsz te kisnyuszimuszi?</h2>
     </div>
 
     <div id="rewards" style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; border: 1px solid rgba(197,160,89,0.3); width: 240px; margin: 10px auto;">
-        <p id="reward-xp" style="margin: 5px 0; font-weight: bold;"></p>
-        <p id="reward-gold" style="margin: 5px 0; font-weight: bold;"></p>
+        <p id="reward-xp" style="margin: 5px 0; font-size: 1.2em; font-weight: bold;"></p>
+        <p id="reward-gold" style="margin: 5px 0; font-size: 1.2em; font-weight: bold;"></p>
     </div>
 
     <div style="width: 280px; margin-top: 20px;">
@@ -90,30 +89,21 @@
 
     const HERO_IMGS = { "Harcos":"https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png", "Mágus":"https://i.ibb.co/yFz5bcXv/Copilot-20260403-033651.png", "Lovag":"https://i.ibb.co/Fk3n339M/Copilot-20260403-034043.png", "Íjász":"https://i.ibb.co/whd2jNpB/Copilot-20260403-034402.png", "Bérgyilkos":"https://i.ibb.co/b525CsLg/Copilot-20260403-032807.png", "Nekromanta":"https://i.ibb.co/NnCwwCbR/Copilot-20260403-033301.png" };
 
-    // 10 másodperces életjel
+    // 10 mp frissítés
     setInterval(() => { 
         if(myId) db.ref(`characters/${myId}`).update({ lastUpdate: Date.now(), status: isFighting ? "online" : "searching" }); 
     }, 10000);
 
     function handleExit() {
-        if (!isFighting) {
-            safeExit(); // Sima kilépés ha nincs harc
-        } else {
-            if(confirm("Ha most elmenekülsz, büntetést kapsz! Biztos?")) {
-                processEndGame(false, true); // Megfutamodás
-            }
-        }
+        if (!isFighting) { safeExit(); } 
+        else { if(confirm("Ha most elmenekülsz, -5 XP és -5 Arany a büntetés! Biztos?")) { processEndGame(false, true); } }
     }
 
     function findMatch() {
         db.ref('battles').once('value', snap => {
             const rooms = snap.val();
             let found = null;
-            if (rooms) { 
-                for (let id in rooms) { 
-                    if (rooms[id].p2 && rooms[id].p2.id === "waiting" && rooms[id].p1.id !== myId) { found = id; break; } 
-                } 
-            }
+            if (rooms) { for (let id in rooms) { if (rooms[id].p2 && rooms[id].p2.id === "waiting" && rooms[id].p1.id !== myId) { found = id; break; } } }
             found ? joinBattle(found) : createNewBattle();
         });
     }
@@ -127,7 +117,7 @@
             bRef.set({
                 p1: { id: myId, name: c.name, hp: c.hp, maxHp: c.maxHp, class: c.charClass },
                 p2: { id: "waiting", name: "Várakozás...", hp: 0, maxHp: 100 },
-                turn: myId, lastRoll: "?", log: ["Ellenfelet keresünk..."]
+                turn: myId, lastRoll: "?", log: ["Ellenfelet keresünk..."], winner: "none"
             });
             bRef.onDisconnect().remove();
             listen();
@@ -138,12 +128,22 @@
         currentRoom = id; bRef = db.ref('battles/' + currentRoom);
         db.ref(`characters/${myId}`).once('value', s => {
             const c = s.val();
-            bRef.update({ "p2": { id: myId, name: c.name, hp: c.hp, maxHp: c.maxHp, class: c.charClass }, "log": ["Harc indul!"] });
+            bRef.update({ "p2": { id: myId, name: c.name, hp: c.hp, maxHp: c.maxHp, class: c.charClass }, "log": ["Harc indul!"], "winner": "none" });
             listen();
         });
     }
 
-    function listen() { bRef.on('value', snap => { if(snap.val()) updateArena(snap.val()); }); }
+    function listen() { 
+        bRef.on('value', snap => { 
+            const b = snap.val(); if(!b) return;
+            if (b.winner && b.winner !== "none" && !rewarded) {
+                rewarded = true;
+                processEndGame(b.winner === myId, false);
+                return;
+            }
+            updateArena(b); 
+        }); 
+    }
 
     function updateArena(b) {
         const isP1 = b.p1.id === myId;
@@ -151,12 +151,10 @@
         const opp = isP1 ? b.p2 : b.p1;
         myHpAtEnd = me.hp;
 
-        // Ha van ellenfél, átváltunk harci módra
         if (opp.id !== "waiting") {
             isFighting = true;
             document.getElementById('main-exit-btn').innerText = "🏃 MEGFUTAMODÁS";
             document.getElementById('main-exit-btn').style.background = "#4a1a1a";
-            
             document.getElementById('e-name').innerText = opp.name;
             document.getElementById('e-img').style.backgroundImage = `url('${HERO_IMGS[opp.class]}')`;
             document.getElementById('e-hp-fill').style.width = (opp.hp/opp.maxHp*100)+"%";
@@ -193,7 +191,6 @@
                 const isP1 = b.p1.id === myId;
                 const me = isP1 ? b.p1 : b.p2;
                 let dmg = (roll === 1) ? 0 : (roll === 20 ? 25 : Math.floor(Math.random() * 8) + 10);
-                
                 const updates = {};
                 updates[isP1 ? 'p2/hp' : 'p1/hp'] = Math.max(0, (isP1 ? b.p2.hp : b.p1.hp) - dmg);
                 updates['turn'] = isP1 ? b.p2.id : b.p1.id;
@@ -209,27 +206,33 @@
         let xpGain = isWin ? 15 : (isFuto ? -5 : 3);
         let goldGain = isWin ? 10 : (isFuto ? -5 : -2);
         
+        if (isFuto && bRef) {
+            bRef.once('value', snap => {
+                const b = snap.val();
+                if (b) {
+                    const oppId = (b.p1.id === myId) ? b.p2.id : b.p1.id;
+                    bRef.update({ winner: oppId });
+                }
+            });
+        }
+
         db.ref(`characters/${myId}`).once('value', s => {
             const c = s.val();
-            let newXp = Math.max(0, (c.xp || 0) + xpGain);
-            let newGold = Math.max(0, (c.gold || 0) + goldGain);
-            
-            db.ref(`characters/${myId}`).update({ xp: newXp, gold: newGold, status: "online", hp: Math.max(0, myHpAtEnd) });
+            let nXp = Math.max(0, (c.xp || 0) + xpGain), nGold = Math.max(0, (c.gold || 0) + goldGain);
+            db.ref(`characters/${myId}`).update({ xp: nXp, gold: nGold, status: "online", hp: Math.max(0, myHpAtEnd) });
             
             document.getElementById('win-screen').classList.add('win-active');
-            
             if (isFuto) {
                 document.getElementById('win-title').innerText = "MEGFUTAMODTÁL!";
-                document.getElementById('win-subtitle').innerText = "Szégyen a futás, de büntetés jár érte!";
                 document.getElementById('futo-ui').style.display = 'flex';
                 document.getElementById('reward-xp').style.color = "#ff4444";
                 document.getElementById('reward-gold').style.color = "#ff4444";
             } else {
                 document.getElementById('win-title').innerText = isWin ? "GYŐZELEM!" : "VERESÉG!";
+                document.getElementById('futo-ui').style.display = 'none';
                 document.getElementById('reward-xp').style.color = isWin ? "#4facfe" : "#ff4444";
                 document.getElementById('reward-gold').style.color = isWin ? "#c5a059" : "#ff4444";
             }
-            
             document.getElementById('reward-xp').innerText = `XP: ${xpGain > 0 ? '+' : ''}${xpGain}`;
             document.getElementById('reward-gold').innerText = `ARANY: ${goldGain > 0 ? '+' : ''}${goldGain}`;
         });
