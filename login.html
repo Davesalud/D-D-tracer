@@ -4,49 +4,127 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Death's Armada - Login</title>
-    <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Crimson+Text:ital@1&display=swap" rel="stylesheet">
     <style>
-        :root { --gold: #c5a059; --bg: #050507; --accent: #8b0000; }
-        body { font-family: 'MedievalSharp', cursive; background-color: var(--bg); color: white; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
-        .master-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.9)), url('https://i.pinimg.com/originals/26/2b/dd/262bdd02564bf6dabbe89df4f93e8e26.jpg'); background-size: cover; z-index: -1; }
+        :root { --gold: #c5a059; --bg: #050507; --accent: #8b0000; --glass: rgba(15, 15, 18, 0.85); }
         
-        .card { background: rgba(15, 15, 18, 0.95); border: 1px solid var(--gold); padding: 40px; border-radius: 4px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 10px 50px black; backdrop-filter: blur(10px); }
-        .logo { font-size: 3em; color: var(--accent); text-shadow: 0 0 15px rgba(139,0,0,0.7); margin-bottom: 30px; }
+        body { 
+            font-family: 'MedievalSharp', cursive; 
+            background-color: var(--bg); 
+            color: white; 
+            margin: 0; 
+            display: flex; 
+            flex-direction: column;
+            align-items: center; 
+            justify-content: center; 
+            min-height: 100vh; 
+            overflow: hidden; 
+        }
+
+        .master-bg { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.8)), url('https://i.ibb.co/PvWryRcS/Gemini-Generated-Image-7rk5117rk5117rk5.png'); 
+            background-size: cover; background-position: center; z-index: -1; 
+            transform: scale(1.1); filter: blur(2px);
+        }
         
-        input, select { width: 100%; padding: 12px; margin-bottom: 15px; background: #111; border: 1px solid #444; color: var(--gold); font-family: 'MedievalSharp'; }
-        .btn { width: 100%; padding: 15px; cursor: pointer; border: 1px solid var(--gold); text-transform: uppercase; transition: 0.3s; font-family: 'MedievalSharp'; margin-bottom: 10px; }
-        .btn-main { background: var(--accent); color: white; border: none; }
+        .main-container { display: flex; gap: 20px; max-width: 900px; width: 95%; align-items: stretch; }
+
+        /* Patch Notes Stílus */
+        .patch-notes { 
+            flex: 1; background: var(--glass); border: 1px solid rgba(197, 160, 89, 0.3); 
+            padding: 20px; border-radius: 4px; box-shadow: 0 10px 30px black;
+            backdrop-filter: blur(10px); display: flex; flex-direction: column;
+        }
+        .patch-header { color: var(--gold); border-bottom: 1px solid var(--gold); margin-bottom: 15px; font-size: 1.2em; text-transform: uppercase; letter-spacing: 2px; }
+        .patch-content { font-family: 'Crimson Text', serif; font-style: italic; font-size: 1.1em; color: #ccc; overflow-y: auto; max-height: 300px; line-height: 1.6; }
+
+        /* Login Card Tuning */
+        .card { 
+            width: 400px; background: var(--glass); border: 2px solid var(--gold); 
+            padding: 40px; border-radius: 4px; text-align: center; 
+            box-shadow: 0 0 50px rgba(0,0,0,1), inset 0 0 100px rgba(139,0,0,0.1); 
+            backdrop-filter: blur(15px); position: relative;
+        }
         
-        #search-results { background: #111; border: 1px solid var(--gold); max-height: 150px; overflow-y: auto; margin-top: -15px; margin-bottom: 15px; display: none; }
-        .search-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #222; }
-        .search-item:hover { background: #222; color: var(--gold); }
+        .logo { font-size: 3.5em; color: var(--accent); text-shadow: 2px 2px 10px black, 0 0 20px var(--accent); margin-bottom: 30px; letter-spacing: -2px; }
+        
+        input { 
+            width: 100%; padding: 15px; margin-bottom: 15px; background: rgba(0,0,0,0.6); 
+            border: 1px solid #444; color: var(--gold); font-family: 'MedievalSharp'; 
+            font-size: 1.1em; transition: 0.3s; box-sizing: border-box;
+        }
+        input:focus { border-color: var(--gold); box-shadow: 0 0 10px rgba(197, 160, 89, 0.3); }
+
+        .btn { 
+            width: 100%; padding: 15px; cursor: pointer; border: 1px solid var(--gold); 
+            text-transform: uppercase; transition: 0.3s; font-family: 'MedievalSharp'; 
+            margin-bottom: 10px; font-weight: bold; letter-spacing: 1px;
+        }
+        .btn-main { background: var(--accent); color: white; border: none; font-size: 1.2em; }
+        .btn-main:hover { background: #b00000; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        .btn-sub { background: transparent; color: var(--gold); font-size: 0.8em; opacity: 0.8; }
+        .btn-sub:hover { opacity: 1; background: rgba(197, 160, 89, 0.1); }
+        
+        #search-results { 
+            background: #111; border: 1px solid var(--gold); max-height: 150px; 
+            overflow-y: auto; margin-top: -15px; margin-bottom: 15px; display: none; 
+            position: absolute; width: calc(100% - 80px); z-index: 100;
+        }
+        .search-item { padding: 12px; cursor: pointer; border-bottom: 1px solid #222; text-align: left; }
+        .search-item:hover { background: var(--accent); color: white; }
+
+        @media (max-width: 768px) {
+            .main-container { flex-direction: column-reverse; align-items: center; }
+            .patch-notes { width: 100%; max-width: 400px; }
+        }
     </style>
 </head>
 <body>
 <div class="master-bg"></div>
 
-<div class="card">
-    <div class="logo">Death's Armada</div>
-    
-    <input type="text" id="hero-search" placeholder="Hős neve..." autocomplete="off">
-    <div id="search-results"></div>
-    
-    <input type="password" id="login-pin" placeholder="PIN KÓD (4 számjegy)" maxlength="4">
-    
-    <button class="btn btn-main" onclick="login()">Belépés</button>
-    <button class="btn" style="font-size: 0.8em;" onclick="location.href='creator.html'">✨ Új Hős Megidézése</button>
+<div class="main-container">
+    <div class="patch-notes">
+        <div class="patch-header">📜 Fejlesztői Napló</div>
+        <div id="patch-text" class="patch-content">
+            A DM épp a tintát készíti elő... (Betöltés)
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="logo">Death's Armada</div>
+        
+        <div style="position: relative;">
+            <input type="text" id="hero-search" placeholder="Hős neve..." autocomplete="off">
+            <div id="search-results"></div>
+        </div>
+        
+        <input type="password" id="login-pin" placeholder="PIN KÓD" maxlength="4">
+        
+        <button class="btn btn-main" onclick="login()">Belépés</button>
+        <button class="btn btn-sub" onclick="location.href='creator.html'">✨ Új Hős Megidézése</button>
+    </div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script>
-    const firebaseConfig = { apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU", authDomain: "dnd-tracker-4fe05.firebaseapp.com", projectId: "dnd-tracker-4fe05", databaseURL: "https://dnd-tracker-4fe05-default-rtdb.europe-west1.firebasedatabase.app" };
+    const firebaseConfig = { 
+        apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU", 
+        authDomain: "dnd-tracker-4fe05.firebaseapp.com", 
+        projectId: "dnd-tracker-4fe05", 
+        databaseURL: "https://dnd-tracker-4fe05-default-rtdb.europe-west1.firebasedatabase.app" 
+    };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
     let chars = {}, selectedId = null;
 
-    // Karakterek betöltése a kereséshez
+    // Patch Notes betöltése (Vezéreld a Firebase 'settings/patchNotes' ágából!)
+    db.ref('settings/patchNotes').on('value', snap => {
+        document.getElementById('patch-text').innerHTML = snap.val() || "Üdvözöllek vándor! A birodalom csendes, de a sötétség már gyülekezik...";
+    });
+
     db.ref('characters').on('value', snap => { chars = snap.val() || {}; });
 
     const searchInput = document.getElementById('hero-search');
@@ -61,7 +139,11 @@
                 const d = document.createElement('div');
                 d.className = "search-item";
                 d.innerText = chars[id].name;
-                d.onclick = () => { searchInput.value = chars[id].name; selectedId = id; resDiv.style.display = "none"; };
+                d.onclick = () => { 
+                    searchInput.value = chars[id].name; 
+                    selectedId = id; 
+                    resDiv.style.display = "none"; 
+                };
                 resDiv.appendChild(d);
             }
         });
