@@ -28,16 +28,24 @@
             background-size: cover; background-position: center; z-index: -1; 
         }
         
-        /* GOMB ANIMÁCIÓK */
+        /* GOMB ANIMÁCIÓK - JAVÍTVA */
         .side-action-btn, .img-btn {
             transition: 0.4s ease;
             filter: grayscale(30%);
+            will-change: transform;
         }
 
-        .side-action-btn:hover, .img-btn:hover {
+        /* Itt volt a hiba: a translateY(-50%) lemaradt a hoverről */
+        .side-action-btn:hover {
             filter: grayscale(0%) brightness(1.2);
             box-shadow: 0 0 20px var(--gold);
-            transform: scale(1.02);
+            transform: translateY(-50%) scale(1.05); 
+        }
+
+        .img-btn:hover {
+            filter: grayscale(0%) brightness(1.2);
+            box-shadow: 0 0 20px var(--gold);
+            transform: scale(1.05);
         }
 
         .side-action-btn:hover span, .img-btn:hover span {
@@ -138,6 +146,8 @@
 
         @media (max-width: 1200px) {
             .side-action-btn { position: relative; top: 0; transform: none; width: 100%; max-width: 480px; height: 120px; margin: 10px 0; flex-direction: row; align-items: center; justify-content: space-between; }
+            /* Mobilon nincs translateY(-50%), így itt töröljük a hover transform-ot is */
+            .side-action-btn:hover { transform: scale(1.02); }
             .side-action-btn span { width: auto; height: 100%; display: flex; align-items: center; padding: 0 30px; border-top: none; border-left: 2px solid var(--gold); background: linear-gradient(90deg, transparent, rgba(0,0,0,0.9)); }
             .logout-corner { top: 10px; right: 10px; }
         }
@@ -213,7 +223,7 @@
     const db = firebase.database();
     
     let chars = {}, myId = localStorage.getItem('selectedCharId');
-    let isLeveling = false; // Megakadályozza a többszörös felugrást
+    let isLeveling = false;
 
     if (!myId) { window.location.href = 'login.html'; }
 
@@ -226,10 +236,8 @@
         if (myId && chars[myId]) updateLobbyUI(); 
     });
 
-    // SZINTLÉPÉS ELLENŐRZÉSE
     function checkLevelUp(c) {
         if (c.level >= 30 || isLeveling) return;
-        
         if (c.xp !== undefined && c.nextLvlXp && c.xp >= c.nextLvlXp) {
             isLeveling = true;
             document.getElementById('lvl-title').innerText = `SZINTLÉPÉS! (LVL ${c.level} → ${c.level + 1})`;
@@ -237,24 +245,14 @@
         }
     }
 
-    // STAT VÁLASZTÁS ÉS MENTÉS
     function chooseStat(statField, amount) {
         const c = chars[myId];
         const newLevel = (c.level || 1) + 1;
         const leftoverXp = c.xp - c.nextLvlXp;
-        const newNextLvlXp = Math.floor(c.nextLvlXp * 1.2); // 1.2-es szorzó (középút)
+        const newNextLvlXp = Math.floor(c.nextLvlXp * 1.2);
         
-        let updates = {
-            level: newLevel,
-            xp: leftoverXp,
-            nextLvlXp: newNextLvlXp,
-            hp: c.maxHp // Teljes gyógyulás szintlépéskor
-        };
-
-        // Hozzáadjuk a választott bónuszt
+        let updates = { level: newLevel, xp: leftoverXp, nextLvlXp: newNextLvlXp, hp: c.maxHp };
         updates[statField] = (c[statField] || 0) + amount;
-
-        // Ha MaxHP-t választott, a jelenlegi HP-t is emeljük az újra
         if(statField === 'maxHp') updates.hp = updates.maxHp;
 
         db.ref(`characters/${myId}`).update(updates).then(() => {
@@ -265,9 +263,7 @@
 
     function updateLobbyUI() {
         const c = chars[myId]; if(!c) return;
-
         checkLevelUp(c);
-
         const now = Date.now();
         
         document.getElementById('lobby-name').innerText = c.name;
@@ -300,7 +296,6 @@
                 const statusColor = p.status === 'searching' ? '#ff4444' : '#4CAF50';
                 const statusText = p.status === 'searching' ? 'ARÉNÁBAN' : 'ONLINE';
                 const item = `<div class="player-mini-card"><span class="p-name">${p.name}</span><span style="font-size:0.7em; color:${statusColor}; margin-left:5px;">${statusText}</span></div>`;
-                
                 if (p.status === "searching") listArena.innerHTML += item;
                 else if (id !== myId && p.status !== "offline") listOnline.innerHTML += item;
             }
