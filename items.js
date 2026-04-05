@@ -8,7 +8,29 @@ const ITEMS = {
         atk: 2, 
         def: 0, 
         rarity: "common", 
-        img: "https://i.ibb.co/1YryWDNW/Copilot-20260403-152801.png" 
+        img: "https://i.ibb.co/twxWwxFJ/Copilot-20260405-035308.png" 
+    },
+    "rezkard_01": { 
+        id: "rezkard_01", 
+        name: "Réz Kard", 
+        type: "fegyver",
+        price: 450,
+        sellPrice: 120,
+        atk: 5, 
+        def: 0, 
+        rarity: "uncommon", 
+        img: "https://i.ibb.co/nNFg9ps5/Copilot-20260405-040140.png" 
+    },
+    "vaskard_01": { 
+        id: "vaskard_01", 
+        name: "Harci Vas Kard", 
+        type: "fegyver",
+        price: 1200,
+        sellPrice: 400,
+        atk: 12, 
+        def: 1, 
+        rarity: "rare", 
+        img: "https://i.ibb.co/LDcq0LQp/Copilot-20260405-040230.png" 
     },
     "szakadtfelso_01": { 
         id: "szakadtfelso_01", 
@@ -19,27 +41,26 @@ const ITEMS = {
         atk: 0, 
         def: 2, 
         rarity: "common", 
-        img: "https://i.ibb.co/zw8sSP7/Copilot-20260403-153302.png" 
+        img: "https://i.ibb.co/dsr66j0L/Copilot-20260405-035126.png" 
     },
-    // --- ÚJ GYÓGYÍTÓ TÁRGYAK ---
     "potion_01": {
         id: "potion_01",
         name: "Kisebb Életerő Ital",
         type: "consumable",
-        heal: 25,       // 25 HP-t tölt vissza
-        price: 50,      // Boltban ennyibe kerül
-        sellPrice: 15,  // Eladáskor ennyit kapsz érte
+        heal: 25,
+        price: 50,
+        sellPrice: 15,
         rarity: "common",
-        img: "https://i.ibb.co/3YChW7rk/Copilot-20260405-034109.png" // A képed linkje
+        img: "https://i.ibb.co/3YChW7rk/Copilot-20260405-034109.png"
     },
     "potion_02": {
         id: "potion_02",
         name: "Nagyobb Életerő Ital",
         type: "consumable",
-        heal: 60,       // 60 HP-t tölt vissza
-        price: 120,
-        sellPrice: 40,
+        heal: 60,
+        price: 150,
+        sellPrice: 50,
         rarity: "uncommon",
-        img: "https://i.ibb.co/3YChW7rk/Copilot-20260405-034109.png" // Használhatod ugyanazt, vagy kereshetsz másikat
+        img: "https://i.ibb.co/fd2Jys7X/Copilot-20260405-035701.png"
     }
 };
