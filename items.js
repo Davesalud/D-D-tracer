@@ -4,6 +4,7 @@ const ITEMS = {
         name: "Ócska Fakard", 
         type: "fegyver",
         price: 150, // <--- EZT ADD HOZZÁ (vagy írd át)
+        sellPrice: 35,   // Ennyit kapsz érte, ha eladod
         atk: 2, 
         def: 0, 
         rarity: "common", 
@@ -14,6 +15,7 @@ const ITEMS = {
         name: "Szakadt Felső", 
         type: "páncél",
         price: 80,  // <--- EZT ADD HOZZÁ
+        sellPrice: 20,   // Ennyit kapsz érte, ha eladod
         atk: 0, 
         def: 2, 
         rarity: "common", 
