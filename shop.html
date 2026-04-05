@@ -65,6 +65,7 @@
         .item-slot:hover { border-color: var(--gold); background: rgba(197, 160, 89, 0.1); }
         .item-slot img { width: 45px; height: 45px; object-fit: cover; border-radius: 4px; margin-bottom: 4px; }
         .item-slot .name { font-size: 0.7em; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .item-slot .price-tag { font-size: 0.65em; color: var(--gold); margin-top: 2px; }
 
         .deal-zone { 
             flex: 0 1 400px; 
@@ -164,6 +165,7 @@
         renderPlayerInventory(data.inventory || {});
     });
 
+    // Bolt kirajzolása - Frissítve, hogy mutassa az árat!
     function renderShop() {
         const shopItems = document.getElementById('shop-items');
         shopItems.innerHTML = Object.keys(ITEMS).map(key => {
@@ -172,6 +174,7 @@
                 <div class="item-slot" onclick="selectForDeal('${i.id}', 'buy')">
                     <img src="${i.img}" alt="${i.name}">
                     <span class="name">${i.name}</span>
+                    <div class="price-tag">💰 ${i.price || 100}</div>
                 </div>
             `;
         }).join('');
@@ -181,11 +184,12 @@
         currentInv = inv;
         document.getElementById('player-inventory').innerHTML = Object.keys(inv).map(key => {
             const itemData = inv[key];
-            const imgUrl = ITEMS[itemData.itemId] ? ITEMS[itemData.itemId].img : "https://via.placeholder.com/45";
+            const originalData = ITEMS[itemData.itemId] || { img: "https://via.placeholder.com/45", sellPrice: 25 };
             return `
                 <div class="item-slot" onclick="selectForDeal('${key}', 'sell')">
-                    <img src="${imgUrl}" alt="${itemData.name}">
+                    <img src="${originalData.img}" alt="${itemData.name}">
                     <span class="name">${itemData.name}</span>
+                    <div class="price-tag">💰 ${originalData.sellPrice || 25}</div>
                 </div>
             `;
         }).join('');
@@ -198,7 +202,6 @@
         
         if(type === 'buy') {
             const item = ITEMS[id];
-            // Ár kiolvasása az items.js-ből vagy alapértelmezett 100
             selectedItem = { ...item, price: item.price || 100 };
             
             container.innerHTML = `
@@ -212,10 +215,8 @@
             `;
         } else {
             const invItem = currentInv[id];
-            // Itt keressük ki az eredeti adatokat az eladási árhoz!
             const originalData = ITEMS[invItem.itemId] || { img: "https://via.placeholder.com/150", sellPrice: 25 };
             
-            // Az eladási ár az items.js-ből jön, vagy ha nincs ott, akkor 25
             selectedItem = { 
                 ...invItem, 
                 key: id, 
