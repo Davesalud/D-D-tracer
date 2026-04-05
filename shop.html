@@ -6,60 +6,59 @@
     <title>Kereskedő - Death's Armada</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
     <style>
-        :root { --gold: #c5a059; --accent: #8b0000; --bg: #050507; --panel-bg: rgba(20, 20, 25, 0.9); }
+        :root { --gold: #c5a059; --accent: #8b0000; --bg: #050507; --panel-bg: rgba(20, 20, 25, 0.95); }
         * { box-sizing: border-box; -webkit-user-select: none; user-select: none; }
         
         body { font-family: 'MedievalSharp', cursive; background-color: var(--bg); color: #ccc; margin: 0; height: 100vh; overflow: hidden; }
-        
         .master-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.95)), url('https://i.ibb.co/0HSGQK0/Copilot-20260405-001515.png'); background-size: cover; background-position: center; z-index: -1; }
 
         .shop-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 40px; background: rgba(0,0,0,0.9); border-bottom: 2px solid var(--gold); }
         .gold-display { color: var(--gold); font-size: 1.5em; border: 1px solid var(--gold); padding: 5px 20px; border-radius: 6px; background: rgba(255,255,255,0.05); }
 
-        .trade-layout { display: grid; grid-template-columns: 1fr 1.2fr 1fr; height: calc(100vh - 75px); padding: 20px; gap: 15px; }
+        .trade-layout { display: grid; grid-template-columns: 340px 1fr 340px; height: calc(100vh - 75px); padding: 20px; gap: 15px; }
 
-        /* Panelek stílusa */
         .panel { background: var(--panel-bg); border: 2px solid var(--gold); border-radius: 8px; display: flex; flex-direction: column; align-items: center; padding: 15px; overflow: hidden; }
-        .panel-header { color: var(--gold); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px; border-bottom: 1px solid var(--gold); width: 100%; text-align: center; padding-bottom: 5px; }
+        .panel-header { color: var(--gold); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; border-bottom: 1px solid var(--gold); width: 100%; text-align: center; padding-bottom: 5px; }
 
-        /* AVATAR BOXOK - 350x450 fix méret */
+        /* AVATAR BOXOK - 320x320 fix méret */
         .avatar-box { 
-            width: 350px; 
-            height: 450px; 
+            width: 320px; 
+            height: 320px; 
             border: 3px solid var(--gold); 
             border-radius: 4px; 
             overflow: hidden; 
             background: #000;
             box-shadow: 0 0 20px rgba(0,0,0,1);
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             flex-shrink: 0;
         }
-        .avatar-box img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
-        .avatar-box:hover img { transform: scale(1.05); }
+        .avatar-box img { width: 100%; height: 100%; object-fit: cover; }
 
-        /* Tárgy rácsok az avatarok alatt */
         .item-grid { width: 100%; display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; overflow-y: auto; margin-top: 10px; border-top: 1px solid #444; padding-top: 10px; }
-
         .item-slot { background: rgba(0,0,0,0.5); border: 1px solid #444; padding: 8px; text-align: center; cursor: pointer; border-radius: 4px; }
         .item-slot:hover { border-color: var(--gold); background: rgba(197, 160, 89, 0.1); }
         .item-slot .icon { font-size: 24px; }
         .item-slot .name { font-size: 0.7em; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-        /* Középső rész */
-        .deal-zone { justify-content: center; background: transparent; border: none; }
+        .deal-zone { justify-content: center; background: transparent; border: none; position: relative; }
         .deal-display { 
             width: 100%; height: 350px; 
             background: rgba(0,0,0,0.8); 
             border: 2px dashed var(--gold); 
             border-radius: 15px; 
             display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 20px;
+            position: relative;
         }
         .big-icon { font-size: 80px; margin-bottom: 10px; filter: drop-shadow(0 0 10px var(--gold)); }
-        .deal-price { font-size: 2em; color: white; margin-top: 10px; }
+        .deal-name { font-size: 1.8em; color: white; }
+        .deal-price { font-size: 2em; color: var(--gold); margin-top: 10px; }
 
-        .btn-action { width: 100%; padding: 20px; font-family: 'MedievalSharp'; font-size: 1.3em; cursor: pointer; border: none; border-radius: 8px; transition: 0.3s; }
+        .btn-group { width: 100%; display: flex; flex-direction: column; gap: 10px; }
+        .btn-action { width: 100%; padding: 15px; font-family: 'MedievalSharp'; font-size: 1.2em; cursor: pointer; border: none; border-radius: 8px; transition: 0.3s; }
         .buy-btn { background: var(--accent); color: white; border: 1px solid #f00; }
         .sell-btn { background: #2d5a27; color: white; border: 1px solid #5f5; }
+        .cancel-btn { background: #333; color: #ccc; border: 1px solid #555; }
+        .cancel-btn:hover { background: #444; color: white; }
 
         .btn-back { position: fixed; bottom: 20px; left: 20px; background: #000; color: var(--gold); border: 1px solid var(--gold); padding: 10px 20px; text-decoration: none; border-radius: 4px; }
     </style>
@@ -86,7 +85,7 @@
         <div id="deal-container" class="deal-display">
             <div style="font-style: italic; color: #555;">Válassz egy árut...</div>
         </div>
-        <div id="action-area" style="width: 100%;"></div>
+        <div id="action-area" class="btn-group"></div>
     </div>
 
     <div class="panel">
@@ -121,6 +120,8 @@
         { id: "a1", name: "Páncél", price: 200, icon: "🛡️" },
         { id: "p1", name: "Ital", price: 50, icon: "🧪" }
     ];
+
+    if (!myId) window.location.href = 'index.html';
 
     db.ref(`characters/${myId}`).on('value', snap => {
         const data = snap.val();
@@ -159,16 +160,30 @@
         if(type === 'buy') {
             selectedItem = SHOP_DATA.find(i => i.id === id);
             container.innerHTML = `<div class="big-icon">${selectedItem.icon}</div><div class="deal-name">${selectedItem.name}</div><div class="deal-price">💰 ${selectedItem.price}</div>`;
-            action.innerHTML = `<button class="btn-action buy-btn" onclick="trade()">VÁSÁRLÁS</button>`;
+            action.innerHTML = `
+                <button class="btn-action buy-btn" onclick="trade()">VÁSÁRLÁS</button>
+                <button class="btn-action cancel-btn" onclick="resetDeal()">MÉGSE</button>
+            `;
         } else {
             const item = currentInv[id];
             selectedItem = { ...item, key: id, price: 30 };
             container.innerHTML = `<div class="big-icon">📦</div><div class="deal-name">${selectedItem.name}</div><div class="deal-price">💰 30</div>`;
-            action.innerHTML = `<button class="btn-action sell-btn" onclick="trade()">ELADÁS</button>`;
+            action.innerHTML = `
+                <button class="btn-action sell-btn" onclick="trade()">ELADÁS</button>
+                <button class="btn-action cancel-btn" onclick="resetDeal()">MÉGSE</button>
+            `;
         }
     }
 
+    function resetDeal() {
+        selectedItem = null;
+        selectedType = "";
+        document.getElementById('deal-container').innerHTML = `<div style="font-style: italic; color: #555;">Válassz egy árut...</div>`;
+        document.getElementById('action-area').innerHTML = "";
+    }
+
     function trade() {
+        if(!selectedItem) return;
         if(selectedType === 'buy') {
             if(myGold < selectedItem.price) return alert("Nincs elég pénzed!");
             db.ref(`characters/${myId}/gold`).set(myGold - selectedItem.price);
@@ -177,7 +192,7 @@
             db.ref(`characters/${myId}/gold`).set(myGold + selectedItem.price);
             db.ref(`characters/${myId}/inventory/${selectedItem.key}`).remove();
         }
-        location.reload(); // Frissítés a tiszta állapotért
+        resetDeal(); // Oldalfrissítés helyett csak töröljük az asztalt
     }
 
     renderShop();
