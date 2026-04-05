@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Death's Armada - Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
+    <style>
+        :root { --gold: #c5a059; --bg: #050507; --accent: #8b0000; }
+        body { font-family: 'MedievalSharp', cursive; background-color: var(--bg); color: white; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
+        .master-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.9)), url('https://i.pinimg.com/originals/26/2b/dd/262bdd02564bf6dabbe89df4f93e8e26.jpg'); background-size: cover; z-index: -1; }
+        
+        .card { background: rgba(15, 15, 18, 0.95); border: 1px solid var(--gold); padding: 40px; border-radius: 4px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 10px 50px black; backdrop-filter: blur(10px); }
+        .logo { font-size: 3em; color: var(--accent); text-shadow: 0 0 15px rgba(139,0,0,0.7); margin-bottom: 30px; }
+        
+        input, select { width: 100%; padding: 12px; margin-bottom: 15px; background: #111; border: 1px solid #444; color: var(--gold); font-family: 'MedievalSharp'; }
+        .btn { width: 100%; padding: 15px; cursor: pointer; border: 1px solid var(--gold); text-transform: uppercase; transition: 0.3s; font-family: 'MedievalSharp'; margin-bottom: 10px; }
+        .btn-main { background: var(--accent); color: white; border: none; }
+        
+        #search-results { background: #111; border: 1px solid var(--gold); max-height: 150px; overflow-y: auto; margin-top: -15px; margin-bottom: 15px; display: none; }
+        .search-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #222; }
+        .search-item:hover { background: #222; color: var(--gold); }
+    </style>
+</head>
+<body>
+<div class="master-bg"></div>
+
+<div class="card">
+    <div class="logo">Death's Armada</div>
+    
+    <input type="text" id="hero-search" placeholder="Hős neve..." autocomplete="off">
+    <div id="search-results"></div>
+    
+    <input type="password" id="login-pin" placeholder="PIN KÓD (4 számjegy)" maxlength="4">
+    
+    <button class="btn btn-main" onclick="login()">Belépés</button>
+    <button class="btn" style="font-size: 0.8em;" onclick="location.href='creator.html'">✨ Új Hős Megidézése</button>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script>
+    const firebaseConfig = { apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU", authDomain: "dnd-tracker-4fe05.firebaseapp.com", projectId: "dnd-tracker-4fe05", databaseURL: "https://dnd-tracker-4fe05-default-rtdb.europe-west1.firebasedatabase.app" };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    let chars = {}, selectedId = null;
+
+    // Karakterek betöltése a kereséshez
+    db.ref('characters').on('value', snap => { chars = snap.val() || {}; });
+
+    const searchInput = document.getElementById('hero-search');
+    searchInput.addEventListener('input', (e) => {
+        const text = e.target.value.toLowerCase();
+        const resDiv = document.getElementById('search-results');
+        resDiv.innerHTML = "";
+        if(text.length < 1) { resDiv.style.display = "none"; return; }
+
+        Object.keys(chars).forEach(id => {
+            if(chars[id].name.toLowerCase().startsWith(text)) {
+                const d = document.createElement('div');
+                d.className = "search-item";
+                d.innerText = chars[id].name;
+                d.onclick = () => { searchInput.value = chars[id].name; selectedId = id; resDiv.style.display = "none"; };
+                resDiv.appendChild(d);
+            }
+        });
+        resDiv.style.display = "block";
+    });
+
+    function login() {
+        const pin = document.getElementById('login-pin').value;
+        if (selectedId && chars[selectedId].pin.toString() === pin) {
+            localStorage.setItem('selectedCharId', selectedId);
+            window.location.href = 'lobby.html';
+        } else alert("Hibás név vagy PIN!");
+    }
+</script>
+</body>
+</html>
