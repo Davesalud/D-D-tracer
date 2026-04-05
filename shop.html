@@ -52,12 +52,7 @@
             flex-shrink: 0;
         }
 
-        .avatar-box img { 
-            width: 100%; 
-            height: 100%; 
-            object-fit: cover; 
-            object-position: center 20%; 
-        }
+        .avatar-box img { width: 100%; height: 100%; object-fit: cover; object-position: center 20%; }
 
         .item-grid { width: 100%; display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; overflow-y: auto; margin-top: 10px; border-top: 1px solid #444; padding-top: 10px; }
         
@@ -67,27 +62,14 @@
         .item-slot .name { font-size: 0.7em; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .item-slot .price-tag { font-size: 0.65em; color: var(--gold); margin-top: 2px; }
 
-        .deal-zone { 
-            flex: 0 1 400px; 
-            background: transparent; 
-            border: none; 
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
+        .deal-zone { flex: 0 1 400px; display: flex; flex-direction: column; justify-content: center; }
 
         .deal-display { 
-            width: 100%; 
-            height: 350px; 
-            background: rgba(0,0,0,0.8); 
-            border: 2px dashed var(--gold); 
-            border-radius: 15px; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            margin-bottom: 20px;
-            position: relative;
+            width: 100%; height: 350px; background: rgba(0,0,0,0.8); border: 2px dashed var(--gold); border-radius: 15px; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 20px; position: relative;
         }
 
-        .deal-display img.big-item-preview { width: 180px; height: 180px; object-fit: contain; filter: drop-shadow(0 0 10px var(--gold)); border-radius: 10px; }
+        .deal-display img.big-item-preview { width: 180px; height: 180px; object-fit: contain; filter: drop-shadow(0 0 10px var(--gold)); }
         .deal-name { font-size: 1.8em; color: white; margin-top: 10px; }
         .deal-price { font-size: 2em; color: var(--gold); margin-top: 5px; }
 
@@ -96,7 +78,6 @@
         .buy-btn { background: var(--accent); color: white; border: 1px solid #f00; }
         .sell-btn { background: #2d5a27; color: white; border: 1px solid #5f5; }
         .cancel-btn { background: #333; color: #ccc; border: 1px solid #555; }
-        .cancel-btn:hover { background: #444; color: white; }
 
         .btn-back { position: fixed; bottom: 20px; left: 20px; background: #000; color: var(--gold); border: 1px solid var(--gold); padding: 10px 20px; text-decoration: none; border-radius: 4px; }
     </style>
@@ -165,7 +146,6 @@
         renderPlayerInventory(data.inventory || {});
     });
 
-    // Bolt kirajzolása - Frissítve, hogy mutassa az árat!
     function renderShop() {
         const shopItems = document.getElementById('shop-items');
         shopItems.innerHTML = Object.keys(ITEMS).map(key => {
@@ -182,17 +162,23 @@
 
     function renderPlayerInventory(inv) {
         currentInv = inv;
-        document.getElementById('player-inventory').innerHTML = Object.keys(inv).map(key => {
-            const itemData = inv[key];
-            const originalData = ITEMS[itemData.itemId] || { img: "https://via.placeholder.com/45", sellPrice: 25 };
-            return `
-                <div class="item-slot" onclick="selectForDeal('${key}', 'sell')">
-                    <img src="${originalData.img}" alt="${itemData.name}">
-                    <span class="name">${itemData.name}</span>
-                    <div class="price-tag">💰 ${originalData.sellPrice || 25}</div>
-                </div>
-            `;
-        }).join('');
+        const container = document.getElementById('player-inventory');
+        container.innerHTML = '';
+
+        Object.keys(inv).forEach(key => {
+            const itemId = inv[key]; // Itt már csak egy ID jön a leltár kódja szerint
+            const itemData = ITEMS[itemId];
+
+            if (itemData) {
+                container.innerHTML += `
+                    <div class="item-slot" onclick="selectForDeal('${key}', 'sell')">
+                        <img src="${itemData.img}" alt="${itemData.name}">
+                        <span class="name">${itemData.name}</span>
+                        <div class="price-tag">💰 ${itemData.sellPrice || 0}</div>
+                    </div>
+                `;
+            }
+        });
     }
 
     function selectForDeal(id, type) {
@@ -214,14 +200,17 @@
                 <button class="btn-action cancel-btn" onclick="resetDeal()">MÉGSE</button>
             `;
         } else {
-            const invItem = currentInv[id];
-            const originalData = ITEMS[invItem.itemId] || { img: "https://via.placeholder.com/150", sellPrice: 25 };
+            const itemId = currentInv[id];
+            const itemData = ITEMS[itemId];
             
+            if(!itemData) return;
+
             selectedItem = { 
-                ...invItem, 
-                key: id, 
-                price: originalData.sellPrice || 25, 
-                img: originalData.img 
+                key: id,
+                itemId: itemId,
+                name: itemData.name,
+                price: itemData.sellPrice || 25, 
+                img: itemData.img 
             };
             
             container.innerHTML = `
@@ -248,11 +237,8 @@
         if(selectedType === 'buy') {
             if(myGold < selectedItem.price) return alert("Nincs elég pénzed!");
             db.ref(`characters/${myId}/gold`).set(myGold - selectedItem.price);
-            db.ref(`characters/${myId}/inventory`).push({ 
-                name: selectedItem.name, 
-                itemId: selectedItem.id,
-                type: selectedItem.type || "tárgy"
-            });
+            // CSAK AZ ID-T PUSHOLJUK, hogy a leltár oldal is lássa!
+            db.ref(`characters/${myId}/inventory`).push(selectedItem.id);
         } else {
             db.ref(`characters/${myId}/gold`).set(myGold + selectedItem.price);
             db.ref(`characters/${myId}/inventory/${selectedItem.key}`).remove();
