@@ -15,15 +15,14 @@
         .shop-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 40px; background: rgba(0,0,0,0.9); border-bottom: 2px solid var(--gold); }
         .gold-display { color: var(--gold); font-size: 1.5em; border: 1px solid var(--gold); padding: 5px 20px; border-radius: 6px; background: rgba(255,255,255,0.05); }
 
-        /* ELRENDEZÉS: 340px széles szélek, a közép pedig rugalmas, de max 500px */
         .trade-layout { 
             display: flex; 
             justify-content: center; 
             align-items: flex-start;
             height: calc(100vh - 75px); 
             padding: 20px; 
-            gap: 30px; /* Nagyobb rés a panelek között */
-            max-width: 1400px; /* Beljebb húzza az egészet a szélektől */
+            gap: 30px; 
+            max-width: 1400px; 
             margin: 0 auto;
         }
 
@@ -36,12 +35,11 @@
             align-items: center; 
             padding: 15px; 
             overflow: hidden;
-            width: 340px; /* Fix szélesség a szélső paneleknek */
+            width: 340px; 
         }
 
         .panel-header { color: var(--gold); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; border-bottom: 1px solid var(--gold); width: 100%; text-align: center; padding-bottom: 5px; }
 
-        /* AVATAR BOXOK - 320x320 */
         .avatar-box { 
             width: 320px; 
             height: 320px; 
@@ -54,7 +52,6 @@
             flex-shrink: 0;
         }
 
-        /* Itt állíthatod a képek pozícióját (center 20% = picit feljebb tolva) */
         .avatar-box img { 
             width: 100%; 
             height: 100%; 
@@ -63,14 +60,15 @@
         }
 
         .item-grid { width: 100%; display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; overflow-y: auto; margin-top: 10px; border-top: 1px solid #444; padding-top: 10px; }
-        .item-slot { background: rgba(0,0,0,0.5); border: 1px solid #444; padding: 8px; text-align: center; cursor: pointer; border-radius: 4px; }
+        
+        /* Tárgy slot képelrendezése */
+        .item-slot { background: rgba(0,0,0,0.5); border: 1px solid #444; padding: 8px; text-align: center; cursor: pointer; border-radius: 4px; transition: 0.2s; }
         .item-slot:hover { border-color: var(--gold); background: rgba(197, 160, 89, 0.1); }
-        .item-slot .icon { font-size: 24px; }
+        .item-slot img { width: 45px; height: 45px; object-fit: cover; border-radius: 4px; margin-bottom: 4px; }
         .item-slot .name { font-size: 0.7em; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-        /* KÖZÉPSŐ ZÓNA ÖSSZEHÚZVA */
         .deal-zone { 
-            flex: 0 1 400px; /* Maximum 400px széles legyen az alku asztal */
+            flex: 0 1 400px; 
             background: transparent; 
             border: none; 
             display: flex;
@@ -80,7 +78,7 @@
 
         .deal-display { 
             width: 100%; 
-            height: 320px; 
+            height: 350px; 
             background: rgba(0,0,0,0.8); 
             border: 2px dashed var(--gold); 
             border-radius: 15px; 
@@ -89,9 +87,10 @@
             position: relative;
         }
 
-        .big-icon { font-size: 80px; margin-bottom: 10px; filter: drop-shadow(0 0 10px var(--gold)); }
-        .deal-name { font-size: 1.8em; color: white; }
-        .deal-price { font-size: 2em; color: var(--gold); margin-top: 10px; }
+        /* Nagy kép az alkuasztalon */
+        .deal-display img.big-item-preview { width: 180px; height: 180px; object-fit: contain; filter: drop-shadow(0 0 10px var(--gold)); border-radius: 10px; }
+        .deal-name { font-size: 1.8em; color: white; margin-top: 10px; }
+        .deal-price { font-size: 2em; color: var(--gold); margin-top: 5px; }
 
         .btn-group { width: 100%; display: flex; flex-direction: column; gap: 10px; }
         .btn-action { width: 100%; padding: 15px; font-family: 'MedievalSharp'; font-size: 1.2em; cursor: pointer; border: none; border-radius: 8px; transition: 0.3s; }
@@ -139,6 +138,7 @@
 
 <a href="index.html" class="btn-back">⬅ Vissza a Várba</a>
 
+<script src="items.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
@@ -151,15 +151,9 @@
     let myGold = 0;
     let selectedItem = null;
     let selectedType = "";
+    let currentInv = {};
 
     const HERO_IMAGES = { "Harcos": "https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png", "Mágus": "https://i.ibb.co/yFz5bcXv/Copilot-20260403-033651.png", "Lovag": "https://i.ibb.co/Fk3n339M/Copilot-20260403-034043.png", "Íjász": "https://i.ibb.co/whd2jNpB/Copilot-20260403-034402.png", "Bérgyilkos": "https://i.ibb.co/b525CsLg/Copilot-20260403-032807.png", "Nekromanta": "https://i.ibb.co/NnCwwCbR/Copilot-20260403-033301.png" };
-
-    const SHOP_DATA = [
-        { id: "w1", name: "Acél Kard", price: 150, icon: "⚔️" },
-        { id: "w2", name: "Íj", price: 120, icon: "🏹" },
-        { id: "a1", name: "Páncél", price: 200, icon: "🛡️" },
-        { id: "p1", name: "Ital", price: 50, icon: "🧪" }
-    ];
 
     if (!myId) window.location.href = 'index.html';
 
@@ -172,24 +166,34 @@
         renderPlayerInventory(data.inventory || {});
     });
 
+    // Bolt kirajzolása az ITEMS objektumból
     function renderShop() {
-        document.getElementById('shop-items').innerHTML = SHOP_DATA.map(i => `
-            <div class="item-slot" onclick="selectForDeal('${i.id}', 'buy')">
-                <div class="icon">${i.icon}</div>
-                <span class="name">${i.name}</span>
-            </div>
-        `).join('');
+        const shopItems = document.getElementById('shop-items');
+        shopItems.innerHTML = Object.keys(ITEMS).map(key => {
+            const i = ITEMS[key];
+            return `
+                <div class="item-slot" onclick="selectForDeal('${i.id}', 'buy')">
+                    <img src="${i.img}" alt="${i.name}">
+                    <span class="name">${i.name}</span>
+                </div>
+            `;
+        }).join('');
     }
 
-    let currentInv = {};
+    // Inventory kirajzolása képekkel
     function renderPlayerInventory(inv) {
         currentInv = inv;
-        document.getElementById('player-inventory').innerHTML = Object.keys(inv).map(key => `
-            <div class="item-slot" onclick="selectForDeal('${key}', 'sell')">
-                <div class="icon">📦</div>
-                <span class="name">${inv[key].name}</span>
-            </div>
-        `).join('');
+        document.getElementById('player-inventory').innerHTML = Object.keys(inv).map(key => {
+            const itemData = inv[key];
+            // Kép kikeresése az items.js-ből az itemId alapján
+            const imgUrl = ITEMS[itemData.itemId] ? ITEMS[itemData.itemId].img : "https://via.placeholder.com/45";
+            return `
+                <div class="item-slot" onclick="selectForDeal('${key}', 'sell')">
+                    <img src="${imgUrl}" alt="${itemData.name}">
+                    <span class="name">${itemData.name}</span>
+                </div>
+            `;
+        }).join('');
     }
 
     function selectForDeal(id, type) {
@@ -198,16 +202,28 @@
         const action = document.getElementById('action-area');
         
         if(type === 'buy') {
-            selectedItem = SHOP_DATA.find(i => i.id === id);
-            container.innerHTML = `<div class="big-icon">${selectedItem.icon}</div><div class="deal-name">${selectedItem.name}</div><div class="deal-price">💰 ${selectedItem.price}</div>`;
+            const item = ITEMS[id];
+            selectedItem = { ...item, price: item.price || 100 };
+            
+            container.innerHTML = `
+                <img src="${selectedItem.img}" class="big-item-preview">
+                <div class="deal-name">${selectedItem.name}</div>
+                <div class="deal-price">💰 ${selectedItem.price}</div>
+            `;
             action.innerHTML = `
                 <button class="btn-action buy-btn" onclick="trade()">VÁSÁRLÁS</button>
                 <button class="btn-action cancel-btn" onclick="resetDeal()">MÉGSE</button>
             `;
         } else {
-            const item = currentInv[id];
-            selectedItem = { ...item, key: id, price: 30 };
-            container.innerHTML = `<div class="big-icon">📦</div><div class="deal-name">${selectedItem.name}</div><div class="deal-price">💰 30</div>`;
+            const invItem = currentInv[id];
+            const originalData = ITEMS[invItem.itemId] || { img: "https://via.placeholder.com/150" };
+            selectedItem = { ...invItem, key: id, price: 30, img: originalData.img };
+            
+            container.innerHTML = `
+                <img src="${selectedItem.img}" class="big-item-preview">
+                <div class="deal-name">${selectedItem.name}</div>
+                <div class="deal-price">💰 30</div>
+            `;
             action.innerHTML = `
                 <button class="btn-action sell-btn" onclick="trade()">ELADÁS</button>
                 <button class="btn-action cancel-btn" onclick="resetDeal()">MÉGSE</button>
@@ -227,7 +243,12 @@
         if(selectedType === 'buy') {
             if(myGold < selectedItem.price) return alert("Nincs elég pénzed!");
             db.ref(`characters/${myId}/gold`).set(myGold - selectedItem.price);
-            db.ref(`characters/${myId}/inventory`).push({ name: selectedItem.name, itemId: selectedItem.id });
+            // Elmentjük az itemId-t is, hogy tudjuk melyik kép tartozik hozzá
+            db.ref(`characters/${myId}/inventory`).push({ 
+                name: selectedItem.name, 
+                itemId: selectedItem.id,
+                type: selectedItem.type 
+            });
         } else {
             db.ref(`characters/${myId}/gold`).set(myGold + selectedItem.price);
             db.ref(`characters/${myId}/inventory/${selectedItem.key}`).remove();
