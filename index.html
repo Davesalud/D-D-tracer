@@ -12,44 +12,46 @@
         body { font-family: 'Crimson Text', serif; background-color: var(--bg); color: var(--text); margin: 0; height: 100vh; overflow: hidden; }
         .master-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.8)), url('https://i.pinimg.com/originals/26/2b/dd/262bdd02564bf6dabbe89df4f93e8e26.jpg'); background-size: cover; background-position: center; z-index: -1; }
         
-        /* ÚJ: LEBEGŐ KÜLSŐ GOMBOK (SÁRGA TERÜLETEK) */
+        /* MÓDOSÍTOTT: LEBEGŐ KÜLSŐ GOMBOK - NYÚJTVA ÉS LEJJEBB */
         .side-action-btn {
             position: fixed;
-            top: 60%; /* Magasság beállítása a sziklákhoz */
+            top: 65%; /* Lejjebb tolva */
             transform: translateY(-50%);
-            width: 280px; /* Méret a sárga kijelölés alapján */
-            height: 180px;
+            width: 280px; 
+            height: 240px; /* Megnyújtva hosszában */
             border: 2px solid var(--gold);
             border-radius: 8px;
             background-size: cover;
             background-position: center;
             cursor: pointer;
-            display: none; /* Csak lobbyban látszik */
+            display: none; 
             flex-direction: column;
             justify-content: flex-end;
             text-decoration: none;
             overflow: hidden;
             transition: 0.3s;
-            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+            box-shadow: 0 0 25px rgba(0,0,0,0.9);
             z-index: 10;
         }
         .side-action-btn:hover {
-            transform: translateY(-55%);
-            box-shadow: 0 0 25px var(--gold);
+            transform: translateY(-53%);
+            box-shadow: 0 0 30px var(--gold);
             border-color: #fff;
         }
         .side-action-btn span {
-            background: rgba(0, 0, 0, 0.75);
+            background: rgba(0, 0, 0, 0.85);
             color: var(--gold);
             font-family: 'MedievalSharp';
             text-align: center;
-            padding: 8px 0;
+            padding: 12px 0;
             width: 100%;
             text-transform: uppercase;
             border-top: 1px solid var(--gold);
+            font-size: 1.1em;
+            letter-spacing: 1px;
         }
-        #btn-side-kampany { left: 5%; background-image: url('https://i.ibb.co/S4VL891M/Copilot-20260405-021905.png'); }
-        #btn-side-arena { right: 5%; background-image: url('https://i.ibb.co/p66KV1Vb/Copilot-20260405-021201.png'); }
+        #btn-side-kampany { left: 4%; background-image: url('https://i.ibb.co/S4VL891M/Copilot-20260405-021905.png'); }
+        #btn-side-arena { right: 4%; background-image: url('https://i.ibb.co/p66KV1Vb/Copilot-20260405-021201.png'); }
 
         /* MEGLÉVŐ ELEMEK */
         .nav-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0; align-items: center; }
@@ -99,7 +101,7 @@
 <div id="logout-ui" class="logout-corner"><button class="btn-logout" onclick="logout()">Kilépés 🚪</button></div>
 <div class="dm-trigger" onclick="enterDM()">🔑</div>
 
-<a href="#" id="btn-side-kampany" class="side-action-btn"><span>📜 KAMPÁNY</span></a>
+<a href="campaign.html" id="btn-side-kampany" class="side-action-btn"><span>📜 KAMPÁNY</span></a>
 <a href="arena.html" id="btn-side-arena" class="side-action-btn"><span>⚔️ ARÉNA</span></a>
 
 <div id="page-login" class="page active">
@@ -194,7 +196,6 @@
             document.getElementById('page-login').style.display = 'none'; 
             document.getElementById('page-lobby').classList.add('active'); 
             document.getElementById('logout-ui').style.display = 'block'; 
-            // Megmutatjuk a lebegő gombokat
             document.getElementById('btn-side-kampany').style.display = 'flex';
             document.getElementById('btn-side-arena').style.display = 'flex';
             updateLobbyUI(); 
@@ -229,7 +230,6 @@
         });
     }
 
-    // LOGIN, SEARCH és egyéb funkciók maradtak...
     const searchInput = document.getElementById('hero-search');
     searchInput.addEventListener('input', (e) => {
         const text = e.target.value.toLowerCase();
