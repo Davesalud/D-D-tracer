@@ -118,11 +118,18 @@
 
 <a href="index.html" class="btn-back">⬅ Vissza a Várba</a>
 
-<script src="items.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <script>
+    // --- TÁRGY ADATBÁZIS ---
+    const ITEMS = {
+        "vaskard": { id: "vaskard", name: "Vaskard", price: 150, sellPrice: 75, atk: 10, img: "https://i.ibb.co/3mS0mS0/sword.png" },
+        "pajzs": { id: "pajzs", name: "Lovag Pajzs", price: 120, sellPrice: 60, def: 8, img: "https://i.ibb.co/4mS0mS0/shield.png" },
+        "gyuru": { id: "gyuru", name: "Arany Gyűrű", price: 300, sellPrice: 150, atk: 5, def: 5, img: "https://i.ibb.co/5mS0mS0/ring.png" },
+        "ital": { id: "ital", name: "Életital", price: 40, sellPrice: 10, img: "https://i.ibb.co/6mS0mS0/potion.png" }
+    };
+
     const firebaseConfig = { apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU", authDomain: "dnd-tracker-4fe05.firebaseapp.com", projectId: "dnd-tracker-4fe05", databaseURL: "https://dnd-tracker-4fe05-default-rtdb.europe-west1.firebasedatabase.app" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
@@ -154,7 +161,7 @@
                 <div class="item-slot" onclick="selectForDeal('${i.id}', 'buy')">
                     <img src="${i.img}" alt="${i.name}">
                     <span class="name">${i.name}</span>
-                    <div class="price-tag">💰 ${i.price || 100}</div>
+                    <div class="price-tag">💰 ${i.price}</div>
                 </div>
             `;
         }).join('');
@@ -166,7 +173,7 @@
         container.innerHTML = '';
 
         Object.keys(inv).forEach(key => {
-            const itemId = inv[key]; // Itt már csak egy ID jön a leltár kódja szerint
+            const itemId = inv[key];
             const itemData = ITEMS[itemId];
 
             if (itemData) {
@@ -174,7 +181,7 @@
                     <div class="item-slot" onclick="selectForDeal('${key}', 'sell')">
                         <img src="${itemData.img}" alt="${itemData.name}">
                         <span class="name">${itemData.name}</span>
-                        <div class="price-tag">💰 ${itemData.sellPrice || 0}</div>
+                        <div class="price-tag">💰 ${itemData.sellPrice}</div>
                     </div>
                 `;
             }
@@ -188,7 +195,7 @@
         
         if(type === 'buy') {
             const item = ITEMS[id];
-            selectedItem = { ...item, price: item.price || 100 };
+            selectedItem = { ...item };
             
             container.innerHTML = `
                 <img src="${selectedItem.img}" class="big-item-preview">
@@ -202,14 +209,13 @@
         } else {
             const itemId = currentInv[id];
             const itemData = ITEMS[itemId];
-            
             if(!itemData) return;
 
             selectedItem = { 
                 key: id,
                 itemId: itemId,
                 name: itemData.name,
-                price: itemData.sellPrice || 25, 
+                price: itemData.sellPrice || 0,
                 img: itemData.img 
             };
             
@@ -234,14 +240,18 @@
 
     function trade() {
         if(!selectedItem) return;
+        const charRef = db.ref(`characters/${myId}`);
+
         if(selectedType === 'buy') {
             if(myGold < selectedItem.price) return alert("Nincs elég pénzed!");
-            db.ref(`characters/${myId}/gold`).set(myGold - selectedItem.price);
-            // CSAK AZ ID-T PUSHOLJUK, hogy a leltár oldal is lássa!
-            db.ref(`characters/${myId}/inventory`).push(selectedItem.id);
+            
+            charRef.update({ gold: myGold - selectedItem.price });
+            charRef.child('inventory').push(selectedItem.id);
+            alert(`Sikeresen megvetted: ${selectedItem.name}`);
         } else {
-            db.ref(`characters/${myId}/gold`).set(myGold + selectedItem.price);
-            db.ref(`characters/${myId}/inventory/${selectedItem.key}`).remove();
+            charRef.update({ gold: myGold + selectedItem.price });
+            charRef.child(`inventory/${selectedItem.key}`).remove();
+            alert(`Eladtad: ${selectedItem.name}`);
         }
         resetDeal();
     }
