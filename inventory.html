@@ -26,7 +26,6 @@
             overflow-x: hidden;
         }
 
-        /* --- HÁTTÉR RÉTEG - TELJES KITÖLTÉS --- */
         body::before {
             content: "";
             position: fixed;
@@ -35,12 +34,9 @@
             width: 100%;
             height: calc(100% - 100px);
             background-image: url('https://i.ibb.co/y1rJBhv/Copilot-20260404-235606.png');
-            
-            /* JAVÍTÁS: Itt húzzuk szét teljesen */
             background-size: cover; 
             background-repeat: no-repeat; 
             background-position: center;
-            
             opacity: 0.25; 
             z-index: 0;
             pointer-events: none;
@@ -51,7 +47,6 @@
             text-align: center; 
             border-bottom: 2px solid var(--accent); 
             width: 100%; 
-            height: 60px;
             background: var(--bg); 
             position: relative;
             z-index: 10;
@@ -63,8 +58,35 @@
             padding: 8px 20px; 
             border-radius: 5px; 
             display: inline-flex; 
+            align-items: center;
             gap: 25px; 
             margin-top: 10px; 
+        }
+
+        /* --- HP CSÍK STÍLUSA --- */
+        .hp-container {
+            width: 120px;
+            height: 18px;
+            background: #300;
+            border: 1px solid var(--gold);
+            border-radius: 9px;
+            position: relative;
+            overflow: hidden;
+        }
+        #hp-fill {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to right, #ff0000, #8b0000);
+            transition: 0.5s ease-in-out;
+        }
+        #hp-text {
+            position: absolute;
+            width: 100%;
+            text-align: center;
+            font-size: 0.75em;
+            top: 0;
+            color: white;
+            text-shadow: 1px 1px 2px black;
         }
 
         .main-container { 
@@ -127,7 +149,7 @@
             position: absolute;
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
-        .inv-slot { position: static; border-color: #333; background: rgba(25, 25, 30, 0.85); }
+        .inv-slot { position: static; border-color: #333; background: rgba(25, 25, 30, 0.85); min-width: 64px; }
         .slot:hover, .inv-slot:hover { border-color: var(--gold); background: rgba(40, 40, 50, 0.95); }
 
         .slot[data-slot="sisak"] { top: 30px; left: 128px; }
@@ -171,6 +193,10 @@
 <div class="header">
     <h1 id="char-name" style="margin:0;">Karakter betöltése...</h1>
     <div class="stat-bar">
+        <div class="hp-container">
+            <div id="hp-fill"></div>
+            <span id="hp-text">100 / 100</span>
+        </div>
         <span>⚔️ ATK: <b id="stat-atk">0</b></span>
         <span>🛡️ DEF: <b id="stat-def">0</b></span>
     </div>
@@ -232,6 +258,13 @@
         const imgEl = document.getElementById('hero-img');
         if(c.charClass) imgEl.src = HERO_IMAGES[c.charClass] || "";
 
+        // HP FRISSÍTÉSE
+        const hp = c.hp !== undefined ? c.hp : 100;
+        const maxHp = c.maxHp || 100;
+        const hpPercent = (hp / maxHp) * 100;
+        document.getElementById('hp-fill').style.width = hpPercent + "%";
+        document.getElementById('hp-text').innerText = `${hp} / ${maxHp}`;
+
         document.querySelectorAll('.slot').forEach(s => { s.innerHTML = s.dataset.slot.toUpperCase(); });
 
         let totalAtk = 10, totalDef = 5;
@@ -255,7 +288,15 @@
                 const slot = document.createElement('div');
                 slot.className = 'inv-slot';
                 slot.ondrop = drop; slot.ondragover = allowDrop;
-                slot.innerHTML = `<img src="${ITEMS[itemId].img}" class="item" draggable="true" ondragstart="drag(event)" data-itemid="${itemId}" data-source="inventory" data-fbkey="${key}">`;
+                // ONCLICK HOZZÁADVA A HASZNÁLATHOZ
+                slot.innerHTML = `<img src="${ITEMS[itemId].img}" 
+                                   class="item" 
+                                   onclick="useItem('${itemId}', '${key}')"
+                                   draggable="true" 
+                                   ondragstart="drag(event)" 
+                                   data-itemid="${itemId}" 
+                                   data-source="inventory" 
+                                   data-fbkey="${key}">`;
                 grid.appendChild(slot);
             }
         });
@@ -266,6 +307,31 @@
             grid.appendChild(slot);
         }
     });
+
+    // --- TÁRGY HASZNÁLATA (POTION) ---
+    function useItem(itemId, fbKey) {
+        const item = ITEMS[itemId];
+        if (item && item.type === "consumable") {
+            db.ref(`characters/${myId}`).once('value', snap => {
+                const data = snap.val();
+                let currentHP = data.hp !== undefined ? data.hp : 100;
+                let maxHP = data.maxHp || 100;
+
+                if (currentHP >= maxHP) {
+                    alert("Már teljesen egészséges vagy!");
+                    return;
+                }
+
+                let newHP = Math.min(maxHP, currentHP + (item.heal || 0));
+                
+                const updates = {};
+                updates['hp'] = newHP;
+                
+                db.ref(`characters/${myId}`).update(updates);
+                db.ref(`characters/${myId}/inventory/${fbKey}`).remove();
+            });
+        }
+    }
 
     function allowDrop(ev) { ev.preventDefault(); }
     function drag(ev) {
