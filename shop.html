@@ -61,7 +61,6 @@
 
         .item-grid { width: 100%; display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; overflow-y: auto; margin-top: 10px; border-top: 1px solid #444; padding-top: 10px; }
         
-        /* Tárgy slot képelrendezése */
         .item-slot { background: rgba(0,0,0,0.5); border: 1px solid #444; padding: 8px; text-align: center; cursor: pointer; border-radius: 4px; transition: 0.2s; }
         .item-slot:hover { border-color: var(--gold); background: rgba(197, 160, 89, 0.1); }
         .item-slot img { width: 45px; height: 45px; object-fit: cover; border-radius: 4px; margin-bottom: 4px; }
@@ -87,7 +86,6 @@
             position: relative;
         }
 
-        /* Nagy kép az alkuasztalon */
         .deal-display img.big-item-preview { width: 180px; height: 180px; object-fit: contain; filter: drop-shadow(0 0 10px var(--gold)); border-radius: 10px; }
         .deal-name { font-size: 1.8em; color: white; margin-top: 10px; }
         .deal-price { font-size: 2em; color: var(--gold); margin-top: 5px; }
@@ -166,7 +164,6 @@
         renderPlayerInventory(data.inventory || {});
     });
 
-    // Bolt kirajzolása az ITEMS objektumból
     function renderShop() {
         const shopItems = document.getElementById('shop-items');
         shopItems.innerHTML = Object.keys(ITEMS).map(key => {
@@ -180,12 +177,10 @@
         }).join('');
     }
 
-    // Inventory kirajzolása képekkel
     function renderPlayerInventory(inv) {
         currentInv = inv;
         document.getElementById('player-inventory').innerHTML = Object.keys(inv).map(key => {
             const itemData = inv[key];
-            // Kép kikeresése az items.js-ből az itemId alapján
             const imgUrl = ITEMS[itemData.itemId] ? ITEMS[itemData.itemId].img : "https://via.placeholder.com/45";
             return `
                 <div class="item-slot" onclick="selectForDeal('${key}', 'sell')">
@@ -203,6 +198,7 @@
         
         if(type === 'buy') {
             const item = ITEMS[id];
+            // Ár kiolvasása az items.js-ből vagy alapértelmezett 100
             selectedItem = { ...item, price: item.price || 100 };
             
             container.innerHTML = `
@@ -216,13 +212,21 @@
             `;
         } else {
             const invItem = currentInv[id];
-            const originalData = ITEMS[invItem.itemId] || { img: "https://via.placeholder.com/150" };
-            selectedItem = { ...invItem, key: id, price: 30, img: originalData.img };
+            // Itt keressük ki az eredeti adatokat az eladási árhoz!
+            const originalData = ITEMS[invItem.itemId] || { img: "https://via.placeholder.com/150", sellPrice: 25 };
+            
+            // Az eladási ár az items.js-ből jön, vagy ha nincs ott, akkor 25
+            selectedItem = { 
+                ...invItem, 
+                key: id, 
+                price: originalData.sellPrice || 25, 
+                img: originalData.img 
+            };
             
             container.innerHTML = `
                 <img src="${selectedItem.img}" class="big-item-preview">
                 <div class="deal-name">${selectedItem.name}</div>
-                <div class="deal-price">💰 30</div>
+                <div class="deal-price">💰 ${selectedItem.price}</div>
             `;
             action.innerHTML = `
                 <button class="btn-action sell-btn" onclick="trade()">ELADÁS</button>
@@ -243,11 +247,10 @@
         if(selectedType === 'buy') {
             if(myGold < selectedItem.price) return alert("Nincs elég pénzed!");
             db.ref(`characters/${myId}/gold`).set(myGold - selectedItem.price);
-            // Elmentjük az itemId-t is, hogy tudjuk melyik kép tartozik hozzá
             db.ref(`characters/${myId}/inventory`).push({ 
                 name: selectedItem.name, 
                 itemId: selectedItem.id,
-                type: selectedItem.type 
+                type: selectedItem.type || "tárgy"
             });
         } else {
             db.ref(`characters/${myId}/gold`).set(myGold + selectedItem.price);
