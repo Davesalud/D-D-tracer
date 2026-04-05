@@ -2,7 +2,8 @@ const ITEMS = {
     "fakard_01": { 
         id: "fakard_01", 
         name: "Ócska Fakard", 
-        type: "fegyver", // JAVÍTVA: kisbetű!
+        type: "fegyver",
+        price: 150, // <--- EZT ADD HOZZÁ (vagy írd át)
         atk: 2, 
         def: 0, 
         rarity: "common", 
@@ -11,7 +12,8 @@ const ITEMS = {
     "szakadtfelso_01": { 
         id: "szakadtfelso_01", 
         name: "Szakadt Felső", 
-        type: "páncél", // JAVÍTVA: kisbetű!
+        type: "páncél",
+        price: 80,  // <--- EZT ADD HOZZÁ
         atk: 0, 
         def: 2, 
         rarity: "common", 
