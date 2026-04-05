@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Death's Armada - Megidézés</title>
+    <title>Death's Armada - Új kalandor létrehozása</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Crimson+Text:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #c5a059; --bg: #050507; --accent: #8b0000; --glass: rgba(15, 15, 18, 0.95); }
@@ -24,7 +24,6 @@
             background-size: cover; background-position: center; z-index: -1; 
         }
 
-        /* Fő konténer: Két oszlopos elrendezés */
         .main-card { 
             display: flex; 
             background: var(--glass); 
@@ -37,7 +36,6 @@
             overflow: hidden;
         }
 
-        /* Bal oldal: Beviteli mezők */
         .form-side { 
             flex: 1; 
             padding: 40px; 
@@ -47,7 +45,6 @@
             justify-content: center;
         }
 
-        /* Jobb oldal: Portré doboz (400x500 környéke) */
         .portrait-side { 
             width: 400px; 
             background: rgba(0,0,0,0.4); 
@@ -66,10 +63,10 @@
             transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.3s;
         }
 
-        /* Pop-up effekt az új hős választásakor */
         .pop-effect { transform: scale(1.1); filter: brightness(1.5) contrast(1.2); }
 
-        h1 { color: var(--gold); text-transform: uppercase; letter-spacing: 2px; margin-top: 0; font-size: 2em; }
+        /* FELSŐ CÍM MÓDOSÍTVA */
+        h1 { color: var(--gold); text-transform: uppercase; letter-spacing: 2px; margin-top: 0; font-size: 1.8em; }
         
         input, select { 
             width: 100%; padding: 14px; margin-bottom: 15px; 
@@ -87,11 +84,33 @@
         .desc-text { font-family: 'Crimson Text', serif; font-style: italic; color: #ccc; line-height: 1.4; }
 
         .btn-create { 
-            padding: 18px; background: var(--accent); color: white; border: none; 
-            cursor: pointer; font-family: 'MedievalSharp'; font-size: 1.2em; 
-            text-transform: uppercase; transition: 0.3s; width: 100%;
+            padding: 18px; 
+            background: var(--accent); 
+            color: white; 
+            border: 2px solid var(--gold);
+            cursor: pointer; 
+            font-family: 'MedievalSharp'; 
+            font-size: 1.3em; 
+            text-transform: uppercase; 
+            transition: 0.3s; 
+            width: 100%;
+            letter-spacing: 1px;
+            box-shadow: 0 0 15px rgba(197, 160, 89, 0.5);
+            animation: pulseGold 2s infinite;
         }
-        .btn-create:hover { background: #b00000; box-shadow: 0 0 20px var(--accent); }
+
+        @keyframes pulseGold {
+            0% { box-shadow: 0 0 15px rgba(197, 160, 89, 0.5); }
+            50% { box-shadow: 0 0 30px rgba(197, 160, 89, 0.8); }
+            100% { box-shadow: 0 0 15px rgba(197, 160, 89, 0.5); }
+        }
+
+        .btn-create:hover { 
+            background: #b00000; 
+            box-shadow: 0 0 40px rgba(197, 160, 89, 1);
+            transform: translateY(-2px);
+            animation: none;
+        }
 
         @media (max-width: 800px) {
             .main-card { flex-direction: column-reverse; max-width: 450px; }
@@ -104,9 +123,9 @@
 
 <div class="main-card">
     <div class="form-side">
-        <h1>Megidézés</h1>
+        <h1>Új kalandor létrehozása</h1>
         
-        <input type="text" id="hero-name" placeholder="Hős neve..." maxlength="12">
+        <input type="text" id="hero-name" placeholder="A kalandor neve..." maxlength="12">
         <input type="password" id="hero-pin" placeholder="PIN (4 számjegy)" maxlength="4">
         
         <label style="color:var(--gold); font-size: 0.8em; margin-bottom: 5px; display:block;">VÁLASSZ KASZTOT:</label>
@@ -129,7 +148,7 @@
             <div style="color:#ff4d4d; margin-top:10px; font-size:0.9em;" id="class-spec">✨ Pajzsütés: Esély kábításra.</div>
         </div>
 
-        <button class="btn-create" onclick="createHero()">A rituálé elvégzése</button>
+        <button class="btn-create" onclick="createHero()">Új kalandor létrehozása</button>
         <a href="login.html" style="color:var(--gold); text-align:center; display:block; margin-top:15px; text-decoration:none; font-size:0.8em; opacity:0.6;">← Vissza a kapuhoz</a>
     </div>
 
@@ -141,7 +160,6 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script>
-    // Firebase Config marad a régi...
     const firebaseConfig = { 
         apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU", 
         authDomain: "dnd-tracker-4fe05.firebaseapp.com", 
@@ -164,12 +182,8 @@
         const val = document.getElementById('class-select').value;
         const data = CLASS_DATA[val];
         const imgEl = document.getElementById('hero-img');
-
-        // Pop-up effekt indítása
         imgEl.classList.add('pop-effect');
         setTimeout(() => imgEl.classList.remove('pop-effect'), 400);
-
-        // Adatok frissítése
         imgEl.style.backgroundImage = `url('${data.img}')`;
         document.getElementById('hp-val').innerText = "❤️ " + data.hp;
         document.getElementById('atk-val').innerText = "⚔️ " + data.atk;
@@ -182,21 +196,18 @@
         const name = document.getElementById('hero-name').value;
         const pin = document.getElementById('hero-pin').value;
         const charClass = document.getElementById('class-select').value;
-
         if(name.length < 3 || pin.length !== 4) {
-            alert("Szent Ég! Adj meg egy tisztességes nevet (min. 3 betű) és egy 4 számjegyű PIN-t!");
+            alert("A rituálé sikertelen! Kérlek adj meg nevet és PIN kódot.");
             return;
         }
-
         const stats = CLASS_DATA[charClass];
         const newId = db.ref('characters').push().key;
-
         db.ref('characters/' + newId).set({
             id: newId, name: name, pin: pin, charClass: charClass,
             level: 1, gold: 50, xp: 0, hp: stats.hp, maxHp: stats.hp,
             atk: stats.atk, def: stats.def, status: "offline", lastUpdate: Date.now()
         }).then(() => {
-            alert("A hős megérkezett a világunkba!");
+            alert("Az új kalandor megérkezett!");
             window.location.href = 'login.html';
         });
     }
