@@ -18,7 +18,7 @@
             justify-content: center; 
             min-height: 100vh; 
             overflow-x: hidden;
-            overflow-y: auto; /* Fontos, hogy mobilon lehessen görgetni */
+            overflow-y: auto;
         }
 
         .master-bg { 
@@ -26,11 +26,9 @@
             background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.7)), url('https://i.ibb.co/k2cqD5TF/1b9b48cc-e761-4b0b-a9ea-578e6672b24e.jpg'); 
             background-size: cover; 
             background-position: center top; 
-            background-repeat: no-repeat;
             z-index: -1; 
         }
         
-        /* PC elrendezés: egymás mellett */
         .main-container { 
             display: flex; 
             gap: 30px; 
@@ -54,7 +52,7 @@
             padding: 40px; border-radius: 4px; text-align: center; 
             box-shadow: 0 0 60px rgba(0,0,0,1); 
             backdrop-filter: blur(12px); position: relative;
-            box-sizing: border-box; /* Ez biztosítja, hogy a padding ne tolja szét a fix szélességet */
+            box-sizing: border-box;
         }
         
         .logo { font-size: 3.2em; color: var(--accent); text-shadow: 2px 2px 10px black, 0 0 20px rgba(139,0,0,0.5); margin-bottom: 35px; letter-spacing: -1px; }
@@ -66,54 +64,47 @@
         }
         input:focus { border-color: var(--gold); outline: none; background: rgba(20,20,20,0.8); }
 
+        /* JAVÍTOTT KERESŐ LISTA */
+        #search-results { 
+            background: #111; 
+            border: 1px solid var(--gold); 
+            border-top: none;
+            max-height: 200px; 
+            overflow-y: auto; 
+            margin-top: -20px; 
+            margin-bottom: 20px; 
+            display: none; 
+            position: absolute; 
+            width: 100%; 
+            z-index: 999; 
+            box-shadow: 0 10px 30px black;
+            left: 0;
+        }
+        .search-item { 
+            padding: 14px; 
+            cursor: pointer; 
+            border-bottom: 1px solid #222; 
+            text-align: left; 
+            color: var(--gold);
+        }
+        .search-item:hover { background: var(--accent); color: white; }
+
         .btn { 
             width: 100%; padding: 16px; cursor: pointer; border: 1px solid var(--gold); 
             text-transform: uppercase; transition: 0.3s; font-family: 'MedievalSharp'; 
             margin-bottom: 12px; font-weight: bold; letter-spacing: 2px; display: flex; align-items: center; justify-content: center;
         }
         .btn-main { background: var(--accent); color: white; border: none; font-size: 1.2em; }
-        .btn-main:hover { background: #b00000; transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.6); }
+        .btn-main:hover { background: #b00000; transform: translateY(-3px); }
 
-        .btn-sub { background: transparent; color: var(--gold); font-size: 0.9em; opacity: 0.8; margin-top: 10px; border: 1px solid transparent; cursor: pointer; }
-        .btn-sub:hover { opacity: 1; border-color: var(--gold); background: rgba(197, 160, 89, 0.05); }
-        
-        #search-results { 
-            background: #0a0a0a; border: 1px solid var(--gold); max-height: 180px; 
-            overflow-y: auto; margin-top: -20px; margin-bottom: 20px; display: none; 
-            position: absolute; width: 100%; z-index: 100; box-shadow: 0 5px 20px black;
-        }
-        .search-item { padding: 14px; cursor: pointer; border-bottom: 1px solid #222; text-align: left; }
+        .btn-sub { background: transparent; color: var(--gold); font-size: 0.9em; opacity: 0.8; margin-top: 10px; border: 1px solid transparent; }
+        .btn-sub:hover { opacity: 1; border-color: var(--gold); }
 
-        /* --- MOBIL OPTIMALIZÁLÁS (850px alatt) --- */
         @media (max-width: 850px) {
-            body { align-items: flex-start; } /* Mobilon felülről kezdjük a rajzolást */
-            
-            .main-container { 
-                flex-direction: column-reverse; /* Login doboz felülre kerül */
-                width: 90%; 
-                gap: 20px; 
-                padding: 40px 0; 
-            }
-            
-            .card { 
-                width: 100%; /* Kitölti a telefon szélességét */
-                padding: 25px; 
-            }
-            
-            .logo { font-size: 2.2em; margin-bottom: 20px; }
-            
-            .patch-notes { 
-                width: 100%; 
-                max-height: none; 
-            }
-
-            .patch-content {
-                max-height: 250px;
-            }
-            
-            .master-bg {
-                background-position: 75% center; /* Mobilon kicsit eltoljuk a képet, hogy az akció látszódjon */
-            }
+            body { align-items: flex-start; }
+            .main-container { flex-direction: column-reverse; width: 90%; gap: 20px; padding: 40px 0; }
+            .card { width: 100%; padding: 25px; }
+            .logo { font-size: 2.2em; }
         }
     </style>
 </head>
@@ -141,7 +132,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <script>
-        // A scripted változatlan, minden funkció (search, login, patch notes) benne van.
         const firebaseConfig = { 
             apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU", 
             authDomain: "dnd-tracker-4fe05.firebaseapp.com", 
@@ -154,20 +144,24 @@
         let chars = {}, selectedId = null;
 
         db.ref('settings/patchNotes').on('value', snap => {
-            document.getElementById('patch-text').innerHTML = snap.val() || "Üdvözöllek vándor! A birodalom csendes...";
+            document.getElementById('patch-text').innerHTML = snap.val() || "Üdvözöllek vándor!";
         });
 
         db.ref('characters').on('value', snap => { chars = snap.val() || {}; });
 
         const searchInput = document.getElementById('hero-search');
+        const resDiv = document.getElementById('search-results');
+
         searchInput.addEventListener('input', (e) => {
             const text = e.target.value.toLowerCase();
-            const resDiv = document.getElementById('search-results');
             resDiv.innerHTML = "";
+            selectedId = null; // Reset, ha elkezd gépelni
+
             if(text.length < 1) { resDiv.style.display = "none"; return; }
 
+            let found = false;
             Object.keys(chars).forEach(id => {
-                if(chars[id].name.toLowerCase().startsWith(text)) {
+                if(chars[id].name.toLowerCase().includes(text)) {
                     const d = document.createElement('div');
                     d.className = "search-item";
                     d.innerText = chars[id].name;
@@ -175,19 +169,35 @@
                         searchInput.value = chars[id].name; 
                         selectedId = id; 
                         resDiv.style.display = "none"; 
+                        searchInput.style.borderColor = "var(--gold)";
                     };
                     resDiv.appendChild(d);
+                    found = true;
                 }
             });
-            resDiv.style.display = "block";
+            resDiv.style.display = found ? "block" : "none";
+        });
+
+        // Ha mellékattint, tűnjön el a lista
+        document.addEventListener('click', (e) => {
+            if (e.target !== searchInput) resDiv.style.display = "none";
         });
 
         function login() {
+            const nameInput = searchInput.value.toLowerCase();
             const pin = document.getElementById('login-pin').value;
+
+            // Ha nincs kiválasztva ID (nem kattintott), megpróbáljuk név alapján kikeresni
+            if (!selectedId) {
+                selectedId = Object.keys(chars).find(id => chars[id].name.toLowerCase() === nameInput);
+            }
+
             if (selectedId && chars[selectedId].pin.toString() === pin) {
                 localStorage.setItem('selectedCharId', selectedId);
                 window.location.href = 'index.html';
-            } else alert("Hibás név vagy PIN!");
+            } else {
+                alert("Hibás név vagy PIN!");
+            }
         }
     </script>
 </body>
