@@ -12,26 +12,7 @@
         body { font-family: 'Crimson Text', serif; background-color: var(--bg); color: var(--text); margin: 0; height: 100vh; overflow: hidden; }
         .master-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.8)), url('https://i.pinimg.com/originals/26/2b/dd/262bdd02564bf6dabbe89df4f93e8e26.jpg'); background-size: cover; background-position: center; z-index: -1; }
         
-        .side-action-btn {
-            position: fixed;
-            top: 75%;
-            transform: translateY(-50%);
-            width: 280px; 
-            height: 300px;
-            border: 2px solid var(--gold);
-            border-radius: 8px;
-            background-size: cover;
-            background-position: center;
-            cursor: pointer;
-            display: none; 
-            flex-direction: column;
-            justify-content: flex-end;
-            text-decoration: none;
-            overflow: hidden;
-            transition: 0.3s;
-            box-shadow: 0 0 25px rgba(0,0,0,0.9);
-            z-index: 10;
-        }
+        .side-action-btn { position: fixed; top: 75%; transform: translateY(-50%); width: 280px; height: 300px; border: 2px solid var(--gold); border-radius: 8px; background-size: cover; background-position: center; cursor: pointer; display: none; flex-direction: column; justify-content: flex-end; text-decoration: none; overflow: hidden; transition: 0.3s; box-shadow: 0 0 25px rgba(0,0,0,0.9); z-index: 10; }
         .side-action-btn:hover { transform: translateY(-53%); box-shadow: 0 0 30px var(--gold); border-color: #fff; }
         .side-action-btn span { background: rgba(0, 0, 0, 0.85); color: var(--gold); font-family: 'MedievalSharp'; text-align: center; padding: 12px 0; width: 100%; text-transform: uppercase; border-top: 1px solid var(--gold); font-size: 1.1em; letter-spacing: 1px; }
         
@@ -173,17 +154,25 @@
     const HERO_IMAGES = { "Harcos": "https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png", "Mágus": "https://i.ibb.co/yFz5bcXv/Copilot-20260403-033651.png", "Lovag": "https://i.ibb.co/Fk3n339M/Copilot-20260403-034043.png", "Íjász": "https://i.ibb.co/whd2jNpB/Copilot-20260403-034402.png", "Bérgyilkos": "https://i.ibb.co/b525CsLg/Copilot-20260403-032807.png", "Nekromanta": "https://i.ibb.co/NnCwwCbR/Copilot-20260403-033301.png" };
     const CLASS_DATA = { "Harcos": { skill: "Tombolás", desc: "120 HP | 12-18 Atk" }, "Mágus": { skill: "Tűzgolyó", desc: "80 HP | 20-35 Atk" }, "Lovag": { skill: "Szent Pajzs", desc: "150 HP | 8-14 Atk" }, "Íjász": { skill: "Nyílzápor", desc: "100 HP | 14-22 Atk" }, "Bérgyilkos": { skill: "Hátbatámadás", desc: "90 HP | 18-28 Atk" }, "Nekromanta": { skill: "Lélekcsapolás", desc: "110 HP | 15-22 Atk" } };
 
-    // REGENERÁCIÓS FÜGGVÉNY
+    // --- FASZÁRA JAVÍTOTT REGENERÁCIÓ (10 HP / PERC) ---
     function checkRegen(charData, id) {
         if (!charData || charData.hp >= charData.maxHp) return;
+        
         const now = Date.now();
         const last = charData.lastUpdate || now;
-        const diffMin = Math.floor((now - last) / 60000);
+        const diffMs = now - last;
+        const diffMin = Math.floor(diffMs / 60000);
         
         if (diffMin >= 1) {
-            const heal = diffMin * 2; // Percenként 2 HP
+            const heal = diffMin * 10; // 10 HP percenként
             const newHP = Math.min(charData.maxHp, charData.hp + heal);
-            db.ref(`characters/${id}`).update({ hp: newHP, lastUpdate: now });
+            
+            // Csak akkor írunk az adatbázisba, ha tényleg változott valami
+            db.ref(`characters/${id}`).update({ 
+                hp: newHP, 
+                lastUpdate: now 
+            });
+            console.log(`Regeneráció: +${heal} HP (${diffMin} perc alatt)`);
         }
     }
 
@@ -199,11 +188,15 @@
         } 
     });
 
-    // Frissített folyamatos ellenőrzés
+    // Percenkénti ellenőrzés és státusz frissítés
     setInterval(() => { 
         if(myId && chars[myId]) {
             checkRegen(chars[myId], myId);
-            db.ref(`characters/${myId}`).update({ lastUpdate: Date.now() }); 
+            // Jelezzük az adatbázisnak, hogy még mindig online vagyunk
+            db.ref(`characters/${myId}`).update({ 
+                lastUpdate: Date.now(),
+                status: "online" 
+            }); 
         }
     }, 60000);
 
@@ -215,7 +208,9 @@
         document.getElementById('lobby-gold').innerText = c.gold || 0;
         document.getElementById('lobby-class-display').innerText = c.charClass;
         document.getElementById('lobby-hero-img').style.backgroundImage = `url('${HERO_IMAGES[c.charClass]}')`;
-        document.getElementById('lobby-hp-fill').style.width = (c.hp / c.maxHp) * 100 + "%";
+        
+        const hpPercent = (c.hp / c.maxHp) * 100;
+        document.getElementById('lobby-hp-fill').style.width = hpPercent + "%";
         document.getElementById('lobby-hp-val').innerText = `${Math.ceil(c.hp)} / ${c.maxHp} HP`;
         
         const listOnline = document.getElementById('list-online');
@@ -224,15 +219,22 @@
         listArena.innerHTML = "";
 
         Object.keys(chars).forEach(id => {
-            if (id === myId) return;
             const p = chars[id];
-            const isOnline = (now - (p.lastUpdate || 0) < 300000);
-            const item = `<div class="player-mini-card"><span class="p-name">${p.name}</span><span class="p-stat" style="color:${p.status === 'searching' ? '#ff9800' : '#4CAF50'}">${p.status === 'searching' ? 'Várakozik' : 'Lobby'}</span></div>`;
+            const isOnline = (now - (p.lastUpdate || 0) < 300000); // 5 percen belüli aktivitás = online
+            
+            const item = `<div class="player-mini-card">
+                <span class="p-name">${p.name}</span>
+                <span class="p-stat" style="color:${p.status === 'searching' ? '#ff9800' : '#4CAF50'}">
+                    ${p.status === 'searching' ? 'Várakozik' : (isOnline ? 'Lobby' : 'Offline')}
+                </span>
+            </div>`;
+
             if (p.status === "searching") listArena.innerHTML += item;
-            else if (p.status === "online" && isOnline) listOnline.innerHTML += item;
+            else if (isOnline && id !== myId) listOnline.innerHTML += item;
         });
     }
 
+    // Kereső és belépés marad eredeti, mert jól működik
     const searchInput = document.getElementById('hero-search');
     searchInput.addEventListener('input', (e) => {
         const text = e.target.value.toLowerCase();
@@ -255,7 +257,7 @@
         if (selectedIdFromSearch && chars[selectedIdFromSearch].pin.toString() === pin) {
             myId = selectedIdFromSearch;
             localStorage.setItem('selectedCharId', myId);
-            // Belépéskor azonnali gyógyítás ellenőrzése
+            // Belépéskor AZONNALI gyógyítás
             checkRegen(chars[myId], myId);
             db.ref(`characters/${myId}`).update({ status: "online", lastUpdate: Date.now() });
             location.reload();
