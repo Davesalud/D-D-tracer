@@ -15,62 +15,31 @@
         .shop-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 40px; background: rgba(0,0,0,0.9); border-bottom: 2px solid var(--gold); }
         .gold-display { color: var(--gold); font-size: 1.5em; border: 1px solid var(--gold); padding: 5px 20px; border-radius: 6px; background: rgba(255,255,255,0.05); }
 
-        .trade-layout { 
-            display: flex; 
-            justify-content: center; 
-            align-items: flex-start;
-            height: calc(100vh - 75px); 
-            padding: 20px; 
-            gap: 30px; 
-            max-width: 1400px; 
-            margin: 0 auto;
-        }
-
-        .panel { 
-            background: var(--panel-bg); 
-            border: 2px solid var(--gold); 
-            border-radius: 8px; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            padding: 15px; 
-            overflow: hidden;
-            width: 340px; 
-        }
-
+        .trade-layout { display: flex; justify-content: center; align-items: flex-start; height: calc(100vh - 75px); padding: 20px; gap: 30px; max-width: 1400px; margin: 0 auto; }
+        .panel { background: var(--panel-bg); border: 2px solid var(--gold); border-radius: 8px; display: flex; flex-direction: column; align-items: center; padding: 15px; overflow: hidden; width: 340px; }
         .panel-header { color: var(--gold); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; border-bottom: 1px solid var(--gold); width: 100%; text-align: center; padding-bottom: 5px; }
 
-        .avatar-box { 
-            width: 320px; 
-            height: 320px; 
-            border: 3px solid var(--gold); 
-            border-radius: 4px; 
-            overflow: hidden; 
-            background: #000;
-            box-shadow: 0 0 20px rgba(0,0,0,1);
-            margin-bottom: 10px;
-            flex-shrink: 0;
-        }
-
+        .avatar-box { width: 320px; height: 320px; border: 3px solid var(--gold); border-radius: 4px; overflow: hidden; background: #000; box-shadow: 0 0 20px rgba(0,0,0,1); margin-bottom: 10px; flex-shrink: 0; }
         .avatar-box img { width: 100%; height: 100%; object-fit: cover; object-position: center 20%; }
 
         .item-grid { width: 100%; display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; overflow-y: auto; margin-top: 10px; border-top: 1px solid #444; padding-top: 10px; }
         
+        /* Ritkaság keretek */
         .item-slot { background: rgba(0,0,0,0.5); border: 1px solid #444; padding: 8px; text-align: center; cursor: pointer; border-radius: 4px; transition: 0.2s; }
-        .item-slot:hover { border-color: var(--gold); background: rgba(197, 160, 89, 0.1); }
+        .item-slot.common { border-color: #888; }
+        .item-slot.uncommon { border-color: #1eff00; }
+        .item-slot.rare { border-color: #0070dd; }
+        .item-slot:hover { background: rgba(197, 160, 89, 0.2); transform: scale(1.05); }
+
         .item-slot img { width: 45px; height: 45px; object-fit: cover; border-radius: 4px; margin-bottom: 4px; }
         .item-slot .name { font-size: 0.7em; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .item-slot .price-tag { font-size: 0.65em; color: var(--gold); margin-top: 2px; }
 
         .deal-zone { flex: 0 1 400px; display: flex; flex-direction: column; justify-content: center; }
-
-        .deal-display { 
-            width: 100%; height: 350px; background: rgba(0,0,0,0.8); border: 2px dashed var(--gold); border-radius: 15px; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 20px; position: relative;
-        }
-
-        .deal-display img.big-item-preview { width: 180px; height: 180px; object-fit: contain; filter: drop-shadow(0 0 10px var(--gold)); }
-        .deal-name { font-size: 1.8em; color: white; margin-top: 10px; }
+        .deal-display { width: 100%; height: 350px; background: rgba(0,0,0,0.8); border: 2px dashed var(--gold); border-radius: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 20px; text-align: center; padding: 10px; }
+        .deal-display img.big-item-preview { width: 180px; height: 180px; object-fit: contain; filter: drop-shadow(0 0 15px rgba(197, 160, 89, 0.4)); }
+        .deal-name { font-size: 1.6em; color: white; margin-top: 10px; }
+        .deal-stats { font-size: 0.9em; color: #aaa; margin: 5px 0; }
         .deal-price { font-size: 2em; color: var(--gold); margin-top: 5px; }
 
         .btn-group { width: 100%; display: flex; flex-direction: column; gap: 10px; }
@@ -78,7 +47,6 @@
         .buy-btn { background: var(--accent); color: white; border: 1px solid #f00; }
         .sell-btn { background: #2d5a27; color: white; border: 1px solid #5f5; }
         .cancel-btn { background: #333; color: #ccc; border: 1px solid #555; }
-
         .btn-back { position: fixed; bottom: 20px; left: 20px; background: #000; color: var(--gold); border: 1px solid var(--gold); padding: 10px 20px; text-decoration: none; border-radius: 4px; }
     </style>
 </head>
@@ -122,12 +90,14 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <script>
-    // --- TÁRGY ADATBÁZIS ---
+    // --- AZ ÚJ TÁRGYLISTÁD BEÉPÍTVE ---
     const ITEMS = {
-        "vaskard": { id: "vaskard", name: "Vaskard", price: 150, sellPrice: 75, atk: 10, img: "https://i.ibb.co/3mS0mS0/sword.png" },
-        "pajzs": { id: "pajzs", name: "Lovag Pajzs", price: 120, sellPrice: 60, def: 8, img: "https://i.ibb.co/4mS0mS0/shield.png" },
-        "gyuru": { id: "gyuru", name: "Arany Gyűrű", price: 300, sellPrice: 150, atk: 5, def: 5, img: "https://i.ibb.co/5mS0mS0/ring.png" },
-        "ital": { id: "ital", name: "Életital", price: 40, sellPrice: 10, img: "https://i.ibb.co/6mS0mS0/potion.png" }
+        "fakard_01": { id: "fakard_01", name: "Ócska Fakard", type: "fegyver", price: 150, sellPrice: 35, atk: 2, def: 0, rarity: "common", img: "https://i.ibb.co/twxWwxFJ/Copilot-20260405-035308.png" },
+        "rezkard_01": { id: "rezkard_01", name: "Réz Kard", type: "fegyver", price: 450, sellPrice: 120, atk: 5, def: 0, rarity: "uncommon", img: "https://i.ibb.co/nNFg9ps5/Copilot-20260405-040140.png" },
+        "vaskard_01": { id: "vaskard_01", name: "Harci Vas Kard", type: "fegyver", price: 1200, sellPrice: 400, atk: 12, def: 1, rarity: "rare", img: "https://i.ibb.co/LDcq0LQp/Copilot-20260405-040230.png" },
+        "szakadtfelso_01": { id: "szakadtfelso_01", name: "Szakadt Felső", type: "páncél", price: 80, sellPrice: 20, atk: 0, def: 2, rarity: "common", img: "https://i.ibb.co/dsr66j0L/Copilot-20260405-035126.png" },
+        "potion_01": { id: "potion_01", name: "Kisebb Életerő Ital", type: "consumable", heal: 25, price: 50, sellPrice: 15, rarity: "common", img: "https://i.ibb.co/3YChW7rk/Copilot-20260405-034109.png" },
+        "potion_02": { id: "potion_02", name: "Nagyobb Életerő Ital", type: "consumable", heal: 60, price: 150, sellPrice: 50, rarity: "uncommon", img: "https://i.ibb.co/fd2Jys7X/Copilot-20260405-035701.png" }
     };
 
     const firebaseConfig = { apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU", authDomain: "dnd-tracker-4fe05.firebaseapp.com", projectId: "dnd-tracker-4fe05", databaseURL: "https://dnd-tracker-4fe05-default-rtdb.europe-west1.firebasedatabase.app" };
@@ -158,7 +128,7 @@
         shopItems.innerHTML = Object.keys(ITEMS).map(key => {
             const i = ITEMS[key];
             return `
-                <div class="item-slot" onclick="selectForDeal('${i.id}', 'buy')">
+                <div class="item-slot ${i.rarity}" onclick="selectForDeal('${i.id}', 'buy')">
                     <img src="${i.img}" alt="${i.name}">
                     <span class="name">${i.name}</span>
                     <div class="price-tag">💰 ${i.price}</div>
@@ -175,10 +145,9 @@
         Object.keys(inv).forEach(key => {
             const itemId = inv[key];
             const itemData = ITEMS[itemId];
-
             if (itemData) {
                 container.innerHTML += `
-                    <div class="item-slot" onclick="selectForDeal('${key}', 'sell')">
+                    <div class="item-slot ${itemData.rarity}" onclick="selectForDeal('${key}', 'sell')">
                         <img src="${itemData.img}" alt="${itemData.name}">
                         <span class="name">${itemData.name}</span>
                         <div class="price-tag">💰 ${itemData.sellPrice}</div>
@@ -192,48 +161,37 @@
         selectedType = type;
         const container = document.getElementById('deal-container');
         const action = document.getElementById('action-area');
-        
+        let itemData;
+
         if(type === 'buy') {
-            const item = ITEMS[id];
-            selectedItem = { ...item };
-            
-            container.innerHTML = `
-                <img src="${selectedItem.img}" class="big-item-preview">
-                <div class="deal-name">${selectedItem.name}</div>
-                <div class="deal-price">💰 ${selectedItem.price}</div>
-            `;
-            action.innerHTML = `
-                <button class="btn-action buy-btn" onclick="trade()">VÁSÁRLÁS</button>
-                <button class="btn-action cancel-btn" onclick="resetDeal()">MÉGSE</button>
-            `;
+            itemData = ITEMS[id];
+            selectedItem = { ...itemData };
         } else {
             const itemId = currentInv[id];
-            const itemData = ITEMS[itemId];
+            itemData = ITEMS[itemId];
             if(!itemData) return;
-
-            selectedItem = { 
-                key: id,
-                itemId: itemId,
-                name: itemData.name,
-                price: itemData.sellPrice || 0,
-                img: itemData.img 
-            };
-            
-            container.innerHTML = `
-                <img src="${selectedItem.img}" class="big-item-preview">
-                <div class="deal-name">${selectedItem.name}</div>
-                <div class="deal-price">💰 ${selectedItem.price}</div>
-            `;
-            action.innerHTML = `
-                <button class="btn-action sell-btn" onclick="trade()">ELADÁS</button>
-                <button class="btn-action cancel-btn" onclick="resetDeal()">MÉGSE</button>
-            `;
+            selectedItem = { key: id, itemId: itemId, ...itemData, price: itemData.sellPrice };
         }
+
+        const stats = itemData.type === "consumable" ? `Gyógyítás: +${itemData.heal}` : `Atk: +${itemData.atk || 0} | Def: +${itemData.def || 0}`;
+
+        container.innerHTML = `
+            <img src="${selectedItem.img}" class="big-item-preview">
+            <div class="deal-name">${selectedItem.name}</div>
+            <div class="deal-stats">${stats}</div>
+            <div class="deal-price">💰 ${selectedItem.price}</div>
+        `;
+        
+        action.innerHTML = `
+            <button class="btn-action ${type === 'buy' ? 'buy-btn' : 'sell-btn'}" onclick="trade()">
+                ${type === 'buy' ? 'VÁSÁRLÁS' : 'ELADÁS'}
+            </button>
+            <button class="btn-action cancel-btn" onclick="resetDeal()">MÉGSE</button>
+        `;
     }
 
     function resetDeal() {
         selectedItem = null;
-        selectedType = "";
         document.getElementById('deal-container').innerHTML = `<div style="font-style: italic; color: #555;">Válassz egy árut...</div>`;
         document.getElementById('action-area').innerHTML = "";
     }
@@ -244,7 +202,6 @@
 
         if(selectedType === 'buy') {
             if(myGold < selectedItem.price) return alert("Nincs elég pénzed!");
-            
             charRef.update({ gold: myGold - selectedItem.price });
             charRef.child('inventory').push(selectedItem.id);
             alert(`Sikeresen megvetted: ${selectedItem.name}`);
