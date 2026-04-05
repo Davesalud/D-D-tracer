@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hős Leltár - Teljes Háttérrel</title>
+    <title>Hős Leltár - Javított</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
     <style>
         :root { 
@@ -63,7 +63,6 @@
             margin-top: 10px; 
         }
 
-        /* --- HP CSÍK STÍLUSA --- */
         .hp-container {
             width: 120px;
             height: 18px;
@@ -258,7 +257,6 @@
         const imgEl = document.getElementById('hero-img');
         if(c.charClass) imgEl.src = HERO_IMAGES[c.charClass] || "";
 
-        // HP FRISSÍTÉSE
         const hp = c.hp !== undefined ? c.hp : 100;
         const maxHp = c.maxHp || 100;
         const hpPercent = (hp / maxHp) * 100;
@@ -288,7 +286,6 @@
                 const slot = document.createElement('div');
                 slot.className = 'inv-slot';
                 slot.ondrop = drop; slot.ondragover = allowDrop;
-                // ONCLICK HOZZÁADVA A HASZNÁLATHOZ
                 slot.innerHTML = `<img src="${ITEMS[itemId].img}" 
                                    class="item" 
                                    onclick="useItem('${itemId}', '${key}')"
@@ -308,7 +305,6 @@
         }
     });
 
-    // --- TÁRGY HASZNÁLATA (POTION) ---
     function useItem(itemId, fbKey) {
         const item = ITEMS[itemId];
         if (item && item.type === "consumable") {
@@ -316,17 +312,13 @@
                 const data = snap.val();
                 let currentHP = data.hp !== undefined ? data.hp : 100;
                 let maxHP = data.maxHp || 100;
-
                 if (currentHP >= maxHP) {
                     alert("Már teljesen egészséges vagy!");
                     return;
                 }
-
                 let newHP = Math.min(maxHP, currentHP + (item.heal || 0));
-                
                 const updates = {};
                 updates['hp'] = newHP;
-                
                 db.ref(`characters/${myId}`).update(updates);
                 db.ref(`characters/${myId}/inventory/${fbKey}`).remove();
             });
@@ -340,6 +332,7 @@
         ev.dataTransfer.setData("fbKey", ev.target.dataset.fbkey || "");
     }
 
+    // --- JAVÍTOTT DROP FÜGGVÉNY AZ ATOMI UPDATE-TEL ---
     function drop(ev) {
         ev.preventDefault();
         const itemId = ev.dataTransfer.getData("itemId");
@@ -353,21 +346,28 @@
         const targetSlot = target.dataset.slot;
         const isInv = target.classList.contains('inv-slot') || target.id === 'inventory-grid';
         if (target.querySelector('.item')) return;
+
+        const updates = {};
+
         if (targetSlot) {
             if (ITEMS[itemId].type === targetSlot) {
-                const updates = {};
                 updates[`equip_${targetSlot}`] = itemId;
-                if (source === "inventory") db.ref(`characters/${myId}/inventory/${fbKey}`).remove();
-                else updates[`equip_${source}`] = null;
+                if (source === "inventory") {
+                    db.ref(`characters/${myId}/inventory/${fbKey}`).remove();
+                } else {
+                    updates[`equip_${source}`] = null;
+                }
                 db.ref(`characters/${myId}`).update(updates);
             }
-        } else if (isInv) {
-            if (source !== "inventory") {
-                const updates = {};
-                updates[`equip_${source}`] = null;
-                db.ref(`characters/${myId}`).update(updates);
-                db.ref(`characters/${myId}/inventory`).push(itemId);
-            }
+        } else if (isInv && source !== "inventory") {
+            // Generálunk egy új kulcsot az inventory-hoz
+            const newInvKey = db.ref(`characters/${myId}/inventory`).push().key;
+            
+            // EGYETLEN lépésben ürítjük a slotot és rakjuk a táskába
+            updates[`equip_${source}`] = null;
+            updates[`inventory/${newInvKey}`] = itemId;
+            
+            db.ref(`characters/${myId}`).update(updates);
         }
     }
 </script>
