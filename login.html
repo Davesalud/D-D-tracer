@@ -6,7 +6,7 @@
     <title>Death's Armada - Login</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Crimson+Text:ital@1&display=swap" rel="stylesheet">
     <style>
-        :root { --gold: #c5a059; --bg: #050507; --accent: #8b0000; --glass: rgba(15, 15, 18, 0.85); }
+        :root { --gold: #c5a059; --bg: #050507; --accent: #8b0000; --glass: rgba(15, 15, 18, 0.9); }
         
         body { 
             font-family: 'MedievalSharp', cursive; 
@@ -17,25 +17,29 @@
             align-items: center; 
             justify-content: center; 
             min-height: 100vh; 
-            overflow: hidden; 
+            overflow-x: hidden;
+            overflow-y: auto; /* Fontos, hogy mobilon lehessen görgetni */
         }
 
-        /* AZ ÚJ HÁTTÉRKÉP BEÁLLÍTÁSA */
         .master-bg { 
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 100%; 
-            /* Új kép beillesztve, sötétítéssel az olvashatóságért */
-            background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.7)), url('https://i.ibb.co/k2cqD5TF/1b9b48cc-e761-4b0b-a9ea-578e6672b24e.jpg'); 
-            background-size: cover; /* Kitölti a képernyőt */
-            background-position: center top; /* Felülről indítja a képet, hogy a lényeg látszódjon */
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.7)), url('https://i.ibb.co/k2cqD5TF/1b9b48cc-e761-4b0b-a9ea-578e6672b24e.jpg'); 
+            background-size: cover; 
+            background-position: center top; 
             background-repeat: no-repeat;
             z-index: -1; 
         }
         
-        .main-container { display: flex; gap: 30px; max-width: 1000px; width: 95%; align-items: stretch; z-index: 10; }
+        /* PC elrendezés: egymás mellett */
+        .main-container { 
+            display: flex; 
+            gap: 30px; 
+            max-width: 1000px; 
+            width: 95%; 
+            align-items: stretch; 
+            z-index: 10; 
+            padding: 20px 0;
+        }
 
         .patch-notes { 
             flex: 1; background: var(--glass); border: 1px solid rgba(197, 160, 89, 0.2); 
@@ -43,13 +47,14 @@
             backdrop-filter: blur(8px); display: flex; flex-direction: column;
         }
         .patch-header { color: var(--gold); border-bottom: 1px solid var(--gold); margin-bottom: 15px; font-size: 1.3em; text-transform: uppercase; letter-spacing: 2px; }
-        .patch-content { font-family: 'Crimson Text', serif; font-style: italic; font-size: 1.15em; color: #ddd; overflow-y: auto; max-height: 350px; line-height: 1.6; }
+        .patch-content { font-family: 'Crimson Text', serif; font-style: italic; font-size: 1.1em; color: #ddd; overflow-y: auto; max-height: 350px; line-height: 1.6; }
 
         .card { 
             width: 420px; background: var(--glass); border: 2px solid var(--gold); 
             padding: 40px; border-radius: 4px; text-align: center; 
             box-shadow: 0 0 60px rgba(0,0,0,1); 
             backdrop-filter: blur(12px); position: relative;
+            box-sizing: border-box; /* Ez biztosítja, hogy a padding ne tolja szét a fix szélességet */
         }
         
         .logo { font-size: 3.2em; color: var(--accent); text-shadow: 2px 2px 10px black, 0 0 20px rgba(139,0,0,0.5); margin-bottom: 35px; letter-spacing: -1px; }
@@ -64,7 +69,7 @@
         .btn { 
             width: 100%; padding: 16px; cursor: pointer; border: 1px solid var(--gold); 
             text-transform: uppercase; transition: 0.3s; font-family: 'MedievalSharp'; 
-            margin-bottom: 12px; font-weight: bold; letter-spacing: 2px; display: flex; align-items: center; justify-content: center; gap: 10px;
+            margin-bottom: 12px; font-weight: bold; letter-spacing: 2px; display: flex; align-items: center; justify-content: center;
         }
         .btn-main { background: var(--accent); color: white; border: none; font-size: 1.2em; }
         .btn-main:hover { background: #b00000; transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.6); }
@@ -77,92 +82,113 @@
             overflow-y: auto; margin-top: -20px; margin-bottom: 20px; display: none; 
             position: absolute; width: 100%; z-index: 100; box-shadow: 0 5px 20px black;
         }
-        .search-item { padding: 14px; cursor: pointer; border-bottom: 1px solid #222; text-align: left; transition: 0.2s; }
-        .search-item:hover { background: var(--gold); color: black; font-weight: bold; }
+        .search-item { padding: 14px; cursor: pointer; border-bottom: 1px solid #222; text-align: left; }
 
+        /* --- MOBIL OPTIMALIZÁLÁS (850px alatt) --- */
         @media (max-width: 850px) {
-            .main-container { flex-direction: column-reverse; align-items: center; padding-top: 50px; overflow-y: auto; }
-            .patch-notes { width: 100%; max-width: 420px; flex: none; }
+            body { align-items: flex-start; } /* Mobilon felülről kezdjük a rajzolást */
+            
+            .main-container { 
+                flex-direction: column-reverse; /* Login doboz felülre kerül */
+                width: 90%; 
+                gap: 20px; 
+                padding: 40px 0; 
+            }
+            
+            .card { 
+                width: 100%; /* Kitölti a telefon szélességét */
+                padding: 25px; 
+            }
+            
+            .logo { font-size: 2.2em; margin-bottom: 20px; }
+            
+            .patch-notes { 
+                width: 100%; 
+                max-height: none; 
+            }
+
+            .patch-content {
+                max-height: 250px;
+            }
+            
+            .master-bg {
+                background-position: 75% center; /* Mobilon kicsit eltoljuk a képet, hogy az akció látszódjon */
+            }
         }
     </style>
 </head>
 <body>
-<div class="master-bg"></div>
+    <div class="master-bg"></div>
 
-<div class="main-container">
-    <div class="patch-notes">
-        <div class="patch-header">📜 Fejlesztői Napló</div>
-        <div id="patch-text" class="patch-content">
-            A tintatartó még üres... (Betöltés)
+    <div class="main-container">
+        <div class="patch-notes">
+            <div class="patch-header">📜 Fejlesztői Napló</div>
+            <div id="patch-text" class="patch-content">Betöltés...</div>
+        </div>
+
+        <div class="card">
+            <div class="logo">Death's Armada</div>
+            <div style="position: relative; width: 100%;">
+                <input type="text" id="hero-search" placeholder="Kalandor neve..." autocomplete="off">
+                <div id="search-results"></div>
+            </div>
+            <input type="password" id="login-pin" placeholder="PIN KÓD" maxlength="4" inputmode="numeric">
+            <button class="btn btn-main" onclick="login()">Belépés</button>
+            <button class="btn btn-sub" onclick="location.href='creator.html'">✨ Új Kalandor Létrehozása</button>
         </div>
     </div>
 
-    <div class="card">
-        <div class="logo">Death's Armada</div>
-        
-        <div style="position: relative; width: 100%;">
-            <input type="text" id="hero-search" placeholder="Kalandor neve..." autocomplete="off">
-            <div id="search-results"></div>
-        </div>
-        
-        <input type="password" id="login-pin" placeholder="PIN KÓD" maxlength="4" inputmode="numeric">
-        
-        <button class="btn btn-main" onclick="login()">Belépés</button>
-        
-        <button class="btn btn-sub" onclick="location.href='creator.html'">✨ Új Kalandor Létrehozása</button>
-    </div>
-</div>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script>
+        // A scripted változatlan, minden funkció (search, login, patch notes) benne van.
+        const firebaseConfig = { 
+            apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU", 
+            authDomain: "dnd-tracker-4fe05.firebaseapp.com", 
+            projectId: "dnd-tracker-4fe05", 
+            databaseURL: "https://dnd-tracker-4fe05-default-rtdb.europe-west1.firebasedatabase.app" 
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script>
-    const firebaseConfig = { 
-        apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU", 
-        authDomain: "dnd-tracker-4fe05.firebaseapp.com", 
-        projectId: "dnd-tracker-4fe05", 
-        databaseURL: "https://dnd-tracker-4fe05-default-rtdb.europe-west1.firebasedatabase.app" 
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+        let chars = {}, selectedId = null;
 
-    let chars = {}, selectedId = null;
-
-    db.ref('settings/patchNotes').on('value', snap => {
-        document.getElementById('patch-text').innerHTML = snap.val() || "Üdvözöllek vándor! A birodalom csendes, de a sötétség már gyülekezik...";
-    });
-
-    db.ref('characters').on('value', snap => { chars = snap.val() || {}; });
-
-    const searchInput = document.getElementById('hero-search');
-    searchInput.addEventListener('input', (e) => {
-        const text = e.target.value.toLowerCase();
-        const resDiv = document.getElementById('search-results');
-        resDiv.innerHTML = "";
-        if(text.length < 1) { resDiv.style.display = "none"; return; }
-
-        Object.keys(chars).forEach(id => {
-            if(chars[id].name.toLowerCase().startsWith(text)) {
-                const d = document.createElement('div');
-                d.className = "search-item";
-                d.innerText = chars[id].name;
-                d.onclick = () => { 
-                    searchInput.value = chars[id].name; 
-                    selectedId = id; 
-                    resDiv.style.display = "none"; 
-                };
-                resDiv.appendChild(d);
-            }
+        db.ref('settings/patchNotes').on('value', snap => {
+            document.getElementById('patch-text').innerHTML = snap.val() || "Üdvözöllek vándor! A birodalom csendes...";
         });
-        resDiv.style.display = "block";
-    });
 
-    function login() {
-        const pin = document.getElementById('login-pin').value;
-        if (selectedId && chars[selectedId].pin.toString() === pin) {
-            localStorage.setItem('selectedCharId', selectedId);
-            window.location.href = 'index.html';
-        } else alert("Hibás név vagy PIN!");
-    }
-</script>
+        db.ref('characters').on('value', snap => { chars = snap.val() || {}; });
+
+        const searchInput = document.getElementById('hero-search');
+        searchInput.addEventListener('input', (e) => {
+            const text = e.target.value.toLowerCase();
+            const resDiv = document.getElementById('search-results');
+            resDiv.innerHTML = "";
+            if(text.length < 1) { resDiv.style.display = "none"; return; }
+
+            Object.keys(chars).forEach(id => {
+                if(chars[id].name.toLowerCase().startsWith(text)) {
+                    const d = document.createElement('div');
+                    d.className = "search-item";
+                    d.innerText = chars[id].name;
+                    d.onclick = () => { 
+                        searchInput.value = chars[id].name; 
+                        selectedId = id; 
+                        resDiv.style.display = "none"; 
+                    };
+                    resDiv.appendChild(d);
+                }
+            });
+            resDiv.style.display = "block";
+        });
+
+        function login() {
+            const pin = document.getElementById('login-pin').value;
+            if (selectedId && chars[selectedId].pin.toString() === pin) {
+                localStorage.setItem('selectedCharId', selectedId);
+                window.location.href = 'index.html';
+            } else alert("Hibás név vagy PIN!");
+        }
+    </script>
 </body>
 </html>
