@@ -28,6 +28,49 @@
             background-size: cover; background-position: center; z-index: -1; 
         }
         
+        /* KILÉPÉS GOMB - JOBB FENT */
+        .logout-corner { 
+            position: fixed; 
+            top: 20px; 
+            right: 20px; 
+            z-index: 1000; 
+        }
+        .btn-logout { 
+            background: rgba(139, 0, 0, 0.3); 
+            color: #ff4444; 
+            border: 1px solid #8b0000; 
+            padding: 8px 15px; 
+            font-family: 'MedievalSharp'; 
+            cursor: pointer; 
+            border-radius: 4px; 
+            font-size: 0.9em;
+            text-transform: uppercase;
+            transition: 0.3s;
+            backdrop-filter: blur(5px);
+        }
+        .btn-logout:hover { background: #8b0000; color: white; box-shadow: 0 0 10px #8b0000; }
+
+        /* DM KULCS - JOBB ALUL */
+        .dm-key-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background: rgba(0,0,0,0.8);
+            border: 2px solid var(--gold);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1000;
+            transition: 0.3s;
+            box-shadow: 0 0 15px rgba(0,0,0,0.5);
+            font-size: 24px;
+        }
+        .dm-key-btn:hover { transform: rotate(-15deg) scale(1.1); box-shadow: 0 0 20px var(--gold); }
+
         /* OLDALSÓ GOMBOK */
         .side-action-btn { 
             position: fixed; top: 50%; transform: translateY(-50%); 
@@ -37,23 +80,20 @@
             text-decoration: none; overflow: hidden; transition: 0.3s; 
             box-shadow: 0 0 25px rgba(0,0,0,0.9); z-index: 10; 
         }
-        .side-action-btn:hover { box-shadow: 0 0 30px var(--gold); border-color: #fff; transform: translateY(-52%); }
         .side-action-btn span { 
             background: rgba(0, 0, 0, 0.85); color: var(--gold); 
             font-family: 'MedievalSharp'; text-align: center; padding: 15px 0; 
             width: 100%; text-transform: uppercase; border-top: 1px solid var(--gold); 
             font-size: 1.2em; letter-spacing: 2px; 
         }
-        
         #btn-side-kampany { left: 2%; background-image: url('https://i.ibb.co/S4VL891M/Copilot-20260405-021905.png'); }
         #btn-side-arena { right: 2%; background-image: url('https://i.ibb.co/p66KV1Vb/Copilot-20260405-021201.png'); }
 
-        /* KÖZPONTI KÁRTYA */
         .card { 
             background: var(--card); border: 1px solid var(--gold); 
             padding: 25px; border-radius: 4px; width: 95%; max-width: 480px; 
             text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,1); 
-            backdrop-filter: blur(15px); margin: 40px 0; position: relative; z-index: 5;
+            backdrop-filter: blur(15px); margin: 60px 0; position: relative; z-index: 5;
         }
         
         .lobby-hero-portrait { 
@@ -81,7 +121,6 @@
         .btn-kereskedo { background-image: url('https://i.ibb.co/0HSGQK0/Copilot-20260405-001515.png'); }
         .img-btn span { width: 100%; background: rgba(0, 0, 0, 0.8); color: var(--gold); font-family: 'MedievalSharp'; text-align: center; padding: 6px 0; font-size: 0.85em; text-transform: uppercase; }
 
-        /* STATOK */
         .stat-row { display: flex; justify-content: center; gap: 10px; margin: 15px 0; flex-wrap: wrap; }
         .stat-box { background: rgba(0,0,0,0.8); border: 1px solid var(--gold); padding: 8px 12px; border-radius: 4px; color: var(--gold); font-family: 'MedievalSharp'; font-size: 1em; display: flex; align-items: center; gap: 6px; min-width: 90px; justify-content: center; }
         .gold-status-box { background: rgba(0,0,0,0.9); border: 2px solid var(--gold); padding: 8px 15px; border-radius: 6px; color: var(--gold); font-family: 'MedievalSharp'; font-size: 1.1em; display: flex; align-items: center; gap: 8px; }
@@ -92,27 +131,21 @@
         .scroll-area { max-height: 80px; overflow-y: auto; }
         .player-mini-card { background: rgba(255,255,255,0.03); padding: 4px 6px; margin-bottom: 4px; border-left: 2px solid var(--gold); font-size: 0.8em; }
 
-        .logout-corner { position: absolute; top: 10px; right: 10px; z-index: 100; }
-        .btn-logout { background: rgba(0,0,0,0.6); color: #888; border: 1px solid #444; padding: 5px 10px; font-family: 'MedievalSharp'; cursor: pointer; border-radius: 4px; font-size: 0.8em; }
-        .dm-trigger { position: fixed; bottom: 10px; right: 10px; width: 30px; height: 30px; background: rgba(0,0,0,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0.3; }
-
         @media (max-width: 1200px) {
             .side-action-btn { position: relative; top: 0; transform: none; width: 100%; max-width: 480px; height: 120px; margin: 10px 0; flex-direction: row; align-items: center; justify-content: space-between; }
             .side-action-btn span { width: auto; height: 100%; display: flex; align-items: center; padding: 0 30px; border-top: none; border-left: 2px solid var(--gold); background: linear-gradient(90deg, transparent, rgba(0,0,0,0.9)); }
-            #btn-side-kampany, #btn-side-arena { left: auto; right: auto; }
-            body { padding: 20px 0; }
-            .card { margin: 10px 0; }
+            .logout-corner { top: 10px; right: 10px; }
         }
     </style>
 </head>
 <body>
 <div class="master-bg"></div>
 
+<div class="logout-corner"><button class="btn-logout" onclick="logout()">Kilépés</button></div>
+
 <a href="campaign.html" id="btn-side-kampany" class="side-action-btn"><span>📜 KAMPÁNY</span></a>
 
 <div class="card">
-    <div class="logout-corner"><button class="btn-logout" onclick="logout()">Kilépés</button></div>
-    
     <div style="display:flex; justify-content: space-between; align-items: center; margin-top: 10px;">
         <h1 id="lobby-name" style="font-family:'MedievalSharp'; color:var(--gold); margin:0; font-size: 1.6em;">...</h1>
         <span id="lobby-lvl" style="color: var(--gold); font-family:'MedievalSharp'; font-size: 1.1em; border: 1px solid var(--gold); padding: 2px 10px;">LVL -</span>
@@ -133,8 +166,8 @@
     </div>
 
     <div class="stat-row">
-        <div class="stat-box" title="Sebzés">⚔️ <span id="lobby-atk">0</span></div>
-        <div class="stat-box" title="Védelem">🛡️ <span id="lobby-def">0</span></div>
+        <div class="stat-box">⚔️ <span id="lobby-atk">0</span></div>
+        <div class="stat-box">🛡️ <span id="lobby-def">0</span></div>
         <div class="gold-status-box">
             <img src="https://i.ibb.co/ksL53vBf/Copilot-20260405-044028.png" style="width:20px;" alt="Gold">
             <span id="lobby-gold">0</span>
@@ -155,7 +188,7 @@
 
 <a href="arena.html" id="btn-side-arena" class="side-action-btn"><span>⚔️ ARÉNA</span></a>
 
-<div class="dm-trigger" onclick="enterDM()"></div>
+<div class="dm-key-btn" onclick="enterDM()" title="DM belépés">🔑</div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -167,7 +200,7 @@
     let chars = {}, myId = localStorage.getItem('selectedCharId');
     if (!myId) { window.location.href = 'login.html'; }
 
-    // --- ARÉNA-MENTESÍTŐ: Lobby belépéskor online-ra váltunk ---
+    // Alapértelmezett állapot javítása belépéskor
     db.ref(`characters/${myId}`).update({ status: "online", lastUpdate: Date.now() });
 
     const HERO_IMAGES = { "Harcos": "https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png", "Mágus": "https://i.ibb.co/yFz5bcXv/Copilot-20260403-033651.png", "Lovag": "https://i.ibb.co/Fk3n339M/Copilot-20260403-034043.png", "Íjász": "https://i.ibb.co/whd2jNpB/Copilot-20260403-034402.png", "Bérgyilkos": "https://i.ibb.co/b525CsLg/Copilot-20260403-032807.png", "Nekromanta": "https://i.ibb.co/NnCwwCbR/Copilot-20260403-033301.png" };
@@ -184,34 +217,28 @@
         document.getElementById('lobby-name').innerText = c.name;
         document.getElementById('lobby-lvl').innerText = `LVL ${c.level || 1}`;
         document.getElementById('lobby-gold').innerText = c.gold || 0;
-        
-        // STATOK MEGJELENÍTÉSE
         document.getElementById('lobby-atk').innerText = c.atk || 0;
         document.getElementById('lobby-def').innerText = c.def || 0;
-        
         document.getElementById('lobby-class-display').innerText = c.charClass;
         document.getElementById('lobby-hero-img').style.backgroundImage = `url('${HERO_IMAGES[c.charClass]}')`;
         
-        // HP SÁV
         const hpPercent = (c.hp / c.maxHp) * 100;
         document.getElementById('lobby-hp-fill').style.width = hpPercent + "%";
         document.getElementById('lobby-hp-val').innerText = `${Math.ceil(c.hp)} / ${c.maxHp} HP`;
         
-        // XP SÁV
         if(c.xp !== undefined && c.nextLvlXp) {
             const xpPercent = (c.xp / c.nextLvlXp) * 100;
             document.getElementById('lobby-xp-fill').style.width = xpPercent + "%";
             document.getElementById('xp-text').innerText = `XP: ${c.xp} / ${c.nextLvlXp}`;
         }
         
-        // ONLINE LISTA
         const listOnline = document.getElementById('list-online');
         const listArena = document.getElementById('list-arena');
         listOnline.innerHTML = ""; listArena.innerHTML = "";
 
         Object.keys(chars).forEach(id => {
             const p = chars[id];
-            const isRecent = (now - (p.lastUpdate || 0) < 300000); // 5 percig marad a listán
+            const isRecent = (now - (p.lastUpdate || 0) < 300000);
             const statusColor = p.status === 'searching' ? '#ff4444' : '#4CAF50';
             const statusText = p.status === 'searching' ? 'ARÉNÁBAN' : 'ONLINE';
             const item = `<div class="player-mini-card"><span class="p-name">${p.name}</span><span style="font-size:0.7em; color:${statusColor}">${statusText}</span></div>`;
@@ -221,15 +248,13 @@
         });
     }
 
-    // --- HP REGEN RENDSZER: 10 másodpercenként ---
+    // HP Regen
     setInterval(() => {
         if (!myId || !chars[myId]) return;
         const c = chars[myId];
-        
         if (c.hp < c.maxHp) {
-            let regen = Math.max(1, Math.floor(c.maxHp * 0.02)); // 2% regen
-            let newHp = Math.min(c.maxHp, c.hp + regen);
-            db.ref(`characters/${myId}`).update({ hp: newHp, lastUpdate: Date.now() });
+            let regen = Math.max(1, Math.floor(c.maxHp * 0.02));
+            db.ref(`characters/${myId}`).update({ hp: Math.min(c.maxHp, c.hp + regen), lastUpdate: Date.now() });
         } else {
             db.ref(`characters/${myId}`).update({ lastUpdate: Date.now() });
         }
