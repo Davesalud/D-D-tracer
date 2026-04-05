@@ -28,44 +28,19 @@
             background-size: cover; background-position: center; z-index: -1; 
         }
         
-        .logout-corner { 
-            position: fixed; 
-            top: 20px; 
-            right: 20px; 
-            z-index: 1000; 
-        }
+        .logout-corner { position: fixed; top: 20px; right: 20px; z-index: 1000; }
         .btn-logout { 
-            background: rgba(139, 0, 0, 0.3); 
-            color: #ff4444; 
-            border: 1px solid #8b0000; 
-            padding: 8px 15px; 
-            font-family: 'MedievalSharp'; 
-            cursor: pointer; 
-            border-radius: 4px; 
-            font-size: 0.9em;
-            text-transform: uppercase;
-            transition: 0.3s;
-            backdrop-filter: blur(5px);
+            background: rgba(139, 0, 0, 0.3); color: #ff4444; border: 1px solid #8b0000; 
+            padding: 8px 15px; font-family: 'MedievalSharp'; cursor: pointer; border-radius: 4px; 
+            font-size: 0.9em; text-transform: uppercase; transition: 0.3s; backdrop-filter: blur(5px);
         }
         .btn-logout:hover { background: #8b0000; color: white; box-shadow: 0 0 10px #8b0000; }
 
         .dm-key-btn {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 50px;
-            height: 50px;
-            background: rgba(0,0,0,0.8);
-            border: 2px solid var(--gold);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 1000;
-            transition: 0.3s;
-            box-shadow: 0 0 15px rgba(0,0,0,0.5);
-            font-size: 24px;
+            position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px;
+            background: rgba(0,0,0,0.8); border: 2px solid var(--gold); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            z-index: 1000; transition: 0.3s; box-shadow: 0 0 15px rgba(0,0,0,0.5); font-size: 24px;
         }
         .dm-key-btn:hover { transform: rotate(-15deg) scale(1.1); box-shadow: 0 0 20px var(--gold); }
 
@@ -105,7 +80,7 @@
         .hp-count-text { font-size: 14px; color: #ccc; margin-top: 4px; font-weight: bold; font-family: 'MedievalSharp'; }
         
         .xp-container { height: 8px; background: #111; border: 1px solid #333; margin-top: 8px; border-radius: 4px; overflow: hidden; }
-        .xp-fill { height: 100%; background: linear-gradient(90deg, #004cff, #00d4ff); width: 0%; transition: 1s; }
+        .xp-fill { height: 100%; background: linear-gradient(90deg, #004cff, #00d4ff); width: 0%; transition: width 1s ease-out; }
 
         .nav-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0; }
         .img-btn { 
@@ -206,27 +181,24 @@
         if (myId && chars[myId]) updateLobbyUI(); 
     });
 
-    // ÚJ: SZINTLÉPÉS LOGIKA
     function checkLevelUp(c) {
-        if (c.level >= 30) return; // 30-as szintplafon
-
+        if (c.level >= 30) return;
         if (c.xp !== undefined && c.nextLvlXp && c.xp >= c.nextLvlXp) {
             const currentLvl = c.level || 1;
             const newLevel = currentLvl + 1;
-            const leftoverXp = c.xp - c.nextLvlXp; // Megmaradt XP átvitele
-            const newNextLvlXp = Math.floor(c.nextLvlXp * 1.6); // 60%-os skálázódás
+            const leftoverXp = c.xp - c.nextLvlXp;
+            const newNextLvlXp = Math.floor(c.nextLvlXp * 1.6);
             
-            // Fejlődési bónuszok
-            const newMaxHp = Math.floor(c.maxHp * 1.1); // +10% életerő
-            const newAtk = (c.atk || 0) + 2; // +2 sebzés
-            const newDef = (c.def || 0) + 1; // +1 védelem
+            const newMaxHp = Math.floor(c.maxHp * 1.1);
+            const newAtk = (c.atk || 0) + 2;
+            const newDef = (c.def || 0) + 1;
 
             db.ref(`characters/${myId}`).update({
                 level: newLevel,
                 xp: leftoverXp,
                 nextLvlXp: newNextLvlXp,
                 maxHp: newMaxHp,
-                hp: newMaxHp, // Szintlépéskor gyógyulás
+                hp: newMaxHp,
                 atk: newAtk,
                 def: newDef
             }).then(() => {
@@ -238,7 +210,6 @@
     function updateLobbyUI() {
         const c = chars[myId]; if(!c) return;
 
-        // Szintlépés ellenőrzése
         checkLevelUp(c);
 
         const now = Date.now();
@@ -255,11 +226,13 @@
         document.getElementById('lobby-hp-fill').style.width = hpPercent + "%";
         document.getElementById('lobby-hp-val').innerText = `${Math.ceil(c.hp)} / ${c.maxHp} HP`;
         
-        if(c.xp !== undefined && c.nextLvlXp) {
-            const xpPercent = (c.xp / c.nextLvlXp) * 100;
-            document.getElementById('lobby-xp-fill').style.width = xpPercent + "%";
-            document.getElementById('xp-text').innerText = `XP: ${c.xp} / ${c.nextLvlXp}`;
-        }
+        // JAVÍTOTT XP MEGJELENÍTÉS
+        const currentXp = c.xp || 0;
+        const goalXp = c.nextLvlXp || 100; 
+        const xpPercent = Math.min(100, (currentXp / goalXp) * 100);
+        
+        document.getElementById('lobby-xp-fill').style.width = xpPercent + "%";
+        document.getElementById('xp-text').innerText = `XP: ${currentXp} / ${goalXp}`;
         
         const listOnline = document.getElementById('list-online');
         const listArena = document.getElementById('list-arena');
@@ -268,16 +241,17 @@
         Object.keys(chars).forEach(id => {
             const p = chars[id];
             const isRecent = (now - (p.lastUpdate || 0) < 300000);
-            const statusColor = p.status === 'searching' ? '#ff4444' : '#4CAF50';
-            const statusText = p.status === 'searching' ? 'ARÉNÁBAN' : 'ONLINE';
-            const item = `<div class="player-mini-card"><span class="p-name">${p.name}</span><span style="font-size:0.7em; color:${statusColor}">${statusText}</span></div>`;
-            
-            if (p.status === "searching" && isRecent) listArena.innerHTML += item;
-            else if (isRecent && id !== myId && p.status !== "offline") listOnline.innerHTML += item;
+            if (isRecent) {
+                const statusColor = p.status === 'searching' ? '#ff4444' : '#4CAF50';
+                const statusText = p.status === 'searching' ? 'ARÉNÁBAN' : 'ONLINE';
+                const item = `<div class="player-mini-card"><span class="p-name">${p.name}</span><span style="font-size:0.7em; color:${statusColor}; margin-left:5px;">${statusText}</span></div>`;
+                
+                if (p.status === "searching") listArena.innerHTML += item;
+                else if (id !== myId && p.status !== "offline") listOnline.innerHTML += item;
+            }
         });
     }
 
-    // HP Regen & Update
     setInterval(() => {
         if (!myId || !chars[myId]) return;
         const c = chars[myId];
