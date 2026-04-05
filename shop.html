@@ -22,21 +22,20 @@
         .avatar-box { width: 320px; height: 320px; border: 3px solid var(--gold); border-radius: 4px; overflow: hidden; background: #000; box-shadow: 0 0 20px rgba(0,0,0,1); margin-bottom: 10px; flex-shrink: 0; }
         .avatar-box img { width: 100%; height: 100%; object-fit: cover; object-position: center 20%; }
 
-        /* --- JAVÍTOTT RÁCS RÉSZ --- */
+        /* --- MEGNÖVELT RÁCS ÉS IKONOK --- */
         .item-grid { 
             width: 100%; 
-            height: 280px; /* Fix magasság, hogy elinduljon a görgetés */
+            height: 340px; /* Növelve a nagyobb képek miatt */
             display: grid; 
-            grid-template-columns: repeat(3, 1fr); /* Fix 3 oszlop */
-            gap: 8px; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 10px; 
             overflow-y: auto; 
-            overflow-x: hidden; /* Ez öli meg a vízszintes csúszkát */
+            overflow-x: hidden; 
             margin-top: 10px; 
             border-top: 1px solid #444; 
             padding: 10px 5px; 
         }
 
-        /* Arany görgetősáv Chrome/Safari-hoz */
         .item-grid::-webkit-scrollbar { width: 5px; }
         .item-grid::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 5px; }
         .item-grid::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
@@ -44,23 +43,40 @@
         .item-slot { 
             background: rgba(0,0,0,0.5); 
             border: 1px solid #444; 
-            padding: 5px; 
+            padding: 8px; 
             text-align: center; 
             cursor: pointer; 
             border-radius: 4px; 
             transition: 0.2s; 
-            min-width: 0; /* Fontos: ne feszítse ki a rácsot a tartalom */
+            min-width: 0;
         }
-        /* -------------------------- */
 
         .item-slot.common { border-color: #888; }
         .item-slot.uncommon { border-color: #1eff00; }
         .item-slot.rare { border-color: #0070dd; }
         .item-slot:hover { background: rgba(197, 160, 89, 0.2); transform: scale(1.05); }
 
-        .item-slot img { width: 45px; height: 45px; object-fit: cover; border-radius: 4px; margin-bottom: 4px; }
-        .item-slot .name { font-size: 0.65em; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #eee; }
-        .item-slot .price-tag { font-size: 0.6em; color: var(--gold); margin-top: 2px; }
+        .item-slot img { 
+            width: 65px; /* Megnövelve 45px-ről */
+            height: 65px; /* Megnövelve 45px-ről */
+            object-fit: cover; 
+            border-radius: 4px; 
+            margin-bottom: 6px; 
+            border: 1px solid rgba(197, 160, 89, 0.2);
+        }
+
+        .item-slot .name { 
+            font-size: 0.7em; 
+            display: block; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+            white-space: nowrap; 
+            color: #eee; 
+            margin-bottom: 2px;
+        }
+        
+        .item-slot .price-tag { font-size: 0.65em; color: var(--gold); }
+        /* -------------------------- */
 
         .deal-zone { flex: 0 1 400px; display: flex; flex-direction: column; justify-content: center; }
         .deal-display { width: 100%; height: 350px; background: rgba(0,0,0,0.8); border: 2px dashed var(--gold); border-radius: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 20px; text-align: center; padding: 10px; }
