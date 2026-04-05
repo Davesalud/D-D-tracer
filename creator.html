@@ -7,77 +7,141 @@
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Crimson+Text:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #c5a059; --bg: #050507; --accent: #8b0000; --glass: rgba(15, 15, 18, 0.95); }
-        body { font-family: 'MedievalSharp', cursive; background-color: var(--bg); color: white; margin: 0; display: flex; align-items: center; justify-content: center; min-height: 100vh; overflow-x: hidden; }
-        
-        .master-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.8)), url('https://i.ibb.co/PvWryRcS/Gemini-Generated-Image-7rk5117rk5117rk5.png'); background-size: cover; background-position: center; z-index: -1; }
-
-        .card { background: var(--glass); border: 2px solid var(--gold); padding: 30px; border-radius: 4px; width: 95%; max-width: 550px; box-shadow: 0 0 50px black; backdrop-filter: blur(15px); text-align: center; margin: 20px; position: relative; }
-        
-        h1 { color: var(--gold); text-transform: uppercase; letter-spacing: 3px; margin-bottom: 20px; font-size: 2.2em; text-shadow: 0 0 15px rgba(197, 160, 89, 0.3); }
-        
-        /* Hős Portré Ablak */
-        .portrait-frame {
-            width: 180px; height: 180px; margin: 0 auto 20px; border: 3px solid var(--gold); border-radius: 50%;
-            background-size: cover; background-position: center; box-shadow: 0 0 25px rgba(139, 0, 0, 0.5);
-            transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform: scale(1);
+        body { 
+            font-family: 'MedievalSharp', cursive; 
+            background-color: var(--bg); 
+            color: white; 
+            margin: 0; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            min-height: 100vh; 
         }
-        .portrait-frame.pop { transform: scale(1.1); }
-
-        input, select { width: 100%; padding: 14px; margin-bottom: 15px; background: rgba(0,0,0,0.8); border: 1px solid #444; color: var(--gold); font-family: 'MedievalSharp'; font-size: 1.1em; transition: 0.3s; box-sizing: border-box; }
-        input:focus, select:focus { border-color: var(--gold); outline: none; box-shadow: 0 0 10px rgba(197, 160, 89, 0.2); }
         
-        /* Információs Panel */
-        .class-info { background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(197, 160, 89, 0.3); padding: 20px; margin-bottom: 20px; border-radius: 4px; text-align: left; }
-        .class-title { color: var(--gold); font-size: 1.5em; margin-bottom: 8px; display: block; border-bottom: 1px solid rgba(197, 160, 89, 0.2); padding-bottom: 5px; }
-        .class-stats { display: flex; gap: 15px; margin-bottom: 10px; font-size: 0.9em; color: #aaa; }
-        .class-desc { font-family: 'Crimson Text', serif; font-style: italic; color: #ccc; font-size: 1.1em; line-height: 1.5; display: block; }
-        .special-ability { color: #ff4d4d; font-weight: bold; margin-top: 12px; display: block; font-size: 1em; text-transform: uppercase; letter-spacing: 1px; }
+        .master-bg { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.9)), url('https://i.ibb.co/PvWryRcS/Gemini-Generated-Image-7rk5117rk5117rk5.png'); 
+            background-size: cover; background-position: center; z-index: -1; 
+        }
 
-        .btn-create { width: 100%; padding: 18px; background: var(--accent); color: white; border: none; cursor: pointer; font-family: 'MedievalSharp'; font-size: 1.3em; text-transform: uppercase; transition: 0.3s; letter-spacing: 2px; }
-        .btn-create:hover { background: #b00000; box-shadow: 0 0 30px var(--accent); transform: translateY(-2px); }
+        /* Fő konténer: Két oszlopos elrendezés */
+        .main-card { 
+            display: flex; 
+            background: var(--glass); 
+            border: 2px solid var(--gold); 
+            border-radius: 4px; 
+            width: 95%; 
+            max-width: 900px; 
+            box-shadow: 0 0 60px black; 
+            backdrop-filter: blur(15px); 
+            overflow: hidden;
+        }
+
+        /* Bal oldal: Beviteli mezők */
+        .form-side { 
+            flex: 1; 
+            padding: 40px; 
+            text-align: left; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center;
+        }
+
+        /* Jobb oldal: Portré doboz (400x500 környéke) */
+        .portrait-side { 
+            width: 400px; 
+            background: rgba(0,0,0,0.4); 
+            border-left: 1px solid var(--gold); 
+            position: relative; 
+            display: flex; 
+            align-items: flex-end; 
+            overflow: hidden;
+        }
+
+        .hero-image {
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.3s;
+        }
+
+        /* Pop-up effekt az új hős választásakor */
+        .pop-effect { transform: scale(1.1); filter: brightness(1.5) contrast(1.2); }
+
+        h1 { color: var(--gold); text-transform: uppercase; letter-spacing: 2px; margin-top: 0; font-size: 2em; }
         
-        .back-link { display: block; margin-top: 20px; color: var(--gold); text-decoration: none; font-size: 1em; opacity: 0.7; transition: 0.3s; }
-        .back-link:hover { opacity: 1; text-shadow: 0 0 10px var(--gold); }
+        input, select { 
+            width: 100%; padding: 14px; margin-bottom: 15px; 
+            background: rgba(0,0,0,0.8); border: 1px solid #444; 
+            color: var(--gold); font-family: 'MedievalSharp'; font-size: 1.1em; 
+            box-sizing: border-box; 
+        }
+        
+        .class-info-box { 
+            background: rgba(139, 0, 0, 0.1); 
+            border: 1px dashed var(--gold); 
+            padding: 15px; margin-bottom: 25px; 
+        }
+        .stats-row { display: flex; gap: 20px; color: var(--gold); margin-bottom: 10px; font-weight: bold; }
+        .desc-text { font-family: 'Crimson Text', serif; font-style: italic; color: #ccc; line-height: 1.4; }
+
+        .btn-create { 
+            padding: 18px; background: var(--accent); color: white; border: none; 
+            cursor: pointer; font-family: 'MedievalSharp'; font-size: 1.2em; 
+            text-transform: uppercase; transition: 0.3s; width: 100%;
+        }
+        .btn-create:hover { background: #b00000; box-shadow: 0 0 20px var(--accent); }
+
+        @media (max-width: 800px) {
+            .main-card { flex-direction: column-reverse; max-width: 450px; }
+            .portrait-side { width: 100%; height: 350px; border-left: none; border-bottom: 1px solid var(--gold); }
+        }
     </style>
 </head>
 <body>
 <div class="master-bg"></div>
 
-<div class="card">
-    <h1>Hős Megidézése</h1>
-    
-    <div id="portrait" class="portrait-frame" style="background-image: url('https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png');"></div>
+<div class="main-card">
+    <div class="form-side">
+        <h1>Megidézés</h1>
+        
+        <input type="text" id="hero-name" placeholder="Hős neve..." maxlength="12">
+        <input type="password" id="hero-pin" placeholder="PIN (4 számjegy)" maxlength="4">
+        
+        <label style="color:var(--gold); font-size: 0.8em; margin-bottom: 5px; display:block;">VÁLASSZ KASZTOT:</label>
+        <select id="class-select" onchange="updateClass()">
+            <option value="Harcos">Harcos</option>
+            <option value="Mágus">Mágus</option>
+            <option value="Lovag">Lovag</option>
+            <option value="Íjász">Íjász</option>
+            <option value="Bérgyilkos">Bérgyilkos</option>
+            <option value="Nekromanta">Nekromanta</option>
+        </select>
 
-    <input type="text" id="hero-name" placeholder="A hős neve (min. 3 karakter)" maxlength="12" autocomplete="off">
-    <input type="password" id="hero-pin" placeholder="PIN KÓD (4 számjegy)" maxlength="4" inputmode="numeric">
-    
-    <select id="class-select" onchange="updateClassInfo()">
-        <option value="Harcos">Harcos</option>
-        <option value="Mágus">Mágus</option>
-        <option value="Lovag">Lovag</option>
-        <option value="Íjász">Íjász</option>
-        <option value="Bérgyilkos">Bérgyilkos</option>
-        <option value="Nekromanta">Nekromanta</option>
-    </select>
-
-    <div class="class-info" id="info-box">
-        <span class="class-title" id="display-name">Harcos</span>
-        <div class="class-stats">
-            <span>❤️ <b id="display-hp">150</b></span>
-            <span>⚔️ <b id="display-atk">12</b></span>
-            <span>🛡️ <b id="display-def">10</b></span>
+        <div class="class-info-box">
+            <div class="stats-row">
+                <span id="hp-val">❤️ 150</span>
+                <span id="atk-val">⚔️ 12</span>
+                <span id="def-val">🛡️ 10</span>
+            </div>
+            <div class="desc-text" id="class-desc">Magas életerővel rendelkező, közelharci specialista. Szívós és bátor.</div>
+            <div style="color:#ff4d4d; margin-top:10px; font-size:0.9em;" id="class-spec">✨ Pajzsütés: Esély kábításra.</div>
         </div>
-        <span class="class-desc" id="display-desc">Magas életerővel rendelkező, közelharci specialista. Szívós és bátor.</span>
-        <span class="special-ability" id="display-special">✨ Speciális: Pajzsütés (Kábítás esélye)</span>
+
+        <button class="btn-create" onclick="createHero()">A rituálé elvégzése</button>
+        <a href="login.html" style="color:var(--gold); text-align:center; display:block; margin-top:15px; text-decoration:none; font-size:0.8em; opacity:0.6;">← Vissza a kapuhoz</a>
     </div>
 
-    <button class="btn-create" onclick="createHero()">Megidézés</button>
-    <a href="login.html" class="back-link">← Visszatérés a kapuhoz</a>
+    <div class="portrait-side">
+        <div id="hero-img" class="hero-image" style="background-image: url('https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png');"></div>
+    </div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script>
+    // Firebase Config marad a régi...
     const firebaseConfig = { 
         apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU", 
         authDomain: "dnd-tracker-4fe05.firebaseapp.com", 
@@ -87,41 +151,31 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    const HERO_IMAGES = {
-        "Harcos": "https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png",
-        "Mágus": "https://i.ibb.co/yFz5bcXv/Copilot-20260403-033651.png",
-        "Lovag": "https://i.ibb.co/Fk3n339M/Copilot-20260403-034043.png",
-        "Íjász": "https://i.ibb.co/whd2jNpB/Copilot-20260403-034402.png",
-        "Bérgyilkos": "https://i.ibb.co/b525CsLg/Copilot-20260403-032807.png",
-        "Nekromanta": "https://i.ibb.co/NnCwwCbR/Copilot-20260403-033301.png"
-    };
-
     const CLASS_DATA = {
-        "Harcos": { desc: "Magas életerővel rendelkező, közelharci specialista. Szívós és bátor.", spec: "Pajzsütés: Esély az ellenfél kábítására.", hp: 150, atk: 12, def: 10 },
-        "Mágus": { desc: "A misztikus tanok mestere. Kevés védelme van, de pusztító ereje.", spec: "Tűzgolyó: Hatalmas robbanásos sebzés.", hp: 80, atk: 22, def: 4 },
-        "Lovag": { desc: "A becsület bajnoka. A legvastagabb páncélt hordja a birodalomban.", spec: "Szent Áldás: Lassú HP regeneráció harc alatt.", hp: 130, atk: 10, def: 15 },
-        "Íjász": { desc: "Messziről sújt le, mielőtt az ellenfél észrevenné. Gyors és pontos.", spec: "Dupla Lövés: Esély két egymást követő nyílra.", hp: 100, atk: 16, def: 7 },
-        "Bérgyilkos": { desc: "Az árnyékok közt vadászik. Egyetlen precíz csapással végez bárkivel.", spec: "Hátbaszúrás: Extra kritikus sebzés az első körben.", hp: 90, atk: 20, def: 5 },
-        "Nekromanta": { desc: "A holtak ura. Sötét mágiával szívja el az életet másokból.", spec: "Lélekelszívás: Győzelemkor HP-t tölt vissza.", hp: 110, atk: 15, def: 8 }
+        "Harcos": { img: "https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png", desc: "Magas életerővel rendelkező, közelharci specialista. Szívós és bátor.", spec: "Pajzsütés: Esély az ellenfél kábítására.", hp: 150, atk: 12, def: 10 },
+        "Mágus": { img: "https://i.ibb.co/yFz5bcXv/Copilot-20260403-033651.png", desc: "A misztikus tanok mestere. Kevés védelme van, de pusztító ereje.", spec: "Tűzgolyó: Hatalmas robbanásos sebzés.", hp: 80, atk: 22, def: 4 },
+        "Lovag": { img: "https://i.ibb.co/Fk3n339M/Copilot-20260403-034043.png", desc: "A becsület bajnoka. A legvastagabb páncélt hordja a birodalomban.", spec: "Szent Áldás: Lassú HP regeneráció harc alatt.", hp: 130, atk: 10, def: 15 },
+        "Íjász": { img: "https://i.ibb.co/whd2jNpB/Copilot-20260403-034402.png", desc: "Messziről sújt le, mielőtt az ellenfél észrevenné. Gyors és pontos.", spec: "Dupla Lövés: Esély két egymást követő nyílra.", hp: 100, atk: 16, def: 7 },
+        "Bérgyilkos": { img: "https://i.ibb.co/b525CsLg/Copilot-20260403-032807.png", desc: "Az árnyékok közt vadászik. Egyetlen precíz csapással végez bárkivel.", spec: "Hátbaszúrás: Extra kritikus sebzés.", hp: 90, atk: 20, def: 5 },
+        "Nekromanta": { img: "https://i.ibb.co/NnCwwCbR/Copilot-20260403-033301.png", desc: "A holtak ura. Sötét mágiával szívja el az életet másokból.", spec: "Lélekelszívás: Győzelemkor HP-t tölt vissza.", hp: 110, atk: 15, def: 8 }
     };
 
-    function updateClassInfo() {
+    function updateClass() {
         const val = document.getElementById('class-select').value;
         const data = CLASS_DATA[val];
-        const portrait = document.getElementById('portrait');
+        const imgEl = document.getElementById('hero-img');
 
-        // Animáció
-        portrait.classList.add('pop');
-        setTimeout(() => portrait.classList.remove('pop'), 300);
+        // Pop-up effekt indítása
+        imgEl.classList.add('pop-effect');
+        setTimeout(() => imgEl.classList.remove('pop-effect'), 400);
 
-        // UI frissítés
-        portrait.style.backgroundImage = `url('${HERO_IMAGES[val]}')`;
-        document.getElementById('display-name').innerText = val;
-        document.getElementById('display-hp').innerText = data.hp;
-        document.getElementById('display-atk').innerText = data.atk;
-        document.getElementById('display-def').innerText = data.def;
-        document.getElementById('display-desc').innerText = data.desc;
-        document.getElementById('display-special').innerText = "✨ Speciális: " + data.spec;
+        // Adatok frissítése
+        imgEl.style.backgroundImage = `url('${data.img}')`;
+        document.getElementById('hp-val').innerText = "❤️ " + data.hp;
+        document.getElementById('atk-val').innerText = "⚔️ " + data.atk;
+        document.getElementById('def-val').innerText = "🛡️ " + data.def;
+        document.getElementById('class-desc').innerText = data.desc;
+        document.getElementById('class-spec').innerText = "✨ " + data.spec;
     }
 
     function createHero() {
@@ -129,28 +183,20 @@
         const pin = document.getElementById('hero-pin').value;
         const charClass = document.getElementById('class-select').value;
 
-        if(name.length < 3) return alert("A névnek legalább 3 karakternek kell lennie!");
-        if(pin.length !== 4 || isNaN(pin)) return alert("A PIN kód pontosan 4 számjegy legyen!");
+        if(name.length < 3 || pin.length !== 4) {
+            alert("Szent Ég! Adj meg egy tisztességes nevet (min. 3 betű) és egy 4 számjegyű PIN-t!");
+            return;
+        }
 
         const stats = CLASS_DATA[charClass];
-        const newRef = db.ref('characters').push();
+        const newId = db.ref('characters').push().key;
 
-        newRef.set({
-            id: newRef.key,
-            name: name,
-            pin: pin,
-            charClass: charClass,
-            level: 1,
-            gold: 50,
-            xp: 0,
-            hp: stats.hp,
-            maxHp: stats.hp,
-            atk: stats.atk,
-            def: stats.def,
-            status: "offline",
-            lastUpdate: Date.now()
+        db.ref('characters/' + newId).set({
+            id: newId, name: name, pin: pin, charClass: charClass,
+            level: 1, gold: 50, xp: 0, hp: stats.hp, maxHp: stats.hp,
+            atk: stats.atk, def: stats.def, status: "offline", lastUpdate: Date.now()
         }).then(() => {
-            alert("✨ A rituálé sikeres! Hősöd megidéztetett.");
+            alert("A hős megérkezett a világunkba!");
             window.location.href = 'login.html';
         });
     }
