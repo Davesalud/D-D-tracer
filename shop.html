@@ -15,12 +15,33 @@
         .shop-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 40px; background: rgba(0,0,0,0.9); border-bottom: 2px solid var(--gold); }
         .gold-display { color: var(--gold); font-size: 1.5em; border: 1px solid var(--gold); padding: 5px 20px; border-radius: 6px; background: rgba(255,255,255,0.05); }
 
-        .trade-layout { display: grid; grid-template-columns: 340px 1fr 340px; height: calc(100vh - 75px); padding: 20px; gap: 15px; }
+        /* ELRENDEZÉS: 340px széles szélek, a közép pedig rugalmas, de max 500px */
+        .trade-layout { 
+            display: flex; 
+            justify-content: center; 
+            align-items: flex-start;
+            height: calc(100vh - 75px); 
+            padding: 20px; 
+            gap: 30px; /* Nagyobb rés a panelek között */
+            max-width: 1400px; /* Beljebb húzza az egészet a szélektől */
+            margin: 0 auto;
+        }
 
-        .panel { background: var(--panel-bg); border: 2px solid var(--gold); border-radius: 8px; display: flex; flex-direction: column; align-items: center; padding: 15px; overflow: hidden; }
+        .panel { 
+            background: var(--panel-bg); 
+            border: 2px solid var(--gold); 
+            border-radius: 8px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            padding: 15px; 
+            overflow: hidden;
+            width: 340px; /* Fix szélesség a szélső paneleknek */
+        }
+
         .panel-header { color: var(--gold); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; border-bottom: 1px solid var(--gold); width: 100%; text-align: center; padding-bottom: 5px; }
 
-        /* AVATAR BOXOK - 320x320 fix méret */
+        /* AVATAR BOXOK - 320x320 */
         .avatar-box { 
             width: 320px; 
             height: 320px; 
@@ -31,9 +52,15 @@
             box-shadow: 0 0 20px rgba(0,0,0,1);
             margin-bottom: 10px;
             flex-shrink: 0;
-        
         }
-        .avatar-box img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* Itt állíthatod a képek pozícióját (center 20% = picit feljebb tolva) */
+        .avatar-box img { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; 
+            object-position: center 20%; 
+        }
 
         .item-grid { width: 100%; display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; overflow-y: auto; margin-top: 10px; border-top: 1px solid #444; padding-top: 10px; }
         .item-slot { background: rgba(0,0,0,0.5); border: 1px solid #444; padding: 8px; text-align: center; cursor: pointer; border-radius: 4px; }
@@ -41,15 +68,27 @@
         .item-slot .icon { font-size: 24px; }
         .item-slot .name { font-size: 0.7em; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-        .deal-zone { justify-content: center; background: transparent; border: none; position: relative; }
+        /* KÖZÉPSŐ ZÓNA ÖSSZEHÚZVA */
+        .deal-zone { 
+            flex: 0 1 400px; /* Maximum 400px széles legyen az alku asztal */
+            background: transparent; 
+            border: none; 
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
         .deal-display { 
-            width: 100%; height: 350px; 
+            width: 100%; 
+            height: 320px; 
             background: rgba(0,0,0,0.8); 
             border: 2px dashed var(--gold); 
             border-radius: 15px; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 20px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            margin-bottom: 20px;
             position: relative;
         }
+
         .big-icon { font-size: 80px; margin-bottom: 10px; filter: drop-shadow(0 0 10px var(--gold)); }
         .deal-name { font-size: 1.8em; color: white; }
         .deal-price { font-size: 2em; color: var(--gold); margin-top: 10px; }
@@ -193,7 +232,7 @@
             db.ref(`characters/${myId}/gold`).set(myGold + selectedItem.price);
             db.ref(`characters/${myId}/inventory/${selectedItem.key}`).remove();
         }
-        resetDeal(); // Oldalfrissítés helyett csak töröljük az asztalt
+        resetDeal();
     }
 
     renderShop();
