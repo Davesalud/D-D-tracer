@@ -28,7 +28,6 @@
             background-size: cover; background-position: center; z-index: -1; 
         }
         
-        /* KILÉPÉS GOMB - JOBB FENT */
         .logout-corner { 
             position: fixed; 
             top: 20px; 
@@ -50,7 +49,6 @@
         }
         .btn-logout:hover { background: #8b0000; color: white; box-shadow: 0 0 10px #8b0000; }
 
-        /* DM KULCS - JOBB ALUL */
         .dm-key-btn {
             position: fixed;
             bottom: 20px;
@@ -71,7 +69,6 @@
         }
         .dm-key-btn:hover { transform: rotate(-15deg) scale(1.1); box-shadow: 0 0 20px var(--gold); }
 
-        /* OLDALSÓ GOMBOK */
         .side-action-btn { 
             position: fixed; top: 50%; transform: translateY(-50%); 
             width: 240px; height: 350px; border: 2px solid var(--gold); 
@@ -200,7 +197,6 @@
     let chars = {}, myId = localStorage.getItem('selectedCharId');
     if (!myId) { window.location.href = 'login.html'; }
 
-    // Alapértelmezett állapot javítása belépéskor
     db.ref(`characters/${myId}`).update({ status: "online", lastUpdate: Date.now() });
 
     const HERO_IMAGES = { "Harcos": "https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png", "Mágus": "https://i.ibb.co/yFz5bcXv/Copilot-20260403-033651.png", "Lovag": "https://i.ibb.co/Fk3n339M/Copilot-20260403-034043.png", "Íjász": "https://i.ibb.co/whd2jNpB/Copilot-20260403-034402.png", "Bérgyilkos": "https://i.ibb.co/b525CsLg/Copilot-20260403-032807.png", "Nekromanta": "https://i.ibb.co/NnCwwCbR/Copilot-20260403-033301.png" };
@@ -210,8 +206,41 @@
         if (myId && chars[myId]) updateLobbyUI(); 
     });
 
+    // ÚJ: SZINTLÉPÉS LOGIKA
+    function checkLevelUp(c) {
+        if (c.level >= 30) return; // 30-as szintplafon
+
+        if (c.xp !== undefined && c.nextLvlXp && c.xp >= c.nextLvlXp) {
+            const currentLvl = c.level || 1;
+            const newLevel = currentLvl + 1;
+            const leftoverXp = c.xp - c.nextLvlXp; // Megmaradt XP átvitele
+            const newNextLvlXp = Math.floor(c.nextLvlXp * 1.6); // 60%-os skálázódás
+            
+            // Fejlődési bónuszok
+            const newMaxHp = Math.floor(c.maxHp * 1.1); // +10% életerő
+            const newAtk = (c.atk || 0) + 2; // +2 sebzés
+            const newDef = (c.def || 0) + 1; // +1 védelem
+
+            db.ref(`characters/${myId}`).update({
+                level: newLevel,
+                xp: leftoverXp,
+                nextLvlXp: newNextLvlXp,
+                maxHp: newMaxHp,
+                hp: newMaxHp, // Szintlépéskor gyógyulás
+                atk: newAtk,
+                def: newDef
+            }).then(() => {
+                alert(`SZINTLÉPÉS! Elérted a ${newLevel}. szintet!`);
+            });
+        }
+    }
+
     function updateLobbyUI() {
         const c = chars[myId]; if(!c) return;
+
+        // Szintlépés ellenőrzése
+        checkLevelUp(c);
+
         const now = Date.now();
         
         document.getElementById('lobby-name').innerText = c.name;
@@ -248,7 +277,7 @@
         });
     }
 
-    // HP Regen
+    // HP Regen & Update
     setInterval(() => {
         if (!myId || !chars[myId]) return;
         const c = chars[myId];
