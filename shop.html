@@ -9,88 +9,100 @@
         :root { --gold: #c5a059; --accent: #8b0000; --bg: #050507; --panel-bg: rgba(20, 20, 25, 0.95); }
         * { box-sizing: border-box; -webkit-user-select: none; user-select: none; }
         
-        body { font-family: 'MedievalSharp', cursive; background-color: var(--bg); color: #ccc; margin: 0; height: 100vh; overflow: hidden; }
-        .master-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.95)), url('https://i.ibb.co/0HSGQK0/Copilot-20260405-001515.png'); background-size: cover; background-position: center; z-index: -1; }
+        body { 
+            font-family: 'MedievalSharp', cursive; 
+            background-color: var(--bg); 
+            color: #ccc; 
+            margin: 0; 
+            min-height: 100vh; 
+            overflow-x: hidden;
+            overflow-y: auto; /* Engedjük a görgetést mobilon */
+        }
 
-        .shop-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 40px; background: rgba(0,0,0,0.9); border-bottom: 2px solid var(--gold); }
-        .gold-display { color: var(--gold); font-size: 1.5em; border: 1px solid var(--gold); padding: 5px 20px; border-radius: 6px; background: rgba(255,255,255,0.05); }
+        .master-bg { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background-image: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.95)), url('https://i.ibb.co/0HSGQK0/Copilot-20260405-001515.png'); 
+            background-size: cover; background-position: center; z-index: -1; 
+        }
 
-        .trade-layout { display: flex; justify-content: center; align-items: flex-start; height: calc(100vh - 75px); padding: 20px; gap: 30px; max-width: 1400px; margin: 0 auto; }
-        .panel { background: var(--panel-bg); border: 2px solid var(--gold); border-radius: 8px; display: flex; flex-direction: column; align-items: center; padding: 15px; overflow: hidden; width: 340px; }
+        /* HEADER */
+        .shop-header { 
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 10px 20px; background: rgba(0,0,0,0.9); border-bottom: 2px solid var(--gold); 
+            position: sticky; top: 0; z-index: 100;
+        }
+        .gold-display { color: var(--gold); font-size: 1.3em; border: 1px solid var(--gold); padding: 5px 15px; border-radius: 6px; background: rgba(255,255,255,0.05); }
+
+        /* LAYOUT */
+        .trade-layout { 
+            display: flex; justify-content: center; align-items: flex-start; 
+            padding: 20px; gap: 20px; max-width: 1400px; margin: 0 auto; 
+        }
+
+        .panel { 
+            background: var(--panel-bg); border: 2px solid var(--gold); border-radius: 8px; 
+            display: flex; flex-direction: column; align-items: center; padding: 15px; 
+            width: 340px; flex-shrink: 0;
+        }
         .panel-header { color: var(--gold); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; border-bottom: 1px solid var(--gold); width: 100%; text-align: center; padding-bottom: 5px; }
 
-        .avatar-box { width: 320px; height: 320px; border: 3px solid var(--gold); border-radius: 4px; overflow: hidden; background: #000; box-shadow: 0 0 20px rgba(0,0,0,1); margin-bottom: 10px; flex-shrink: 0; }
+        .avatar-box { width: 100%; aspect-ratio: 1/1; border: 3px solid var(--gold); border-radius: 4px; overflow: hidden; background: #000; margin-bottom: 10px; }
         .avatar-box img { width: 100%; height: 100%; object-fit: cover; object-position: center 20%; }
 
-        /* --- MEGNÖVELT RÁCS ÉS IKONOK --- */
+        /* ITEM GRID */
         .item-grid { 
-            width: 100%; 
-            height: 340px; /* Növelve a nagyobb képek miatt */
-            display: grid; 
-            grid-template-columns: repeat(3, 1fr); 
-            gap: 10px; 
-            overflow-y: auto; 
-            overflow-x: hidden; 
-            margin-top: 10px; 
-            border-top: 1px solid #444; 
-            padding: 10px 5px; 
+            width: 100%; height: 300px; display: grid; grid-template-columns: repeat(3, 1fr); 
+            gap: 8px; overflow-y: auto; padding: 10px 5px; border-top: 1px solid #444; 
         }
-
-        .item-grid::-webkit-scrollbar { width: 5px; }
-        .item-grid::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 5px; }
-        .item-grid::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+        .item-grid::-webkit-scrollbar { width: 4px; }
+        .item-grid::-webkit-scrollbar-thumb { background: var(--gold); }
 
         .item-slot { 
-            background: rgba(0,0,0,0.5); 
-            border: 1px solid #444; 
-            padding: 8px; 
-            text-align: center; 
-            cursor: pointer; 
-            border-radius: 4px; 
-            transition: 0.2s; 
-            min-width: 0;
+            background: rgba(0,0,0,0.5); border: 1px solid #444; padding: 5px; 
+            text-align: center; cursor: pointer; border-radius: 4px; transition: 0.2s; 
         }
+        .item-slot:hover { background: rgba(197, 160, 89, 0.2); }
+        .item-slot img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 4px; margin-bottom: 4px; }
+        .item-slot .name { font-size: 0.65em; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #eee; }
+        .item-slot .price-tag { font-size: 0.6em; color: var(--gold); }
 
-        .item-slot.common { border-color: #888; }
-        .item-slot.uncommon { border-color: #1eff00; }
-        .item-slot.rare { border-color: #0070dd; }
-        .item-slot:hover { background: rgba(197, 160, 89, 0.2); transform: scale(1.05); }
-
-        .item-slot img { 
-            width: 65px; /* Megnövelve 45px-ről */
-            height: 65px; /* Megnövelve 45px-ről */
-            object-fit: cover; 
-            border-radius: 4px; 
-            margin-bottom: 6px; 
-            border: 1px solid rgba(197, 160, 89, 0.2);
+        /* DEAL ZONE */
+        .deal-zone { flex: 0 1 400px; min-width: 300px; }
+        .deal-display { 
+            width: 100%; min-height: 250px; background: rgba(0,0,0,0.8); 
+            border: 2px dashed var(--gold); border-radius: 15px; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            margin-bottom: 15px; text-align: center; padding: 15px; 
         }
+        .deal-display img.big-item-preview { width: 140px; height: 140px; object-fit: contain; filter: drop-shadow(0 0 10px var(--gold)); }
 
-        .item-slot .name { 
-            font-size: 0.7em; 
-            display: block; 
-            overflow: hidden; 
-            text-overflow: ellipsis; 
-            white-space: nowrap; 
-            color: #eee; 
-            margin-bottom: 2px;
-        }
-        
-        .item-slot .price-tag { font-size: 0.65em; color: var(--gold); }
-        /* -------------------------- */
-
-        .deal-zone { flex: 0 1 400px; display: flex; flex-direction: column; justify-content: center; }
-        .deal-display { width: 100%; height: 350px; background: rgba(0,0,0,0.8); border: 2px dashed var(--gold); border-radius: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 20px; text-align: center; padding: 10px; }
-        .deal-display img.big-item-preview { width: 180px; height: 180px; object-fit: contain; filter: drop-shadow(0 0 15px rgba(197, 160, 89, 0.4)); }
-        .deal-name { font-size: 1.6em; color: white; margin-top: 10px; }
-        .deal-stats { font-size: 0.9em; color: #aaa; margin: 5px 0; }
-        .deal-price { font-size: 2em; color: var(--gold); margin-top: 5px; }
-
-        .btn-group { width: 100%; display: flex; flex-direction: column; gap: 10px; }
-        .btn-action { width: 100%; padding: 15px; font-family: 'MedievalSharp'; font-size: 1.2em; cursor: pointer; border: none; border-radius: 8px; transition: 0.3s; }
+        .btn-group { width: 100%; display: flex; flex-direction: column; gap: 8px; }
+        .btn-action { width: 100%; padding: 12px; font-family: 'MedievalSharp'; font-size: 1.1em; cursor: pointer; border-radius: 6px; }
         .buy-btn { background: var(--accent); color: white; border: 1px solid #f00; }
         .sell-btn { background: #2d5a27; color: white; border: 1px solid #5f5; }
         .cancel-btn { background: #333; color: #ccc; border: 1px solid #555; }
-        .btn-back { position: fixed; bottom: 20px; left: 20px; background: #000; color: var(--gold); border: 1px solid var(--gold); padding: 10px 20px; text-decoration: none; border-radius: 4px; }
+
+        .btn-back { position: fixed; bottom: 15px; left: 15px; background: #000; color: var(--gold); border: 1px solid var(--gold); padding: 8px 15px; text-decoration: none; border-radius: 4px; z-index: 200; font-size: 0.9em; }
+
+        /* --- MOBIL OPTIMALIZÁLÁS --- */
+        @media (max-width: 1100px) {
+            .trade-layout { 
+                flex-direction: column; 
+                align-items: center; 
+                padding-bottom: 80px; 
+            }
+            .panel { width: 100%; max-width: 500px; }
+            .deal-zone { order: -1; position: sticky; top: 70px; z-index: 90; margin-bottom: 10px; } /* Az alku zóna legyen szem előtt */
+            .avatar-box { height: 200px; } /* Mobilon ne foglaljon annyi helyet a kép */
+            .item-grid { grid-template-columns: repeat(4, 1fr); height: auto; max-height: 400px; }
+            .shop-header { padding: 10px; }
+            .shop-header div:first-child { font-size: 1.2em; }
+        }
+
+        @media (max-width: 500px) {
+            .item-grid { grid-template-columns: repeat(3, 1fr); }
+            .avatar-box { display: none; } /* Nagyon kicsi telón kapcsoljuk ki az avatarokat a shopban, hogy elférjen a rács */
+        }
     </style>
 </head>
 <body>
@@ -98,7 +110,7 @@
 <div class="master-bg"></div>
 
 <div class="shop-header">
-    <div style="color: var(--gold); font-size: 1.8em;">🛒 Kalmár Sátra</div>
+    <div>🛒 Kalmár Sátra</div>
     <div class="gold-display">💰 <span id="current-gold">0</span></div>
 </div>
 
@@ -119,7 +131,7 @@
     </div>
 
     <div class="panel">
-        <div class="panel-header">Te Hátizsákod</div>
+        <div class="panel-header">Hátizsákod</div>
         <div class="avatar-box">
             <img id="player-img" src="" alt="Player Avatar">
         </div>
@@ -127,7 +139,7 @@
     </div>
 </div>
 
-<a href="index.html" class="btn-back">⬅ Vissza a Várba</a>
+<a href="index.html" class="btn-back">⬅ Várba</a>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -183,7 +195,6 @@
         currentInv = inv;
         const container = document.getElementById('player-inventory');
         container.innerHTML = '';
-
         Object.keys(inv).forEach(key => {
             const itemId = inv[key];
             const itemData = ITEMS[itemId];
@@ -219,9 +230,9 @@
 
         container.innerHTML = `
             <img src="${selectedItem.img}" class="big-item-preview">
-            <div class="deal-name">${selectedItem.name}</div>
-            <div class="deal-stats">${stats}</div>
-            <div class="deal-price">💰 ${selectedItem.price}</div>
+            <div style="font-size: 1.2em; color: white; margin-top: 5px;">${selectedItem.name}</div>
+            <div style="font-size: 0.8em; color: #aaa;">${stats}</div>
+            <div style="font-size: 1.5em; color: var(--gold); font-weight: bold;">💰 ${selectedItem.price}</div>
         `;
         
         action.innerHTML = `
@@ -230,6 +241,11 @@
             </button>
             <button class="btn-action cancel-btn" onclick="resetDeal()">MÉGSE</button>
         `;
+
+        // Mobilon görgessünk az alku zónához, ha kiválasztottunk valamit
+        if(window.innerWidth < 1100) {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
     }
 
     function resetDeal() {
@@ -241,7 +257,6 @@
     function trade() {
         if(!selectedItem) return;
         const charRef = db.ref(`characters/${myId}`);
-
         if(selectedType === 'buy') {
             if(myGold < selectedItem.price) return alert("Nincs elég pénzed!");
             charRef.update({ gold: myGold - selectedItem.price });
@@ -252,7 +267,6 @@
         }
         resetDeal();
     }
-
     renderShop();
 </script>
 </body>
