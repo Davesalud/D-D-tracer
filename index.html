@@ -3,145 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Death's Armada - Hero Edition</title>
+    <title>Death's Armada - Lobby</title>
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,600;1,700&family=MedievalSharp&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #c5a059; --bg: #050507; --card: rgba(15, 15, 18, 0.95); --accent: #8b0000; --text: #e0e0e0; }
         * { box-sizing: border-box; -webkit-user-select: none; user-select: none; outline: none; }
-        input, select { user-select: text !important; }
-        body { font-family: 'Crimson Text', serif; background-color: var(--bg); color: var(--text); margin: 0; height: 100vh; overflow: hidden; }
+        body { font-family: 'Crimson Text', serif; background-color: var(--bg); color: var(--text); margin: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; align-items: center; }
+        
         .master-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.8)), url('https://i.pinimg.com/originals/26/2b/dd/262bdd02564bf6dabbe89df4f93e8e26.jpg'); background-size: cover; background-position: center; z-index: -1; }
         
-        .side-action-btn { position: fixed; top: 75%; transform: translateY(-50%); width: 280px; height: 300px; border: 2px solid var(--gold); border-radius: 8px; background-size: cover; background-position: center; cursor: pointer; display: none; flex-direction: column; justify-content: flex-end; text-decoration: none; overflow: hidden; transition: 0.3s; box-shadow: 0 0 25px rgba(0,0,0,0.9); z-index: 10; }
+        /* Oldalsó gombok */
+        .side-action-btn { position: fixed; top: 75%; transform: translateY(-50%); width: 280px; height: 300px; border: 2px solid var(--gold); border-radius: 8px; background-size: cover; background-position: center; cursor: pointer; display: flex; flex-direction: column; justify-content: flex-end; text-decoration: none; overflow: hidden; transition: 0.3s; box-shadow: 0 0 25px rgba(0,0,0,0.9); z-index: 10; }
         .side-action-btn:hover { transform: translateY(-53%); box-shadow: 0 0 30px var(--gold); border-color: #fff; }
         .side-action-btn span { background: rgba(0, 0, 0, 0.85); color: var(--gold); font-family: 'MedievalSharp'; text-align: center; padding: 12px 0; width: 100%; text-transform: uppercase; border-top: 1px solid var(--gold); font-size: 1.1em; letter-spacing: 1px; }
         
         #btn-side-kampany { left: 4%; background-image: url('https://i.ibb.co/S4VL891M/Copilot-20260405-021905.png'); }
         #btn-side-arena { right: 4%; background-image: url('https://i.ibb.co/p66KV1Vb/Copilot-20260405-021201.png'); }
 
-        .nav-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0; align-items: center; }
-        .img-btn { display: flex; align-items: flex-end; justify-content: center; height: 110px; border: 1px solid var(--gold); border-radius: 4px; text-decoration: none; background-size: cover; background-position: center; position: relative; overflow: hidden; transition: 0.3s; }
-        .btn-felszereles { background-image: url('https://i.ibb.co/F4FDF8gF/Copilot-20260405-001049.png'); }
-        .btn-kereskedo { background-image: url('https://i.ibb.co/0HSGQK0/Copilot-20260405-001515.png'); }
-        .img-btn span { width: 100%; background: rgba(0, 0, 0, 0.7); color: var(--gold); font-family: 'MedievalSharp'; text-align: center; padding: 5px 0; font-size: 0.9em; text-transform: uppercase; }
-
-        .online-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
-        .status-container { background: rgba(0,0,0,0.4); border: 1px solid rgba(197, 160, 89, 0.2); padding: 10px; border-radius: 4px; min-height: 120px; text-align: left; }
-        .status-header { font-family: 'MedievalSharp'; color: var(--gold); font-size: 0.85em; text-transform: uppercase; border-bottom: 1px solid rgba(197, 160, 89, 0.3); margin-bottom: 8px; padding-bottom: 3px; display: flex; justify-content: space-between; }
-        .scroll-area { max-height: 100px; overflow-y: auto; }
-        .player-mini-card { background: rgba(255,255,255,0.03); padding: 5px 8px; margin-bottom: 5px; border-left: 2px solid var(--gold); border-radius: 2px; }
-        .p-name { font-family: 'MedievalSharp'; font-size: 0.8em; color: white; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .p-stat { font-size: 0.65em; font-weight: bold; text-transform: uppercase; }
-
-        .stat-row { display: flex; justify-content: center; gap: 15px; margin: 20px 0; width: 100%; }
-        .stat-box { background: rgba(0,0,0,0.85); border: 1px solid var(--gold); padding: 8px 15px; border-radius: 4px; color: var(--gold); font-family: 'MedievalSharp'; font-size: 1.1em; display: flex; align-items: center; gap: 8px; min-width: 100px; justify-content: center; }
-        .gold-status-box { background: rgba(0,0,0,0.85); border: 2px solid var(--gold); padding: 8px 15px; border-radius: 6px; color: var(--gold); font-family: 'MedievalSharp'; font-size: 1.2em; display: flex; align-items: center; gap: 10px; justify-content: center; box-shadow: 0 0 10px rgba(197, 160, 89, 0.2); }
-        .gold-icon { width: 24px; height: 24px; object-fit: contain; }
-
-        .search-container { position: relative; width: 100%; margin-bottom: 15px; }
-        #search-results { position: absolute; top: 100%; left: 0; width: 100%; background: rgba(20, 20, 25, 0.95); border: 1px solid var(--gold); z-index: 100; max-height: 150px; overflow-y: auto; display: none; }
-        .search-item { padding: 12px; cursor: pointer; border-bottom: 1px solid #333; font-family: 'MedievalSharp'; color: white; text-align: left; }
-        .logout-corner { position: fixed; top: 20px; right: 20px; z-index: 1000; display: none; }
-        .btn-logout { background: rgba(139, 0, 0, 0.6); color: var(--gold); border: 1px solid var(--gold); padding: 8px 15px; font-family: 'MedievalSharp'; cursor: pointer; }
-        .page { display: none; height: 100vh; padding: 20px; flex-direction: column; align-items: center; overflow-y: auto; }
-        .page.active { display: flex; }
-        .card { background: var(--card); border: 1px solid var(--gold); padding: 30px; border-radius: 4px; width: 100%; max-width: 500px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.9); backdrop-filter: blur(15px); position: relative; margin-bottom: 20px; z-index: 5; }
-        .logo { font-family: 'MedievalSharp'; font-size: 3.5em; color: var(--accent); text-shadow: 0 0 15px rgba(139,0,0,0.7); margin-bottom: 20px; }
-        .btn { font-family: 'MedievalSharp'; padding: 15px; cursor: pointer; border: 1px solid var(--gold); transition: 0.3s; text-transform: uppercase; display: block; width: 100%; margin-bottom: 10px; text-decoration: none; text-align: center; color: var(--gold); }
-        .btn-main { background: var(--accent); color: white; border: none; font-size: 1.1em; }
+        /* Központi kártya */
+        .card { background: var(--card); border: 1px solid var(--gold); padding: 30px; border-radius: 4px; width: 100%; max-width: 500px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.9); backdrop-filter: blur(15px); margin-top: 20px; overflow-y: auto; max-height: 95vh; }
+        
         .lobby-hero-portrait { width: 100%; height: 320px; border: 2px solid var(--gold); margin: 15px 0; background-size: cover; background-position: center 20%; border-radius: 4px; box-shadow: inset 0 0 50px black; }
+        
+        /* Status barok */
         .bar-container { height: 24px; background: #000; border: 1px solid #333; position: relative; margin-top: 10px; border-radius: 3px; overflow: hidden; }
         .bar-fill { height: 100%; transition: width 0.5s ease; background: linear-gradient(90deg, #600, #b00); width: 0%; }
         .hp-count-text { font-size: 14px; color: #ccc; margin-top: 4px; font-weight: bold; font-family: 'MedievalSharp'; }
         .xp-container { height: 8px; background: #111; border: 1px solid #333; margin-top: 5px; border-radius: 4px; overflow: hidden; }
         .xp-fill { height: 100%; background: linear-gradient(90deg, #004cff, #00d4ff); width: 0%; transition: 1s; }
-        #modal-creator { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; align-items: center; justify-content: center; z-index: 2000; }
-        .creator-container { display: flex; flex-direction: row; gap: 30px; max-width: 900px !important; padding: 40px !important; }
-        .hero-img-frame { width: 250px; height: 250px; border: 3px solid var(--gold); background-size: cover; background-position: center 20%; }
+
+        /* Navigációs rács */
+        .nav-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0; }
+        .img-btn { display: flex; align-items: flex-end; justify-content: center; height: 110px; border: 1px solid var(--gold); border-radius: 4px; text-decoration: none; background-size: cover; background-position: center; transition: 0.3s; }
+        .btn-felszereles { background-image: url('https://i.ibb.co/F4FDF8gF/Copilot-20260405-001049.png'); }
+        .btn-kereskedo { background-image: url('https://i.ibb.co/0HSGQK0/Copilot-20260405-001515.png'); }
+        .img-btn span { width: 100%; background: rgba(0, 0, 0, 0.7); color: var(--gold); font-family: 'MedievalSharp'; text-align: center; padding: 5px 0; font-size: 0.9em; text-transform: uppercase; }
+
+        /* Statok */
+        .stat-row { display: flex; justify-content: center; gap: 15px; margin: 20px 0; }
+        .stat-box { background: rgba(0,0,0,0.85); border: 1px solid var(--gold); padding: 8px 15px; border-radius: 4px; color: var(--gold); font-family: 'MedievalSharp'; font-size: 1.1em; display: flex; align-items: center; gap: 8px; min-width: 100px; justify-content: center; }
+        .gold-status-box { background: rgba(0,0,0,0.85); border: 2px solid var(--gold); padding: 8px 15px; border-radius: 6px; color: var(--gold); font-family: 'MedievalSharp'; font-size: 1.2em; display: flex; align-items: center; gap: 10px; box-shadow: 0 0 10px rgba(197, 160, 89, 0.2); }
+
+        /* Online Lista */
+        .online-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+        .status-container { background: rgba(0,0,0,0.4); border: 1px solid rgba(197, 160, 89, 0.2); padding: 10px; border-radius: 4px; min-height: 120px; text-align: left; }
+        .status-header { font-family: 'MedievalSharp'; color: var(--gold); font-size: 0.85em; text-transform: uppercase; border-bottom: 1px solid rgba(197, 160, 89, 0.3); margin-bottom: 8px; }
+        .scroll-area { max-height: 100px; overflow-y: auto; }
+        .player-mini-card { background: rgba(255,255,255,0.03); padding: 5px 8px; margin-bottom: 5px; border-left: 2px solid var(--gold); }
+        .p-name { font-family: 'MedievalSharp'; font-size: 0.8em; color: white; display: block; overflow: hidden; white-space: nowrap; }
+
+        /* UI Elemek */
+        .logout-corner { position: fixed; top: 20px; right: 20px; z-index: 1000; }
+        .btn-logout { background: rgba(139, 0, 0, 0.6); color: var(--gold); border: 1px solid var(--gold); padding: 8px 15px; font-family: 'MedievalSharp'; cursor: pointer; }
         .dm-trigger { position: fixed; bottom: 15px; right: 15px; width: 35px; height: 35px; background: rgba(0,0,0,0.5); border: 1px solid rgba(197, 160, 89, 0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 9999; opacity: 0.4; }
     </style>
 </head>
 <body>
 <div class="master-bg"></div>
-<div id="logout-ui" class="logout-corner"><button class="btn-logout" onclick="logout()">Kilépés 🚪</button></div>
+
+<div class="logout-corner"><button class="btn-logout" onclick="logout()">Kilépés 🚪</button></div>
 <div class="dm-trigger" onclick="enterDM()">🔑</div>
 
 <a href="campaign.html" id="btn-side-kampany" class="side-action-btn"><span>📜 KAMPÁNY</span></a>
 <a href="arena.html" id="btn-side-arena" class="side-action-btn"><span>⚔️ ARÉNA</span></a>
 
-<div id="page-login" class="page active">
-    <div class="card" style="margin-top: 10vh;">
-        <div class="logo">Death's Armada</div>
-        <div class="search-container">
-            <input type="text" id="hero-search" placeholder="Hős neve..." autocomplete="off">
-            <div id="search-results"></div>
-        </div>
-        <input type="password" id="login-pin" placeholder="PIN KÓD" maxlength="4" inputmode="numeric">
-        <button class="btn btn-main" onclick="login()">Belépés</button>
-        <button class="btn" style="font-size: 0.8em;" onclick="openCreator()">✨ Új Hős Megidézése</button>
+<div class="card">
+    <div style="display:flex; justify-content: space-between; align-items: center;">
+        <h1 id="lobby-name" style="font-family:'MedievalSharp'; color:var(--gold); margin:0;">Betöltés...</h1>
+        <span id="lobby-lvl" style="color: var(--gold); font-family:'MedievalSharp'; font-size: 1.2em; border: 1px solid var(--gold); padding: 2px 10px;">LVL -</span>
     </div>
-</div>
+    <p id="lobby-class-display" style="margin:5px 0; font-style:italic; color:#aaa; text-transform: uppercase;">-</p>
+    
+    <div id="lobby-hero-img" class="lobby-hero-portrait"></div>
+    
+    <div class="bar-container"><div class="bar-fill" id="lobby-hp-fill"></div></div>
+    <div class="hp-count-text" id="lobby-hp-val">0 / 0 HP</div>
+    
+    <div class="xp-container"><div id="lobby-xp-fill" class="xp-fill"></div></div>
+    <div id="xp-text" style="font-size: 11px; color: #888; text-align: right; margin-top: 4px;">XP: - / -</div>
+    
+    <div class="nav-grid">
+        <a href="inventory.html" class="img-btn btn-felszereles"><span>Felszerelés</span></a>
+        <a href="shop.html" class="img-btn btn-kereskedo"><span>Kereskedő</span></a>
+    </div>
 
-<div id="page-lobby" class="page">
-    <div class="card">
-        <div style="display:flex; justify-content: space-between; align-items: center;"><h1 id="lobby-name" style="font-family:'MedievalSharp'; color:var(--gold); margin:0;">-</h1><span id="lobby-lvl" style="color: var(--gold); font-family:'MedievalSharp'; font-size: 1.2em; border: 1px solid var(--gold); padding: 2px 10px;">LVL 1</span></div>
-        <p id="lobby-class-display" style="margin:5px 0; font-style:italic; color:#aaa; text-transform: uppercase;">-</p>
-        
-        <div id="lobby-hero-img" class="lobby-hero-portrait"></div>
-        
-        <div class="bar-container"><div class="bar-fill" id="lobby-hp-fill"></div></div>
-        <div class="hp-count-text" id="lobby-hp-val">0 / 0 HP</div>
-        <div class="xp-container"><div id="lobby-xp-fill" class="xp-fill"></div></div>
-        <div id="xp-text" style="font-size: 11px; color: #888; text-align: right; margin-top: 4px;">XP: 0 / 250</div>
-        
-        <div class="nav-grid">
-            <a href="inventory.html" class="img-btn btn-felszereles"><span>Felszerelés</span></a>
-            <a href="shop.html" class="img-btn btn-kereskedo"><span>Kereskedő</span></a>
-        </div>
-
-        <div class="stat-row">
-            <div class="stat-box">⚔️ <span id="lobby-atk">12-18</span></div>
-            <div class="stat-box">🛡️ <span id="lobby-def">5</span></div>
-            <div class="gold-status-box">
-                <img src="https://i.ibb.co/ksL53vBf/Copilot-20260405-044028.png" class="gold-icon" alt="Gold">
-                <span id="lobby-gold">0</span>
-            </div>
-        </div>
-        
-        <div class="online-grid">
-            <div class="status-container">
-                <div class="status-header">Hősök <span>●</span></div>
-                <div id="list-online" class="scroll-area"></div>
-            </div>
-            <div class="status-container">
-                <div class="status-header">Aréna <span>⚔️</span></div>
-                <div id="list-arena" class="scroll-area"></div>
-            </div>
+    <div class="stat-row">
+        <div class="stat-box">⚔️ <span id="lobby-atk">-</span></div>
+        <div class="stat-box">🛡️ <span id="lobby-def">-</span></div>
+        <div class="gold-status-box">
+            <img src="https://i.ibb.co/ksL53vBf/Copilot-20260405-044028.png" style="width:24px;" alt="Gold">
+            <span id="lobby-gold">0</span>
         </div>
     </div>
-</div>
-
-<div id="modal-creator">
-    <div class="card creator-container">
-        <div style="flex: 1.2; text-align: left;">
-            <h2 style="font-family:'MedievalSharp'; color:var(--gold); margin-top: 0;">Megidézés</h2>
-            <input type="text" id="new-name" placeholder="A hős neve...">
-            <select id="new-class" onchange="updatePreview()">
-                <option value="Harcos">Harcos</option>
-                <option value="Mágus">Mágus</option>
-                <option value="Lovag">Lovag</option>
-                <option value="Íjász">Íjász</option>
-                <option value="Bérgyilkos">Bérgyilkos</option>
-                <option value="Nekromanta">Nekromanta</option>
-            </select>
-            <input type="password" id="new-pin" placeholder="PIN KÓD" maxlength="4">
-            <button class="btn btn-main" onclick="saveNewHero()">Hős Létrehozása</button>
-            <button class="btn" onclick="document.getElementById('modal-creator').style.display='none'">Vissza</button>
+    
+    <div class="online-grid">
+        <div class="status-container">
+            <div class="status-header">Hősök <span>●</span></div>
+            <div id="list-online" class="scroll-area"></div>
         </div>
-        <div style="flex: 1; display:flex; flex-direction:column; align-items:center; background:rgba(0,0,0,0.3); padding:20px; border-radius: 4px;">
-            <div id="preview-img" class="hero-img-frame" style="background-size:cover;"></div>
-            <b id="preview-skill-name" style="color:var(--gold); font-family:'MedievalSharp';"></b>
-            <p id="preview-desc" style="font-size: 0.8em; color: #aaa; text-align: center;"></p>
+        <div class="status-container">
+            <div class="status-header">Aréna <span>⚔️</span></div>
+            <div id="list-arena" class="scroll-area"></div>
         </div>
     </div>
 </div>
@@ -149,53 +111,43 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script>
-    const firebaseConfig = { apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU", authDomain: "dnd-tracker-4fe05.firebaseapp.com", projectId: "dnd-tracker-4fe05", databaseURL: "https://dnd-tracker-4fe05-default-rtdb.europe-west1.firebasedatabase.app", storageBucket: "dnd-tracker-4fe05.firebasestorage.app", messagingSenderId: "886037504950", appId: "1:886037504950:web:46e80b46f0e26e24429717" };
+    const firebaseConfig = { apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU", authDomain: "dnd-tracker-4fe05.firebaseapp.com", projectId: "dnd-tracker-4fe05", databaseURL: "https://dnd-tracker-4fe05-default-rtdb.europe-west1.firebasedatabase.app" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     
-    let chars = {}, myId = localStorage.getItem('selectedCharId'), selectedIdFromSearch = null;
+    let chars = {}, myId = localStorage.getItem('selectedCharId');
+
+    // Ha nincs ID, vissza a loginra
+    if (!myId) { window.location.href = 'login.html'; }
 
     const HERO_IMAGES = { "Harcos": "https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png", "Mágus": "https://i.ibb.co/yFz5bcXv/Copilot-20260403-033651.png", "Lovag": "https://i.ibb.co/Fk3n339M/Copilot-20260403-034043.png", "Íjász": "https://i.ibb.co/whd2jNpB/Copilot-20260403-034402.png", "Bérgyilkos": "https://i.ibb.co/b525CsLg/Copilot-20260403-032807.png", "Nekromanta": "https://i.ibb.co/NnCwwCbR/Copilot-20260403-033301.png" };
-    const CLASS_DATA = { "Harcos": { skill: "Tombolás", desc: "120 HP | 12-18 Atk" }, "Mágus": { skill: "Tűzgolyó", desc: "80 HP | 20-35 Atk" }, "Lovag": { skill: "Szent Pajzs", desc: "150 HP | 8-14 Atk" }, "Íjász": { skill: "Nyílzápor", desc: "100 HP | 14-22 Atk" }, "Bérgyilkos": { skill: "Hátbatámadás", desc: "90 HP | 18-28 Atk" }, "Nekromanta": { skill: "Lélekcsapolás", desc: "110 HP | 15-22 Atk" } };
 
     function checkRegen(charData, id) {
         if (!charData || charData.hp >= charData.maxHp) return;
-        
         const now = Date.now();
         const last = charData.lastUpdate || now;
-        const diffMs = now - last;
-        const diffMin = Math.floor(diffMs / 60000);
-        
+        const diffMin = Math.floor((now - last) / 60000);
         if (diffMin >= 1) {
-            const heal = diffMin * 10;
-            const newHP = Math.min(charData.maxHp, charData.hp + heal);
-            
-            db.ref(`characters/${id}`).update({ 
-                hp: newHP, 
-                lastUpdate: now 
-            });
+            const newHP = Math.min(charData.maxHp, charData.hp + (diffMin * 10));
+            db.ref(`characters/${id}`).update({ hp: newHP, lastUpdate: now });
         }
     }
 
     db.ref('characters').on('value', snap => { 
         chars = snap.val() || {}; 
-        if (myId && chars[myId]) { 
-            document.getElementById('page-login').style.display = 'none'; 
-            document.getElementById('page-lobby').classList.add('active'); 
-            document.getElementById('logout-ui').style.display = 'block'; 
-            document.getElementById('btn-side-kampany').style.display = 'flex';
-            document.getElementById('btn-side-arena').style.display = 'flex';
+        if (myId && chars[myId]) {
             updateLobbyUI(); 
-        } 
+        } else if (myId) {
+            // Ha a karakter törölve lett
+            localStorage.removeItem('selectedCharId');
+            window.location.href = 'login.html';
+        }
     });
 
     setInterval(() => { 
         if(myId && chars[myId]) {
             checkRegen(chars[myId], myId);
-            db.ref(`characters/${myId}`).update({ 
-                lastUpdate: Date.now(),
-                status: "online" 
-            }); 
+            db.ref(`characters/${myId}`).update({ lastUpdate: Date.now(), status: "online" }); 
         }
     }, 60000);
 
@@ -214,68 +166,24 @@
         
         const listOnline = document.getElementById('list-online');
         const listArena = document.getElementById('list-arena');
-        listOnline.innerHTML = "";
-        listArena.innerHTML = "";
+        listOnline.innerHTML = ""; listArena.innerHTML = "";
 
         Object.keys(chars).forEach(id => {
             const p = chars[id];
             const isOnline = (now - (p.lastUpdate || 0) < 300000);
-            
-            const item = `<div class="player-mini-card">
-                <span class="p-name">${p.name}</span>
-                <span class="p-stat" style="color:${p.status === 'searching' ? '#ff9800' : '#4CAF50'}">
-                    ${p.status === 'searching' ? 'Várakozik' : (isOnline ? 'Lobby' : 'Offline')}
-                </span>
-            </div>`;
-
+            const item = `<div class="player-mini-card"><span class="p-name">${p.name}</span><span style="font-size:0.6em; color:#4CAF50">${p.status === 'searching' ? 'ARÉNÁBAN' : (isOnline ? 'ONLINE' : 'OFFLINE')}</span></div>`;
             if (p.status === "searching") listArena.innerHTML += item;
             else if (isOnline && id !== myId) listOnline.innerHTML += item;
         });
     }
 
-    const searchInput = document.getElementById('hero-search');
-    searchInput.addEventListener('input', (e) => {
-        const text = e.target.value.toLowerCase();
-        const results = document.getElementById('search-results');
-        results.innerHTML = "";
-        if(text.length < 1) { results.style.display = "none"; return; }
-        Object.keys(chars).forEach(id => {
-            if(chars[id].name.toLowerCase().startsWith(text)) {
-                const div = document.createElement('div');
-                div.className = "search-item"; div.innerText = chars[id].name;
-                div.onclick = () => { searchInput.value = chars[id].name; selectedIdFromSearch = id; results.style.display = "none"; };
-                results.appendChild(div);
-            }
-        });
-        results.style.display = "block";
-    });
-
-    function login() {
-        const pin = document.getElementById('login-pin').value;
-        if (selectedIdFromSearch && chars[selectedIdFromSearch].pin.toString() === pin) {
-            myId = selectedIdFromSearch;
-            localStorage.setItem('selectedCharId', myId);
-            checkRegen(chars[myId], myId);
-            db.ref(`characters/${myId}`).update({ status: "online", lastUpdate: Date.now() });
-            location.reload();
-        } else alert("Hibás PIN!");
-    }
-
-    function openCreator() { document.getElementById('modal-creator').style.display = 'flex'; updatePreview(); }
-    function updatePreview() { const cls = document.getElementById('new-class').value; document.getElementById('preview-img').style.backgroundImage = `url('${HERO_IMAGES[cls]}')`; document.getElementById('preview-skill-name').innerText = CLASS_DATA[cls].skill; document.getElementById('preview-desc').innerText = CLASS_DATA[cls].desc; }
-    function saveNewHero() {
-        const name = document.getElementById('new-name').value, cls = document.getElementById('new-class').value, pin = document.getElementById('new-pin').value;
-        if (!name || pin.length < 4) return alert("Név és 4 jegyű PIN kell!");
-        const hpMap = { "Harcos": 120, "Mágus": 80, "Lovag": 150, "Íjász": 100, "Bérgyilkos": 90, "Nekromanta": 110 };
-        db.ref('characters').push({ name, charClass: cls, pin, hp: hpMap[cls], maxHp: hpMap[cls], level: 1, xp: 0, gold: 50, status: "offline", lastUpdate: Date.now() });
-        document.getElementById('modal-creator').style.display = 'none';
-    }
     function logout() { 
         db.ref(`characters/${myId}`).update({ status: "offline" }).then(() => { 
             localStorage.removeItem('selectedCharId'); 
-            location.reload(); 
+            window.location.href = 'login.html'; 
         }); 
     }
+
     function enterDM() { const pin = prompt("DM:"); if(pin === "4469") window.location.href = 'dm.html'; }
 </script>
 </body>
