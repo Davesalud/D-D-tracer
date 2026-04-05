@@ -3,32 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hős Leltár - Egységesített</title>
+    <title>Hős Leltár - Pro Verzió</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #c5a059; --accent: #8b0000; --bg: #050507; --card: rgba(20, 20, 25, 0.85); }
         body { background: var(--bg); color: white; font-family: 'MedievalSharp', cursive; margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; position: relative; overflow-x: hidden; }
         body::before { content: ""; position: fixed; top: 100px; left: 0; width: 100%; height: calc(100% - 100px); background-image: url('https://i.ibb.co/y1rJBhv/Copilot-20260404-235606.png'); background-size: cover; background-repeat: no-repeat; background-position: center; opacity: 0.25; z-index: 0; pointer-events: none; }
+        
         .header { padding: 20px; text-align: center; border-bottom: 2px solid var(--accent); width: 100%; background: var(--bg); position: relative; z-index: 10; }
+        
+        /* 1. JAVÍTÁS: Stat-bar igazítás (Arany elcsúszás ellen) */
         .stat-bar { background: rgba(0,0,0,0.8); border: 1px solid var(--gold); padding: 8px 20px; border-radius: 5px; display: inline-flex; align-items: center; gap: 20px; margin-top: 10px; }
+        .stat-bar span { display: flex; align-items: center; gap: 6px; line-height: 1; }
+        
         .hp-container { width: 120px; height: 18px; background: #300; border: 1px solid var(--gold); border-radius: 9px; position: relative; overflow: hidden; }
         #hp-fill { width: 100%; height: 100%; background: linear-gradient(to right, #ff0000, #8b0000); transition: 0.5s ease-in-out; }
         #hp-text { position: absolute; width: 100%; text-align: center; font-size: 0.75em; top: 0; left: 0; color: white; text-shadow: 1px 1px 2px black; line-height: 18px; z-index: 2; }
-        /* Pénz ikon stílusa */
-        .coin-icon { width: 22px; height: 22px; vertical-align: middle; margin-right: 5px; }
+        
+        .coin-icon { width: 22px; height: 22px; object-fit: contain; display: block; margin: 0; }
+        
         .main-container { display: flex; gap: 50px; justify-content: center; flex-wrap: wrap; padding: 40px 20px; align-items: flex-start; position: relative; z-index: 5; }
         .char-view { position: relative; width: 320px; height: 520px; border: 3px solid #333; background: rgba(0,0,0,0.7); border-radius: 12px; backdrop-filter: blur(3px); box-shadow: 0 0 20px rgba(0,0,0,0.5); }
         #hero-img { width: 100%; height: 100%; object-fit: cover; opacity: 0.6; position: absolute; top: 0; left: 0; z-index: 1; border-radius: 10px; }
         .slots-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; }
+        
         .slot, .inv-slot { width: 64px; height: 64px; border: 1px solid #444; background: rgba(15, 15, 20, 0.9); display: flex; align-items: center; justify-content: center; font-size: 0.65em; text-align: center; color: #aaa; pointer-events: auto; transition: 0.2s; position: absolute; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
         .inv-slot { position: static; border-color: #333; background: rgba(25, 25, 30, 0.85); min-width: 64px; }
         .slot:hover, .inv-slot:hover { border-color: var(--gold); background: rgba(40, 40, 50, 0.95); }
+        
         .slot[data-slot="sisak"] { top: 30px; left: 128px; }
         .slot[data-slot="fegyver"] { top: 160px; left: 30px; }
         .slot[data-slot="páncél"] { top: 160px; left: 128px; }
         .slot[data-slot="pajzs"] { top: 160px; left: 226px; }
         .slot[data-slot="lábvért"] { top: 320px; left: 128px; }
         .slot[data-slot="cipő"] { top: 410px; left: 128px; }
+        
         .bag-container { background: var(--card); border: 2px solid #333; padding: 20px; border-radius: 12px; width: 340px; backdrop-filter: blur(5px); box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
         .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 15px; min-height: 300px; }
         .item { width: 54px; height: 54px; cursor: grab; z-index: 10; pointer-events: auto; }
@@ -45,7 +54,10 @@
             <div id="hp-fill"></div>
             <span id="hp-text">100 / 100</span>
         </div>
-        <span><img src="https://i.ibb.co/ksL53vBf/Copilot-20260405-044028.png" class="coin-icon"><b id="stat-gold">0</b></span>
+        <span>
+            <img src="https://i.ibb.co/ksL53vBf/Copilot-20260405-044028.png" class="coin-icon">
+            <b id="stat-gold">0</b>
+        </span>
         <span>⚔️ <b id="stat-atk">0</b></span>
         <span>🛡️ <b id="stat-def">0</b></span>
     </div>
@@ -87,8 +99,8 @@
 
     const HERO_IMAGES = { "Harcos": "https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png", "Mágus": "https://i.ibb.co/yFz5bcXv/Copilot-20260403-033651.png", "Lovag": "https://i.ibb.co/Fk3n339M/Copilot-20260403-034043.png", "Íjász": "https://i.ibb.co/whd2jNpB/Copilot-20260403-034402.png", "Bérgyilkos": "https://i.ibb.co/b525CsLg/Copilot-20260403-032807.png", "Nekromanta": "https://i.ibb.co/NnCwwCbR/Copilot-20260403-033301.png" };
 
+    // Real-time adat figyelő (Most már azonnal frissíti a UI-t)
     db.ref(`characters/${myId}`).on('value', snap => {
-        if (isProcessing) return;
         const c = snap.val();
         if(!c) return;
 
@@ -98,8 +110,6 @@
         }
 
         document.getElementById('char-name').innerText = `${c.name} (LVL ${c.level || 1})`;
-        
-        // Pénz frissítése
         document.getElementById('stat-gold').innerText = c.gold || 0;
 
         const imgEl = document.getElementById('hero-img');
@@ -127,15 +137,6 @@
             db.ref(`characters/${id}`).update({ hp: newHP, lastUpdate: now });
         }
     }
-
-    setInterval(() => {
-        if (!myId || isProcessing) return;
-        db.ref(`characters/${myId}`).once('value', snap => {
-            const data = snap.val();
-            if (data) checkRegen(data, myId);
-            db.ref(`characters/${myId}`).update({ lastUpdate: Date.now(), status: "online" });
-        });
-    }, 60000);
 
     function updateEquipmentUI(c) {
         let totalAtk = 10, totalDef = 5;
@@ -174,9 +175,66 @@
         }
     }
 
+    function allowDrop(ev) { ev.preventDefault(); }
+    
+    function drag(ev) { 
+        ev.dataTransfer.setData("itemId", ev.target.dataset.itemid); 
+        ev.dataTransfer.setData("source", ev.target.dataset.source); 
+        ev.dataTransfer.setData("fbKey", ev.target.dataset.fbkey || ""); 
+    }
+
+    // 2. JAVÍTÁS: Drag & Drop logika duplikáció nélkül, azonnali visszajelzéssel
+    function drop(ev) {
+        ev.preventDefault();
+        if (isProcessing) return;
+        
+        const itemId = ev.dataTransfer.getData("itemId");
+        const source = ev.dataTransfer.getData("source");
+        const fbKey = ev.dataTransfer.getData("fbKey");
+        
+        let target = ev.target;
+        while (target && !target.classList.contains('slot') && !target.classList.contains('inv-slot') && target.id !== 'inventory-grid') {
+            target = target.parentElement;
+        }
+        
+        if (!target || target.querySelector('.item')) return;
+        
+        const targetSlot = target.dataset.slot;
+        const isInv = target.classList.contains('inv-slot') || target.id === 'inventory-grid';
+
+        // Tárgy felvétele (Felszerelés slotba)
+        if (targetSlot && ITEMS[itemId].type === targetSlot) {
+            isProcessing = true;
+            const updates = {};
+            updates[`equip_${targetSlot}`] = itemId;
+            
+            if (source === "inventory") {
+                db.ref(`characters/${myId}/inventory/${fbKey}`).remove();
+            } else {
+                updates[`equip_${source}`] = null;
+            }
+            
+            db.ref(`characters/${myId}`).update(updates).then(() => {
+                isProcessing = false;
+            });
+        } 
+        // Tárgy levétele (Inventory-ba)
+        else if (isInv && source !== "inventory") {
+            isProcessing = true;
+            const newKey = db.ref(`characters/${myId}/inventory`).push().key;
+            const u = {};
+            u[`equip_${source}`] = null;
+            u[`inventory/${newKey}`] = itemId;
+            
+            db.ref(`characters/${myId}`).update(u).then(() => {
+                isProcessing = false;
+            });
+        }
+    }
+
     function useItem(itemId, fbKey) {
         const item = ITEMS[itemId];
-        if (item && item.type === "consumable") {
+        if (item && item.type === "consumable" && !isProcessing) {
             isProcessing = true;
             db.ref(`characters/${myId}`).once('value', snap => {
                 const data = snap.val();
@@ -190,31 +248,10 @@
         }
     }
 
-    function allowDrop(ev) { ev.preventDefault(); }
-    function drag(ev) { ev.dataTransfer.setData("itemId", ev.target.dataset.itemid); ev.dataTransfer.setData("source", ev.target.dataset.source); ev.dataTransfer.setData("fbKey", ev.target.dataset.fbkey || ""); }
-
-    function drop(ev) {
-        ev.preventDefault();
-        if (isProcessing) return;
-        const itemId = ev.dataTransfer.getData("itemId"), source = ev.dataTransfer.getData("source"), fbKey = ev.dataTransfer.getData("fbKey");
-        let target = ev.target;
-        while (target && !target.classList.contains('slot') && !target.classList.contains('inv-slot') && target.id !== 'inventory-grid') target = target.parentElement;
-        if (!target || target.querySelector('.item')) return;
-        const targetSlot = target.dataset.slot;
-        const isInv = target.classList.contains('inv-slot') || target.id === 'inventory-grid';
-        if (targetSlot && ITEMS[itemId].type === targetSlot) {
-            isProcessing = true;
-            const updates = {}; updates[`equip_${targetSlot}`] = itemId;
-            if (source === "inventory") db.ref(`characters/${myId}/inventory/${fbKey}`).remove();
-            else updates[`equip_${source}`] = null;
-            db.ref(`characters/${myId}`).update(updates).then(() => isProcessing = false);
-        } else if (isInv && source !== "inventory") {
-            isProcessing = true;
-            const newKey = db.ref(`characters/${myId}/inventory`).push().key;
-            const u = {}; u[`equip_${source}`] = null; u[`inventory/${newKey}`] = itemId;
-            db.ref(`characters/${myId}`).update(u).then(() => isProcessing = false);
-        }
-    }
+    setInterval(() => {
+        if (!myId || isProcessing) return;
+        db.ref(`characters/${myId}`).update({ status: "online", lastUpdate: Date.now() });
+    }, 60000);
 </script>
 </body>
 </html>
