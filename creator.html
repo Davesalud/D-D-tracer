@@ -4,28 +4,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Death's Armada - Megidézés</title>
-    <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Crimson+Text:ital@0;1&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Crimson+Text:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <style>
-        :root { --gold: #c5a059; --bg: #050507; --accent: #8b0000; --glass: rgba(15, 15, 18, 0.9); }
+        :root { --gold: #c5a059; --bg: #050507; --accent: #8b0000; --glass: rgba(15, 15, 18, 0.95); }
         body { font-family: 'MedievalSharp', cursive; background-color: var(--bg); color: white; margin: 0; display: flex; align-items: center; justify-content: center; min-height: 100vh; overflow-x: hidden; }
         
-        .master-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.9)), url('https://i.ibb.co/PvWryRcS/Gemini-Generated-Image-7rk5117rk5117rk5.png'); background-size: cover; background-position: center; z-index: -1; }
+        .master-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.8)), url('https://i.ibb.co/PvWryRcS/Gemini-Generated-Image-7rk5117rk5117rk5.png'); background-size: cover; background-position: center; z-index: -1; }
 
-        .card { background: var(--glass); border: 2px solid var(--gold); padding: 30px; border-radius: 4px; width: 95%; max-width: 600px; box-shadow: 0 0 50px black; backdrop-filter: blur(10px); text-align: center; margin: 20px; }
+        .card { background: var(--glass); border: 2px solid var(--gold); padding: 30px; border-radius: 4px; width: 95%; max-width: 550px; box-shadow: 0 0 50px black; backdrop-filter: blur(15px); text-align: center; margin: 20px; position: relative; }
         
-        h1 { color: var(--gold); text-transform: uppercase; letter-spacing: 3px; margin-bottom: 20px; font-size: 2em; }
+        h1 { color: var(--gold); text-transform: uppercase; letter-spacing: 3px; margin-bottom: 20px; font-size: 2.2em; text-shadow: 0 0 15px rgba(197, 160, 89, 0.3); }
         
-        input, select { width: 100%; padding: 12px; margin-bottom: 15px; background: rgba(0,0,0,0.7); border: 1px solid #444; color: var(--gold); font-family: 'MedievalSharp'; font-size: 1.1em; }
-        
-        /* Hős Info Box */
-        .class-info { background: rgba(139, 0, 0, 0.1); border: 1px dashed var(--gold); padding: 15px; margin-bottom: 20px; border-radius: 4px; min-height: 100px; text-align: left; }
-        .class-title { color: var(--gold); font-size: 1.3em; margin-bottom: 5px; display: block; }
-        .class-desc { font-family: 'Crimson Text', serif; font-style: italic; color: #ccc; font-size: 1.1em; line-height: 1.4; }
-        .special-ability { color: #ff4d4d; font-weight: bold; margin-top: 10px; display: block; }
+        /* Hős Portré Ablak */
+        .portrait-frame {
+            width: 180px; height: 180px; margin: 0 auto 20px; border: 3px solid var(--gold); border-radius: 50%;
+            background-size: cover; background-position: center; box-shadow: 0 0 25px rgba(139, 0, 0, 0.5);
+            transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform: scale(1);
+        }
+        .portrait-frame.pop { transform: scale(1.1); }
 
-        .btn-create { width: 100%; padding: 15px; background: var(--accent); color: white; border: none; cursor: pointer; font-family: 'MedievalSharp'; font-size: 1.2em; text-transform: uppercase; transition: 0.3s; }
-        .btn-create:hover { background: #b00000; box-shadow: 0 0 20px var(--accent); }
-        .back-link { display: block; margin-top: 15px; color: var(--gold); text-decoration: none; font-size: 0.9em; opacity: 0.7; }
+        input, select { width: 100%; padding: 14px; margin-bottom: 15px; background: rgba(0,0,0,0.8); border: 1px solid #444; color: var(--gold); font-family: 'MedievalSharp'; font-size: 1.1em; transition: 0.3s; box-sizing: border-box; }
+        input:focus, select:focus { border-color: var(--gold); outline: none; box-shadow: 0 0 10px rgba(197, 160, 89, 0.2); }
+        
+        /* Információs Panel */
+        .class-info { background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(197, 160, 89, 0.3); padding: 20px; margin-bottom: 20px; border-radius: 4px; text-align: left; }
+        .class-title { color: var(--gold); font-size: 1.5em; margin-bottom: 8px; display: block; border-bottom: 1px solid rgba(197, 160, 89, 0.2); padding-bottom: 5px; }
+        .class-stats { display: flex; gap: 15px; margin-bottom: 10px; font-size: 0.9em; color: #aaa; }
+        .class-desc { font-family: 'Crimson Text', serif; font-style: italic; color: #ccc; font-size: 1.1em; line-height: 1.5; display: block; }
+        .special-ability { color: #ff4d4d; font-weight: bold; margin-top: 12px; display: block; font-size: 1em; text-transform: uppercase; letter-spacing: 1px; }
+
+        .btn-create { width: 100%; padding: 18px; background: var(--accent); color: white; border: none; cursor: pointer; font-family: 'MedievalSharp'; font-size: 1.3em; text-transform: uppercase; transition: 0.3s; letter-spacing: 2px; }
+        .btn-create:hover { background: #b00000; box-shadow: 0 0 30px var(--accent); transform: translateY(-2px); }
+        
+        .back-link { display: block; margin-top: 20px; color: var(--gold); text-decoration: none; font-size: 1em; opacity: 0.7; transition: 0.3s; }
+        .back-link:hover { opacity: 1; text-shadow: 0 0 10px var(--gold); }
     </style>
 </head>
 <body>
@@ -34,8 +46,10 @@
 <div class="card">
     <h1>Hős Megidézése</h1>
     
-    <input type="text" id="hero-name" placeholder="Hős neve..." maxlength="12">
-    <input type="password" id="hero-pin" placeholder="PIN KÓD (4 számjegy)" maxlength="4">
+    <div id="portrait" class="portrait-frame" style="background-image: url('https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png');"></div>
+
+    <input type="text" id="hero-name" placeholder="A hős neve (min. 3 karakter)" maxlength="12" autocomplete="off">
+    <input type="password" id="hero-pin" placeholder="PIN KÓD (4 számjegy)" maxlength="4" inputmode="numeric">
     
     <select id="class-select" onchange="updateClassInfo()">
         <option value="Harcos">Harcos</option>
@@ -48,12 +62,17 @@
 
     <div class="class-info" id="info-box">
         <span class="class-title" id="display-name">Harcos</span>
-        <span class="class-desc" id="display-desc">Magas életerővel rendelkező, közelharci specialista. Ideális azoknak, akik szeretnek a sűrűjében lenni.</span>
+        <div class="class-stats">
+            <span>❤️ <b id="display-hp">150</b></span>
+            <span>⚔️ <b id="display-atk">12</b></span>
+            <span>🛡️ <b id="display-def">10</b></span>
+        </div>
+        <span class="class-desc" id="display-desc">Magas életerővel rendelkező, közelharci specialista. Szívós és bátor.</span>
         <span class="special-ability" id="display-special">✨ Speciális: Pajzsütés (Kábítás esélye)</span>
     </div>
 
-    <button class="btn-create" onclick="createHero()">Létrehozás</button>
-    <a href="login.html" class="back-link">← Vissza a kapuhoz</a>
+    <button class="btn-create" onclick="createHero()">Megidézés</button>
+    <a href="login.html" class="back-link">← Visszatérés a kapuhoz</a>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -68,6 +87,15 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
+    const HERO_IMAGES = {
+        "Harcos": "https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png",
+        "Mágus": "https://i.ibb.co/yFz5bcXv/Copilot-20260403-033651.png",
+        "Lovag": "https://i.ibb.co/Fk3n339M/Copilot-20260403-034043.png",
+        "Íjász": "https://i.ibb.co/whd2jNpB/Copilot-20260403-034402.png",
+        "Bérgyilkos": "https://i.ibb.co/b525CsLg/Copilot-20260403-032807.png",
+        "Nekromanta": "https://i.ibb.co/NnCwwCbR/Copilot-20260403-033301.png"
+    };
+
     const CLASS_DATA = {
         "Harcos": { desc: "Magas életerővel rendelkező, közelharci specialista. Szívós és bátor.", spec: "Pajzsütés: Esély az ellenfél kábítására.", hp: 150, atk: 12, def: 10 },
         "Mágus": { desc: "A misztikus tanok mestere. Kevés védelme van, de pusztító ereje.", spec: "Tűzgolyó: Hatalmas robbanásos sebzés.", hp: 80, atk: 22, def: 4 },
@@ -80,7 +108,18 @@
     function updateClassInfo() {
         const val = document.getElementById('class-select').value;
         const data = CLASS_DATA[val];
+        const portrait = document.getElementById('portrait');
+
+        // Animáció
+        portrait.classList.add('pop');
+        setTimeout(() => portrait.classList.remove('pop'), 300);
+
+        // UI frissítés
+        portrait.style.backgroundImage = `url('${HERO_IMAGES[val]}')`;
         document.getElementById('display-name').innerText = val;
+        document.getElementById('display-hp').innerText = data.hp;
+        document.getElementById('display-atk').innerText = data.atk;
+        document.getElementById('display-def').innerText = data.def;
         document.getElementById('display-desc').innerText = data.desc;
         document.getElementById('display-special').innerText = "✨ Speciális: " + data.spec;
     }
@@ -90,16 +129,14 @@
         const pin = document.getElementById('hero-pin').value;
         const charClass = document.getElementById('class-select').value;
 
-        if(name.length < 3 || pin.length !== 4) {
-            alert("A név min. 3 karakter, a PIN pontosan 4 szám legyen!");
-            return;
-        }
+        if(name.length < 3) return alert("A névnek legalább 3 karakternek kell lennie!");
+        if(pin.length !== 4 || isNaN(pin)) return alert("A PIN kód pontosan 4 számjegy legyen!");
 
         const stats = CLASS_DATA[charClass];
-        const newId = db.ref('characters').push().key;
+        const newRef = db.ref('characters').push();
 
-        db.ref('characters/' + newId).set({
-            id: newId,
+        newRef.set({
+            id: newRef.key,
             name: name,
             pin: pin,
             charClass: charClass,
@@ -113,7 +150,7 @@
             status: "offline",
             lastUpdate: Date.now()
         }).then(() => {
-            alert("Sikeres megidézés! Most már beléphetsz.");
+            alert("✨ A rituálé sikeres! Hősöd megidéztetett.");
             window.location.href = 'login.html';
         });
     }
