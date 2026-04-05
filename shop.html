@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kereskedő - Death's Armada</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,600;1,700&family=MedievalSharp&display=swap" rel="stylesheet">
+    <style>
+        :root { --gold: #c5a059; --bg: #050507; --card: rgba(15, 15, 18, 0.95); --accent: #8b0000; --text: #e0e0e0; --blue: #00d4ff; }
+        body { font-family: 'Crimson Text', serif; background-color: var(--bg); color: var(--text); margin: 0; height: 100vh; overflow: hidden; }
+        
+        .master-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.9)), url('https://i.ibb.co/0HSGQK0/Copilot-20260405-001515.png'); background-size: cover; background-position: center; z-index: -1; }
+
+        .shop-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background: rgba(0,0,0,0.85); border-bottom: 2px solid var(--gold); }
+        .gold-display { font-family: 'MedievalSharp'; color: var(--gold); font-size: 1.4em; border: 1px solid var(--gold); padding: 5px 15px; border-radius: 4px; background: rgba(0,0,0,0.5); }
+
+        .trade-layout { display: grid; grid-template-columns: 1fr 1.2fr 1fr; height: calc(100vh - 80px); padding: 15px; gap: 15px; }
+
+        /* Panelek */
+        .panel { background: var(--card); border: 1px solid var(--gold); border-radius: 4px; display: flex; flex-direction: column; overflow: hidden; backdrop-filter: blur(10px); }
+        .panel-header { background: rgba(197, 160, 89, 0.15); padding: 10px; border-bottom: 1px solid var(--gold); font-family: 'MedievalSharp'; text-align: center; color: var(--gold); text-transform: uppercase; font-size: 0.9em; }
+
+        .item-grid { padding: 10px; display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; overflow-y: auto; flex: 1; }
+
+        /* Tárgy kártyák */
+        .item-slot { background: rgba(255,255,255,0.03); border: 1px solid #333; padding: 8px; text-align: center; cursor: pointer; transition: 0.2s; border-radius: 3px; }
+        .item-slot:hover { border-color: var(--gold); background: rgba(197, 160, 89, 0.1); }
+        .item-slot img { width: 45px; height: 45px; display: block; margin: 0 auto 5px; }
+        .item-slot .name { font-size: 0.75em; display: block; color: #ccc; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+
+        /* Középső Interakciós Tér */
+        .deal-zone { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; }
+        .deal-display { width: 100%; max-width: 280px; background: rgba(0,0,0,0.4); border: 1px dashed var(--gold); padding: 30px 15px; border-radius: 8px; margin-bottom: 20px; min-height: 250px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        
+        .big-icon { font-size: 60px; margin-bottom: 15px; filter: drop-shadow(0 0 10px var(--gold)); }
+        .deal-name { font-family: 'MedievalSharp'; font-size: 1.8em; color: white; margin-bottom: 5px; }
+        .deal-stats { font-style: italic; color: var(--gold); margin-bottom: 15px; font-size: 0.9em; }
+        .deal-price { font-size: 1.4em; color: #fff; margin-bottom: 20px; font-family: 'MedievalSharp'; }
+
+        .btn-action { width: 80%; padding: 15px; font-family: 'MedievalSharp'; text-transform: uppercase; cursor: pointer; border: none; font-size: 1.1em; transition: 0.3s; }
+        .buy-btn { background: var(--accent); color: white; box-shadow: 0 4px 15px rgba(139,0,0,0.5); }
+        .sell-btn { background: #2d5a27; color: white; box-shadow: 0 4px 15px rgba(45,90,39,0.5); }
+        .btn-action:disabled { background: #333; color: #666; cursor: not-allowed; box-shadow: none; }
+
+        .btn-back { position: fixed; bottom: 20px; left: 20px; background: rgba(0,0,0,0.8); color: var(--gold); border: 1px solid var(--gold); padding: 8px 20px; font-family: 'MedievalSharp'; text-decoration: none; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+
+<div class="master-bg"></div>
+
+<div class="shop-header">
+    <div style="font-family: 'MedievalSharp'; color: var(--gold); font-size: 1.8em;">Kereskedő</div>
+    <div class="gold-display">💰 <span id="current-gold">0</span></div>
+</div>
+
+<div class="trade-layout">
+    <div class="panel">
+        <div class="panel-header">Bolt Kínálata</div>
+        <div id="shop-items" class="item-grid"></div>
+    </div>
+
+    <div class="panel deal-zone">
+        <div id="deal-container" class="deal-display">
+            <div style="color: #444; font-style: italic;">Válassz egy tárgyat...</div>
+        </div>
+        <div id="action-area"></div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-header">Hátizsákod</div>
+        <div id="player-inventory" class="item-grid"></div>
+    </div>
+</div>
+
+<a href="index.html" class="btn-back">⬅ Vissza a Lobbyba</a>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<script>
+    const firebaseConfig = { apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU", authDomain: "dnd-tracker-4fe05.firebaseapp.com", projectId: "dnd-tracker-4fe05", databaseURL: "https://dnd-tracker-4fe05-default-rtdb.europe-west1.firebasedatabase.app" };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const myId = localStorage.getItem('selectedCharId');
+    let myGold = 0;
+    let selectedItem = null;
+    let selectedType = ""; // "buy" vagy "sell"
+
+    const SHOP_DATA = [
+        { id: "w1", name: "Acél Kard", price: 150, info: "+5 Támadás", icon: "⚔️" },
+        { id: "w2", name: "Tölgyfa Íj", price: 120, info: "+4 Támadás", icon: "🏹" },
+        { id: "a1", name: "Bőrpáncél", price: 200, info: "+3 Védelem", icon: "🛡️" },
+        { id: "p1", name: "Gyógyital", price: 50, info: "30 HP-t tölt", icon: "🧪" },
+        { id: "m1", name: "Varázspálca", price: 300, info: "+8 Mágia", icon: "🪄" }
+    ];
+
+    if (!myId) window.location.href = 'index.html';
+
+    db.ref(`characters/${myId}`).on('value', snap => {
+        const data = snap.val();
+        if (!data) return;
+        myGold = data.gold || 0;
+        document.getElementById('current-gold').innerText = myGold;
+        renderPlayerInventory(data.inventory || {});
+    });
+
+    function renderShop() {
+        const container = document.getElementById('shop-items');
+        container.innerHTML = SHOP_DATA.map(item => `
+            <div class="item-slot" onclick="selectForDeal('${item.id}', 'buy')">
+                <div style="font-size: 25px;">${item.icon}</div>
+                <span class="name">${item.name}</span>
+                <span style="font-size: 10px; color: var(--gold);">💰 ${item.price}</span>
+            </div>
+        `).join('');
+    }
+
+    let inventoryData = {};
+    function renderPlayerInventory(inv) {
+        inventoryData = inv;
+        const container = document.getElementById('player-inventory');
+        container.innerHTML = Object.keys(inv).map(key => {
+            const item = inv[key];
+            return `
+                <div class="item-slot" onclick="selectForDeal('${key}', 'sell')">
+                    <div style="font-size: 25px;">📦</div>
+                    <span class="name">${item.name}</span>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function selectForDeal(id, type) {
+        selectedType = type;
+        const dealContainer = document.getElementById('deal-container');
+        const actionArea = document.getElementById('action-area');
+        
+        if (type === 'buy') {
+            selectedItem = SHOP_DATA.find(i => i.id === id);
+            dealContainer.innerHTML = `
+                <div class="big-icon">${selectedItem.icon}</div>
+                <div class="deal-name">${selectedItem.name}</div>
+                <div class="deal-stats">${selectedItem.info}</div>
+                <div class="deal-price">Ár: 💰 ${selectedItem.price}</div>
+            `;
+            actionArea.innerHTML = `<button class="btn-action buy-btn" onclick="executeTrade()">Vásárlás</button>`;
+        } else {
+            const invItem = inventoryData[id];
+            selectedItem = { ...invItem, firebaseKey: id, sellPrice: 25 }; // Eladási ár fix 25 most
+            dealContainer.innerHTML = `
+                <div class="big-icon">📦</div>
+                <div class="deal-name">${selectedItem.name}</div>
+                <div class="deal-stats">Használt tárgy</div>
+                <div class="deal-price">Értéke: 💰 ${selectedItem.sellPrice}</div>
+            `;
+            actionArea.innerHTML = `<button class="btn-action sell-btn" onclick="executeTrade()">Eladás Aranyért</button>`;
+        }
+    }
+
+    function executeTrade() {
+        if (!selectedItem) return;
+
+        if (selectedType === 'buy') {
+            if (myGold < selectedItem.price) {
+                alert("Nincs elég aranyad!");
+                return;
+            }
+            // Vásárlás mentése
+            const newGold = myGold - selectedItem.price;
+            db.ref(`characters/${myId}`).update({ gold: newGold });
+            db.ref(`characters/${myId}/inventory`).push({
+                name: selectedItem.name,
+                itemId: selectedItem.id,
+                type: "bought"
+            });
+            resetDeal();
+        } else {
+            // Eladás mentése
+            const newGold = myGold + selectedItem.sellPrice;
+            db.ref(`characters/${myId}`).update({ gold: newGold });
+            db.ref(`characters/${myId}/inventory/${selectedItem.firebaseKey}`).remove();
+            resetDeal();
+        }
+    }
+
+    function resetDeal() {
+        selectedItem = null;
+        document.getElementById('deal-container').innerHTML = `<div style="color: #444; font-style: italic;">Válassz egy tárgyat...</div>`;
+        document.getElementById('action-area').innerHTML = "";
+    }
+
+    renderShop();
+</script>
+
+</body>
+</html>
