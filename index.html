@@ -28,6 +28,23 @@
             background-size: cover; background-position: center; z-index: -1; 
         }
         
+        /* GOMB ANIMÁCIÓK */
+        .side-action-btn, .img-btn {
+            transition: 0.4s ease;
+            filter: grayscale(30%);
+        }
+
+        .side-action-btn:hover, .img-btn:hover {
+            filter: grayscale(0%) brightness(1.2);
+            box-shadow: 0 0 20px var(--gold);
+            transform: scale(1.02);
+        }
+
+        .side-action-btn:hover span, .img-btn:hover span {
+            color: #fff;
+            text-shadow: 0 0 10px var(--gold);
+        }
+
         .logout-corner { position: fixed; top: 20px; right: 20px; z-index: 1000; }
         .btn-logout { 
             background: rgba(139, 0, 0, 0.3); color: #ff4444; border: 1px solid #8b0000; 
@@ -49,14 +66,13 @@
             width: 240px; height: 350px; border: 2px solid var(--gold); 
             border-radius: 8px; background-size: cover; background-position: center; 
             cursor: pointer; display: flex; flex-direction: column; justify-content: flex-end; 
-            text-decoration: none; overflow: hidden; transition: 0.3s; 
-            box-shadow: 0 0 25px rgba(0,0,0,0.9); z-index: 10; 
+            text-decoration: none; overflow: hidden; z-index: 10; 
         }
         .side-action-btn span { 
             background: rgba(0, 0, 0, 0.85); color: var(--gold); 
             font-family: 'MedievalSharp'; text-align: center; padding: 15px 0; 
             width: 100%; text-transform: uppercase; border-top: 1px solid var(--gold); 
-            font-size: 1.2em; letter-spacing: 2px; 
+            font-size: 1.2em; letter-spacing: 2px; transition: 0.3s;
         }
         #btn-side-kampany { left: 2%; background-image: url('https://i.ibb.co/S4VL891M/Copilot-20260405-021905.png'); }
         #btn-side-arena { right: 2%; background-image: url('https://i.ibb.co/p66KV1Vb/Copilot-20260405-021201.png'); }
@@ -87,15 +103,32 @@
             display: flex; align-items: flex-end; justify-content: center; 
             height: 100px; border: 1px solid var(--gold); border-radius: 4px; 
             text-decoration: none; background-size: cover; background-position: center; 
-            transition: 0.3s; overflow: hidden;
+            overflow: hidden;
         }
         .btn-felszereles { background-image: url('https://i.ibb.co/F4FDF8gF/Copilot-20260405-001049.png'); }
         .btn-kereskedo { background-image: url('https://i.ibb.co/0HSGQK0/Copilot-20260405-001515.png'); }
-        .img-btn span { width: 100%; background: rgba(0, 0, 0, 0.8); color: var(--gold); font-family: 'MedievalSharp'; text-align: center; padding: 6px 0; font-size: 0.85em; text-transform: uppercase; }
+        .img-btn span { width: 100%; background: rgba(0, 0, 0, 0.8); color: var(--gold); font-family: 'MedievalSharp'; text-align: center; padding: 6px 0; font-size: 0.85em; text-transform: uppercase; transition: 0.3s; }
 
         .stat-row { display: flex; justify-content: center; gap: 10px; margin: 15px 0; flex-wrap: wrap; }
         .stat-box { background: rgba(0,0,0,0.8); border: 1px solid var(--gold); padding: 8px 12px; border-radius: 4px; color: var(--gold); font-family: 'MedievalSharp'; font-size: 1em; display: flex; align-items: center; gap: 6px; min-width: 90px; justify-content: center; }
         .gold-status-box { background: rgba(0,0,0,0.9); border: 2px solid var(--gold); padding: 8px 15px; border-radius: 6px; color: var(--gold); font-family: 'MedievalSharp'; font-size: 1.1em; display: flex; align-items: center; gap: 8px; }
+
+        /* LEVEL UP MODAL */
+        #lvl-up-overlay {
+            position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.95);
+            display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9999;
+        }
+        .lvl-card {
+            background: #111; border: 2px solid var(--gold); padding: 30px; border-radius: 8px;
+            text-align: center; max-width: 400px; width: 90%; box-shadow: 0 0 50px rgba(197,160,89,0.3);
+        }
+        .lvl-card h2 { font-family: 'MedievalSharp'; color: var(--gold); margin-top: 0; }
+        .stat-option {
+            background: rgba(255,255,255,0.05); border: 1px solid #444; color: #fff;
+            padding: 15px; margin: 10px 0; border-radius: 4px; cursor: pointer;
+            font-family: 'MedievalSharp'; transition: 0.3s; display: block; width: 100%;
+        }
+        .stat-option:hover { background: var(--gold); color: #000; border-color: #fff; transform: scale(1.05); }
 
         .online-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
         .status-container { background: rgba(0,0,0,0.6); border: 1px solid rgba(197, 160, 89, 0.2); padding: 10px; border-radius: 4px; min-height: 100px; }
@@ -112,6 +145,16 @@
 </head>
 <body>
 <div class="master-bg"></div>
+
+<div id="lvl-up-overlay">
+    <div class="lvl-card">
+        <h2 id="lvl-title">SZINTLÉPÉS!</h2>
+        <p>Válassz egy maradandó bónuszt:</p>
+        <button class="stat-option" onclick="chooseStat('def', 1)">🛡️ Páncél +1</button>
+        <button class="stat-option" onclick="chooseStat('maxHp', 10)">❤️ Életerő +10</button>
+        <button class="stat-option" onclick="chooseStat('atk', 1)">⚔️ Támadás +1</button>
+    </div>
+</div>
 
 <div class="logout-corner"><button class="btn-logout" onclick="logout()">Kilépés</button></div>
 
@@ -170,6 +213,8 @@
     const db = firebase.database();
     
     let chars = {}, myId = localStorage.getItem('selectedCharId');
+    let isLeveling = false; // Megakadályozza a többszörös felugrást
+
     if (!myId) { window.location.href = 'login.html'; }
 
     db.ref(`characters/${myId}`).update({ status: "online", lastUpdate: Date.now() });
@@ -181,30 +226,41 @@
         if (myId && chars[myId]) updateLobbyUI(); 
     });
 
+    // SZINTLÉPÉS ELLENŐRZÉSE
     function checkLevelUp(c) {
-        if (c.level >= 30) return;
+        if (c.level >= 30 || isLeveling) return;
+        
         if (c.xp !== undefined && c.nextLvlXp && c.xp >= c.nextLvlXp) {
-            const currentLvl = c.level || 1;
-            const newLevel = currentLvl + 1;
-            const leftoverXp = c.xp - c.nextLvlXp;
-            const newNextLvlXp = Math.floor(c.nextLvlXp * 1.6);
-            
-            const newMaxHp = Math.floor(c.maxHp * 1.1);
-            const newAtk = (c.atk || 0) + 2;
-            const newDef = (c.def || 0) + 1;
-
-            db.ref(`characters/${myId}`).update({
-                level: newLevel,
-                xp: leftoverXp,
-                nextLvlXp: newNextLvlXp,
-                maxHp: newMaxHp,
-                hp: newMaxHp,
-                atk: newAtk,
-                def: newDef
-            }).then(() => {
-                alert(`SZINTLÉPÉS! Elérted a ${newLevel}. szintet!`);
-            });
+            isLeveling = true;
+            document.getElementById('lvl-title').innerText = `SZINTLÉPÉS! (LVL ${c.level} → ${c.level + 1})`;
+            document.getElementById('lvl-up-overlay').style.display = 'flex';
         }
+    }
+
+    // STAT VÁLASZTÁS ÉS MENTÉS
+    function chooseStat(statField, amount) {
+        const c = chars[myId];
+        const newLevel = (c.level || 1) + 1;
+        const leftoverXp = c.xp - c.nextLvlXp;
+        const newNextLvlXp = Math.floor(c.nextLvlXp * 1.2); // 1.2-es szorzó (középút)
+        
+        let updates = {
+            level: newLevel,
+            xp: leftoverXp,
+            nextLvlXp: newNextLvlXp,
+            hp: c.maxHp // Teljes gyógyulás szintlépéskor
+        };
+
+        // Hozzáadjuk a választott bónuszt
+        updates[statField] = (c[statField] || 0) + amount;
+
+        // Ha MaxHP-t választott, a jelenlegi HP-t is emeljük az újra
+        if(statField === 'maxHp') updates.hp = updates.maxHp;
+
+        db.ref(`characters/${myId}`).update(updates).then(() => {
+            document.getElementById('lvl-up-overlay').style.display = 'none';
+            isLeveling = false;
+        });
     }
 
     function updateLobbyUI() {
@@ -226,7 +282,6 @@
         document.getElementById('lobby-hp-fill').style.width = hpPercent + "%";
         document.getElementById('lobby-hp-val').innerText = `${Math.ceil(c.hp)} / ${c.maxHp} HP`;
         
-        // JAVÍTOTT XP MEGJELENÍTÉS
         const currentXp = c.xp || 0;
         const goalXp = c.nextLvlXp || 100; 
         const xpPercent = Math.min(100, (currentXp / goalXp) * 100);
