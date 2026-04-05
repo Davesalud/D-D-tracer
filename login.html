@@ -20,25 +20,23 @@
             overflow: hidden; 
         }
 
-        /* JAVÍTOTT HÁTTÉR KEZELÉS */
+        /* AZ ÚJ HÁTTÉRKÉP BEÁLLÍTÁSA */
         .master-bg { 
             position: fixed; 
             top: 0; 
             left: 0; 
             width: 100%; 
             height: 100%; 
-            /* A linear-gradient sötétíti a képet, hogy olvashatóbb legyen a szöveg */
-            background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.7)), url('https://i.ibb.co/PvWryRcS/Gemini-Generated-Image-7rk5117rk5117rk5.png'); 
-            background-size: contain; /* Nem nyújtja szét, látszik a teljes kép */
+            /* Új kép beillesztve, sötétítéssel az olvashatóságért */
+            background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.7)), url('https://i.ibb.co/k2cqD5TF/1b9b48cc-e761-4b0b-a9ea-578e6672b24e.jpg'); 
+            background-size: cover; /* Kitölti a képernyőt */
+            background-position: center top; /* Felülről indítja a képet, hogy a lényeg látszódjon */
             background-repeat: no-repeat;
-            background-position: center;
-            background-color: var(--bg); /* Ha a kép kisebb, fekete lesz körülötte */
             z-index: -1; 
         }
         
         .main-container { display: flex; gap: 30px; max-width: 1000px; width: 95%; align-items: stretch; z-index: 10; }
 
-        /* Patch Notes */
         .patch-notes { 
             flex: 1; background: var(--glass); border: 1px solid rgba(197, 160, 89, 0.2); 
             padding: 25px; border-radius: 4px; box-shadow: 0 10px 40px black;
@@ -47,7 +45,6 @@
         .patch-header { color: var(--gold); border-bottom: 1px solid var(--gold); margin-bottom: 15px; font-size: 1.3em; text-transform: uppercase; letter-spacing: 2px; }
         .patch-content { font-family: 'Crimson Text', serif; font-style: italic; font-size: 1.15em; color: #ddd; overflow-y: auto; max-height: 350px; line-height: 1.6; }
 
-        /* Login Card */
         .card { 
             width: 420px; background: var(--glass); border: 2px solid var(--gold); 
             padding: 40px; border-radius: 4px; text-align: center; 
@@ -72,7 +69,7 @@
         .btn-main { background: var(--accent); color: white; border: none; font-size: 1.2em; }
         .btn-main:hover { background: #b00000; transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.6); }
 
-        .btn-sub { background: transparent; color: var(--gold); font-size: 0.9em; opacity: 0.8; margin-top: 10px; border: 1px solid transparent; text-decoration: none; }
+        .btn-sub { background: transparent; color: var(--gold); font-size: 0.9em; opacity: 0.8; margin-top: 10px; border: 1px solid transparent; cursor: pointer; }
         .btn-sub:hover { opacity: 1; border-color: var(--gold); background: rgba(197, 160, 89, 0.05); }
         
         #search-results { 
@@ -86,7 +83,6 @@
         @media (max-width: 850px) {
             .main-container { flex-direction: column-reverse; align-items: center; padding-top: 50px; overflow-y: auto; }
             .patch-notes { width: 100%; max-width: 420px; flex: none; }
-            .master-bg { background-size: cover; } /* Mobilon jobb a cover a kitöltés miatt */
         }
     </style>
 </head>
