@@ -12,13 +12,12 @@
         body { font-family: 'Crimson Text', serif; background-color: var(--bg); color: var(--text); margin: 0; height: 100vh; overflow: hidden; }
         .master-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.8)), url('https://i.pinimg.com/originals/26/2b/dd/262bdd02564bf6dabbe89df4f93e8e26.jpg'); background-size: cover; background-position: center; z-index: -1; }
         
-        /* MÓDOSÍTOTT: LEBEGŐ KÜLSŐ GOMBOK - NYÚJTVA ÉS LEJJEBB */
         .side-action-btn {
             position: fixed;
-            top: 75%; /* Lejjebb tolva */
+            top: 75%;
             transform: translateY(-50%);
             width: 280px; 
-            height: 300px; /* Megnyújtva hosszában */
+            height: 300px;
             border: 2px solid var(--gold);
             border-radius: 8px;
             background-size: cover;
@@ -33,32 +32,16 @@
             box-shadow: 0 0 25px rgba(0,0,0,0.9);
             z-index: 10;
         }
-        .side-action-btn:hover {
-            transform: translateY(-53%);
-            box-shadow: 0 0 30px var(--gold);
-            border-color: #fff;
-        }
-        .side-action-btn span {
-            background: rgba(0, 0, 0, 0.85);
-            color: var(--gold);
-            font-family: 'MedievalSharp';
-            text-align: center;
-            padding: 12px 0;
-            width: 100%;
-            text-transform: uppercase;
-            border-top: 1px solid var(--gold);
-            font-size: 1.1em;
-            letter-spacing: 1px;
-        }
+        .side-action-btn:hover { transform: translateY(-53%); box-shadow: 0 0 30px var(--gold); border-color: #fff; }
+        .side-action-btn span { background: rgba(0, 0, 0, 0.85); color: var(--gold); font-family: 'MedievalSharp'; text-align: center; padding: 12px 0; width: 100%; text-transform: uppercase; border-top: 1px solid var(--gold); font-size: 1.1em; letter-spacing: 1px; }
+        
         #btn-side-kampany { left: 4%; background-image: url('https://i.ibb.co/S4VL891M/Copilot-20260405-021905.png'); }
         #btn-side-arena { right: 4%; background-image: url('https://i.ibb.co/p66KV1Vb/Copilot-20260405-021201.png'); }
 
-        /* MEGLÉVŐ ELEMEK */
         .nav-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0; align-items: center; }
         .img-btn { display: flex; align-items: flex-end; justify-content: center; height: 110px; border: 1px solid var(--gold); border-radius: 4px; text-decoration: none; background-size: cover; background-position: center; position: relative; overflow: hidden; transition: 0.3s; }
         .btn-felszereles { background-image: url('https://i.ibb.co/F4FDF8gF/Copilot-20260405-001049.png'); }
         .btn-kereskedo { background-image: url('https://i.ibb.co/0HSGQK0/Copilot-20260405-001515.png'); }
-        .img-btn:hover { transform: translateY(-3px); box-shadow: 0 0 15px var(--gold); border-color: #fff; }
         .img-btn span { width: 100%; background: rgba(0, 0, 0, 0.7); color: var(--gold); font-family: 'MedievalSharp'; text-align: center; padding: 5px 0; font-size: 0.9em; text-transform: uppercase; }
 
         .online-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
@@ -190,6 +173,20 @@
     const HERO_IMAGES = { "Harcos": "https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png", "Mágus": "https://i.ibb.co/yFz5bcXv/Copilot-20260403-033651.png", "Lovag": "https://i.ibb.co/Fk3n339M/Copilot-20260403-034043.png", "Íjász": "https://i.ibb.co/whd2jNpB/Copilot-20260403-034402.png", "Bérgyilkos": "https://i.ibb.co/b525CsLg/Copilot-20260403-032807.png", "Nekromanta": "https://i.ibb.co/NnCwwCbR/Copilot-20260403-033301.png" };
     const CLASS_DATA = { "Harcos": { skill: "Tombolás", desc: "120 HP | 12-18 Atk" }, "Mágus": { skill: "Tűzgolyó", desc: "80 HP | 20-35 Atk" }, "Lovag": { skill: "Szent Pajzs", desc: "150 HP | 8-14 Atk" }, "Íjász": { skill: "Nyílzápor", desc: "100 HP | 14-22 Atk" }, "Bérgyilkos": { skill: "Hátbatámadás", desc: "90 HP | 18-28 Atk" }, "Nekromanta": { skill: "Lélekcsapolás", desc: "110 HP | 15-22 Atk" } };
 
+    // REGENERÁCIÓS FÜGGVÉNY
+    function checkRegen(charData, id) {
+        if (!charData || charData.hp >= charData.maxHp) return;
+        const now = Date.now();
+        const last = charData.lastUpdate || now;
+        const diffMin = Math.floor((now - last) / 60000);
+        
+        if (diffMin >= 1) {
+            const heal = diffMin * 2; // Percenként 2 HP
+            const newHP = Math.min(charData.maxHp, charData.hp + heal);
+            db.ref(`characters/${id}`).update({ hp: newHP, lastUpdate: now });
+        }
+    }
+
     db.ref('characters').on('value', snap => { 
         chars = snap.val() || {}; 
         if (myId && chars[myId]) { 
@@ -202,7 +199,13 @@
         } 
     });
 
-    setInterval(() => { if(myId) db.ref(`characters/${myId}`).update({ lastUpdate: Date.now() }); }, 60000);
+    // Frissített folyamatos ellenőrzés
+    setInterval(() => { 
+        if(myId && chars[myId]) {
+            checkRegen(chars[myId], myId);
+            db.ref(`characters/${myId}`).update({ lastUpdate: Date.now() }); 
+        }
+    }, 60000);
 
     function updateLobbyUI() {
         const c = chars[myId]; if(!c) return;
@@ -252,6 +255,8 @@
         if (selectedIdFromSearch && chars[selectedIdFromSearch].pin.toString() === pin) {
             myId = selectedIdFromSearch;
             localStorage.setItem('selectedCharId', myId);
+            // Belépéskor azonnali gyógyítás ellenőrzése
+            checkRegen(chars[myId], myId);
             db.ref(`characters/${myId}`).update({ status: "online", lastUpdate: Date.now() });
             location.reload();
         } else alert("Hibás PIN!");
