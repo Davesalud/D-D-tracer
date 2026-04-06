@@ -195,12 +195,16 @@
         const name = document.getElementById('hero-name').value;
         const pin = document.getElementById('hero-pin').value;
         const charClass = document.getElementById('class-select').value;
+        
         if(name.length < 3 || pin.length !== 4) {
-            alert("A rituálé sikertelen! Kérlek adj meg nevet és PIN kódot.");
+            alert("A rituálé sikertelen! Kérlek adj meg nevet (min. 3 karakter) és 4 számjegyű PIN kódot.");
             return;
         }
+
         const stats = CLASS_DATA[charClass];
         const newId = db.ref('characters').push().key;
+
+        // BIZTONSÁGI JAVÍTÁS: Kényszerítjük a szám típust és hozzáadunk minden szükséges mezőt
         db.ref('characters/' + newId).set({
             id: newId, 
             name: name, 
@@ -209,16 +213,22 @@
             level: 1, 
             gold: 50, 
             xp: 0, 
-            nextLvlXp: 100, // Beállítjuk a kezdő limitet a szintlépéshez
-            hp: stats.hp, 
-            maxHp: stats.hp,
-            atk: stats.atk, 
-            def: stats.def, 
+            nextLvlXp: 100,
+            hp: Number(stats.hp), 
+            maxHp: Number(stats.hp),
+            atk: Number(stats.atk), 
+            def: Number(stats.def),
+            // Ezeket is érdemes nullázni, hogy a Lobby ne 0-át mutasson ha nincs tárgy
+            bonusAtk: 0,
+            bonusDef: 0,
             status: "offline", 
             lastUpdate: Date.now()
         }).then(() => {
             alert("Az új kalandor megérkezett!");
             window.location.href = 'login.html';
+        }).catch(error => {
+            console.error("Hiba a mentés során:", error);
+            alert("Hiba történt az adatbázis mentésekor!");
         });
     }
 </script>
