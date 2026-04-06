@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Death's Armada - 1792x1024 Fixed</title>
+    <title>Death's Armada - Full Screen</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Crimson+Text:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <style>
-        :root { --gold: #c5a059; --bg: #050507; --accent: #8b0000; --glass: rgba(10, 10, 12, 0.95); }
+        :root { --gold: #c5a059; --accent: #8b0000; --glass: rgba(10, 10, 12, 0.95); }
         
         html, body {
             margin: 0; padding: 0; width: 100%; height: 100%;
@@ -14,20 +14,20 @@
             overflow: hidden;
         }
 
-        /* A KÉP ARÁNYÁHOZ IGAZÍTOTT KONTÉNER (1792x1024) */
+        /* TELIBE KITÖLTÖTT KONTÉNER */
         .page-wrapper {
             position: relative;
             width: 1792px;
             height: 1024px;
-            background-image: linear-gradient(to right, rgba(0,0,0,0.85) 10%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.8) 100%), 
+            /* Az új 1792x1024-es képed */
+            background-image: linear-gradient(to right, rgba(0,0,0,0.8) 15%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.8) 100%), 
                              url('https://i.ibb.co/YKnhhBh/Copilot-20260406-161516.png');
             background-size: 100% 100%; 
             background-position: center;
             display: flex;
             align-items: center;
-            padding-left: 6%;
+            padding-left: 5%;
             box-sizing: border-box;
-            box-shadow: 0 0 100px rgba(0,0,0,1);
             transform-origin: center center;
         }
 
@@ -35,23 +35,21 @@
             display: flex;
             flex-direction: column;
             gap: 20px;
-            width: 450px;
+            width: 420px;
             z-index: 10;
         }
 
         .card { 
             background: var(--glass); 
             border: 2px solid var(--gold); 
-            padding: 30px; 
-            border-radius: 2px; 
+            padding: 35px; 
             text-align: center; 
-            box-shadow: 0 0 50px rgba(0,0,0,1); 
             backdrop-filter: blur(10px);
             border-image: linear-gradient(to bottom, #c5a059, #4a3511) 1;
         }
         
         .logo { 
-            font-size: 52px;
+            font-size: 50px;
             color: #fff;
             text-shadow: 0px 0px 15px var(--accent), 2px 2px 2px #000; 
             margin-bottom: 25px; 
@@ -59,59 +57,51 @@
             font-family: 'MedievalSharp';
         }
         
-        .input-group { position: relative; margin-bottom: 15px; }
-
         input { 
-            width: 100%; padding: 14px; background: rgba(0,0,0,0.8); 
+            width: 100%; padding: 16px; background: rgba(0,0,0,0.85); 
             border: 1px solid #444; color: var(--gold); font-family: 'MedievalSharp'; 
-            font-size: 1.1em; transition: 0.3s; box-sizing: border-box; text-align: center;
+            font-size: 1.2em; margin-bottom: 15px; box-sizing: border-box; text-align: center;
         }
-        input:focus { border-color: var(--gold); outline: none; box-shadow: 0 0 10px rgba(197, 160, 89, 0.3); }
-        
+        input:focus { border-color: var(--gold); outline: none; }
+
+        .btn { 
+            width: 100%; padding: 16px; cursor: pointer; 
+            text-transform: uppercase; font-family: 'MedievalSharp'; 
+            font-weight: bold; border: 1px solid var(--gold); font-size: 1.1em;
+        }
+        .btn-main { background: var(--accent); color: white; margin-bottom: 10px; }
+        .btn-sub { background: transparent; color: var(--gold); font-size: 0.85em; opacity: 0.6; }
+
         .autocomplete-box {
-            position: absolute; top: 100%; left: 0; width: 100%;
-            background: #0a0a0a; border: 1px solid var(--gold);
-            max-height: 180px; overflow-y: auto; display: none;
-            z-index: 9999 !important;
+            position: absolute; width: 100%; background: #0a0a0a; 
+            border: 1px solid var(--gold); max-height: 200px; overflow-y: auto; 
+            display: none; z-index: 9999; top: 100%;
         }
-        .suggestion-item { padding: 12px; text-align: left; cursor: pointer; color: var(--gold); }
+        .suggestion-item { padding: 12px; color: var(--gold); cursor: pointer; text-align: left; border-bottom: 1px solid #222; }
         .suggestion-item:hover { background: var(--accent); color: white; }
 
         .patch-notes { 
             background: rgba(0, 0, 0, 0.8); 
-            border-left: 3px solid var(--accent);
+            border-left: 4px solid var(--accent);
             padding: 20px;
         }
-        .patch-header { color: var(--gold); font-size: 1.1em; text-transform: uppercase; margin-bottom: 8px; border-bottom: 1px solid #333; }
-        .patch-content { font-family: 'Crimson Text', serif; font-style: italic; color: #aaa; max-height: 120px; overflow-y: auto; }
-
-        .btn { 
-            width: 100%; padding: 14px; cursor: pointer; 
-            text-transform: uppercase; font-family: 'MedievalSharp'; 
-            font-weight: bold; border: 1px solid var(--gold);
-        }
-        .btn-main { background: var(--accent); color: white; margin-bottom: 10px; }
-        .btn-sub { background: transparent; color: var(--gold); font-size: 0.8em; opacity: 0.6; }
+        .patch-header { color: var(--gold); font-size: 1.2em; margin-bottom: 5px; font-family: 'MedievalSharp'; }
+        .patch-content { font-family: 'Crimson Text', serif; font-style: italic; color: #aaa; font-size: 1.1em; }
     </style>
 </head>
 <body>
-    <div class="page-wrapper" id="main-wrapper">
+    <div class="page-wrapper" id="scaler">
         <div class="side-panel">
             <div class="card">
                 <div class="logo">Death's Armada</div>
-                
-                <div class="input-group">
+                <div style="position: relative; margin-bottom: 15px;">
                     <input type="text" id="hero-search" placeholder="Kalandor neve..." autocomplete="off">
                     <div id="autocomplete-list" class="autocomplete-box"></div>
-                    <div id="found-hint" style="color: #59c559; font-size: 0.85em; margin-top: 5px; display: none; font-family: 'MedievalSharp';">✓ Ismert kalandor</div>
                 </div>
-
                 <input type="password" id="login-pin" placeholder="PIN KÓD" maxlength="4">
-                
                 <button class="btn btn-main" onclick="login()">Belépés</button>
-                <button class="btn btn-sub" onclick="location.href='creator.html'">Új Karakter Indítása</button>
+                <button class="btn btn-sub" onclick="location.href='creator.html'">Új Karakter</button>
             </div>
-
             <div class="patch-notes">
                 <div class="patch-header">📜 Krónikák</div>
                 <div id="patch-text" class="patch-content">Betöltés...</div>
@@ -122,13 +112,13 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <script>
-        function scale() {
-            const el = document.getElementById('main-wrapper');
+        function doScale() {
+            const el = document.getElementById('scaler');
             const s = Math.min(window.innerWidth / 1792, window.innerHeight / 1024);
             el.style.transform = `scale(${s})`;
         }
-        window.addEventListener('resize', scale);
-        window.addEventListener('load', scale);
+        window.onresize = doScale;
+        window.onload = doScale;
 
         const firebaseConfig = { 
             apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU", 
@@ -139,48 +129,36 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let characters = {};
-        let selectedId = null;
+        let chars = {};
+        let selId = null;
 
-        db.ref('settings/patchNotes').on('value', snap => {
-            document.getElementById('patch-text').innerHTML = snap.val() || "A birodalom békés.";
-        });
+        db.ref('settings/patchNotes').on('value', s => document.getElementById('patch-text').innerHTML = s.val() || "");
+        db.ref('characters').on('value', s => chars = s.val() || {});
 
-        db.ref('characters').on('value', snap => { characters = snap.val() || {}; });
+        const inp = document.getElementById('hero-search');
+        const list = document.getElementById('autocomplete-list');
 
-        const searchInput = document.getElementById('hero-search');
-        const listContainer = document.getElementById('autocomplete-list');
-
-        searchInput.addEventListener('input', function() {
-            const val = this.value.trim().toLowerCase();
-            listContainer.innerHTML = '';
-            document.getElementById('found-hint').style.display = 'none';
-            selectedId = null;
-
-            if (!val) { listContainer.style.display = 'none'; return; }
-
-            Object.keys(characters).forEach(id => {
-                const charData = characters[id];
-                if (charData && charData.name && charData.name.toLowerCase().includes(val)) {
-                    const item = document.createElement('div');
-                    item.className = 'suggestion-item';
-                    item.innerText = charData.name;
-                    item.onclick = () => {
-                        searchInput.value = charData.name;
-                        selectedId = id;
-                        listContainer.style.display = 'none';
-                        document.getElementById('found-hint').style.display = 'block';
-                    };
-                    listContainer.appendChild(item);
+        inp.oninput = function() {
+            const val = this.value.toLowerCase();
+            list.innerHTML = '';
+            selId = null;
+            if(!val) { list.style.display = 'none'; return; }
+            Object.keys(chars).forEach(id => {
+                if(chars[id] && chars[id].name && chars[id].name.toLowerCase().includes(val)) {
+                    const d = document.createElement('div');
+                    d.className = 'suggestion-item';
+                    d.innerText = chars[id].name;
+                    d.onclick = () => { inp.value = chars[id].name; selId = id; list.style.display = 'none'; };
+                    list.appendChild(d);
                 }
             });
-            listContainer.style.display = listContainer.childElementCount > 0 ? 'block' : 'none';
-        });
+            list.style.display = list.childElementCount > 0 ? 'block' : 'none';
+        };
 
         function login() {
             const pin = document.getElementById('login-pin').value;
-            if (selectedId && characters[selectedId].pin.toString() === pin) {
-                localStorage.setItem('selectedCharId', selectedId);
+            if(selId && chars[selId].pin.toString() === pin) {
+                localStorage.setItem('selectedCharId', selId);
                 window.location.href = 'index.html';
             } else { alert("Hiba!"); }
         }
