@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Death's Armada - 1024 Fixed</title>
+    <title>Death's Armada - 1792x1024 Fixed</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Crimson+Text:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #c5a059; --bg: #050507; --accent: #8b0000; --glass: rgba(10, 10, 12, 0.95); }
@@ -14,13 +14,13 @@
             overflow: hidden;
         }
 
-        /* ÁTÁLLÍTVA 1024x1024-re */
+        /* A KÉP ARÁNYÁHOZ IGAZÍTOTT KONTÉNER (1792x1024) */
         .page-wrapper {
             position: relative;
-            width: 1024px;
+            width: 1792px;
             height: 1024px;
             background-image: linear-gradient(to right, rgba(0,0,0,0.85) 10%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.8) 100%), 
-                             url('https://i.ibb.co/4QPwwQM/Copilot-20260406-153524.png');
+                             url('https://i.ibb.co/YKnhhBh/Copilot-20260406-161516.png');
             background-size: 100% 100%; 
             background-position: center;
             display: flex;
@@ -35,7 +35,7 @@
             display: flex;
             flex-direction: column;
             gap: 20px;
-            width: 380px; /* Fix szélesség a négyzetes formához */
+            width: 450px;
             z-index: 10;
         }
 
@@ -51,11 +51,10 @@
         }
         
         .logo { 
-            font-size: 42px; /* Fix méret vw helyett */
+            font-size: 52px;
             color: #fff;
             text-shadow: 0px 0px 15px var(--accent), 2px 2px 2px #000; 
             margin-bottom: 25px; 
-            letter-spacing: 1px;
             text-transform: uppercase;
             font-family: 'MedievalSharp';
         }
@@ -74,12 +73,8 @@
             background: #0a0a0a; border: 1px solid var(--gold);
             max-height: 180px; overflow-y: auto; display: none;
             z-index: 9999 !important;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
         }
-        .suggestion-item {
-            padding: 12px; text-align: left; cursor: pointer;
-            border-bottom: 1px solid #222; color: var(--gold); font-size: 0.95em;
-        }
+        .suggestion-item { padding: 12px; text-align: left; cursor: pointer; color: var(--gold); }
         .suggestion-item:hover { background: var(--accent); color: white; }
 
         .patch-notes { 
@@ -87,27 +82,16 @@
             border-left: 3px solid var(--accent);
             padding: 20px;
         }
-        .patch-header { 
-            color: var(--gold); font-size: 1.1em; text-transform: uppercase; 
-            margin-bottom: 8px; border-bottom: 1px solid #333; padding-bottom: 5px;
-            font-family: 'MedievalSharp';
-        }
-        .patch-content { 
-            font-family: 'Crimson Text', serif; font-style: italic; 
-            font-size: 1em; color: #aaa; max-height: 120px; overflow-y: auto; line-height: 1.4; 
-        }
+        .patch-header { color: var(--gold); font-size: 1.1em; text-transform: uppercase; margin-bottom: 8px; border-bottom: 1px solid #333; }
+        .patch-content { font-family: 'Crimson Text', serif; font-style: italic; color: #aaa; max-height: 120px; overflow-y: auto; }
 
         .btn { 
             width: 100%; padding: 14px; cursor: pointer; 
-            text-transform: uppercase; transition: 0.3s; font-family: 'MedievalSharp'; 
-            font-weight: bold; letter-spacing: 2px; border: 1px solid var(--gold);
+            text-transform: uppercase; font-family: 'MedievalSharp'; 
+            font-weight: bold; border: 1px solid var(--gold);
         }
         .btn-main { background: var(--accent); color: white; margin-bottom: 10px; }
         .btn-sub { background: transparent; color: var(--gold); font-size: 0.8em; opacity: 0.6; }
-
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-track { background: #111; }
-        ::-webkit-scrollbar-thumb { background: var(--gold); }
     </style>
 </head>
 <body>
@@ -122,7 +106,7 @@
                     <div id="found-hint" style="color: #59c559; font-size: 0.85em; margin-top: 5px; display: none; font-family: 'MedievalSharp';">✓ Ismert kalandor</div>
                 </div>
 
-                <input type="password" id="login-pin" placeholder="PIN KÓD" maxlength="4" inputmode="numeric">
+                <input type="password" id="login-pin" placeholder="PIN KÓD" maxlength="4">
                 
                 <button class="btn btn-main" onclick="login()">Belépés</button>
                 <button class="btn btn-sub" onclick="location.href='creator.html'">Új Karakter Indítása</button>
@@ -130,7 +114,7 @@
 
             <div class="patch-notes">
                 <div class="patch-header">📜 Krónikák</div>
-                <div id="patch-text" class="patch-content">Tollasodnak a hírek...</div>
+                <div id="patch-text" class="patch-content">Betöltés...</div>
             </div>
         </div>
     </div>
@@ -138,10 +122,9 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <script>
-        // Skálázás, hogy mindig beleférjen a képernyőbe
         function scale() {
             const el = document.getElementById('main-wrapper');
-            const s = Math.min(window.innerWidth / 1024, window.innerHeight / 1024);
+            const s = Math.min(window.innerWidth / 1792, window.innerHeight / 1024);
             el.style.transform = `scale(${s})`;
         }
         window.addEventListener('resize', scale);
@@ -167,49 +150,35 @@
 
         const searchInput = document.getElementById('hero-search');
         const listContainer = document.getElementById('autocomplete-list');
-        const hint = document.getElementById('found-hint');
 
         searchInput.addEventListener('input', function() {
             const val = this.value.trim().toLowerCase();
             listContainer.innerHTML = '';
-            hint.style.display = 'none';
+            document.getElementById('found-hint').style.display = 'none';
             selectedId = null;
 
             if (!val) { listContainer.style.display = 'none'; return; }
 
-            let matches = 0;
             Object.keys(characters).forEach(id => {
                 const charData = characters[id];
-                // JAVÍTÁS: Ellenőrizzük, hogy létezik-e a név mező!
-                if (charData && charData.name) {
-                    const charName = charData.name;
-                    if (charName.toLowerCase().includes(val)) {
-                        const item = document.createElement('div');
-                        item.className = 'suggestion-item';
-                        const regex = new RegExp(`(${val})`, 'gi');
-                        item.innerHTML = charName.replace(regex, "<b>$1</b>");
-                        item.onclick = () => {
-                            searchInput.value = charName;
-                            selectedId = id;
-                            listContainer.style.display = 'none';
-                            hint.style.display = 'block';
-                        };
-                        listContainer.appendChild(item);
-                        matches++;
-                    }
+                if (charData && charData.name && charData.name.toLowerCase().includes(val)) {
+                    const item = document.createElement('div');
+                    item.className = 'suggestion-item';
+                    item.innerText = charData.name;
+                    item.onclick = () => {
+                        searchInput.value = charData.name;
+                        selectedId = id;
+                        listContainer.style.display = 'none';
+                        document.getElementById('found-hint').style.display = 'block';
+                    };
+                    listContainer.appendChild(item);
                 }
             });
-            listContainer.style.display = matches > 0 ? 'block' : 'none';
+            listContainer.style.display = listContainer.childElementCount > 0 ? 'block' : 'none';
         });
 
         function login() {
-            const nameInput = searchInput.value.trim().toLowerCase();
             const pin = document.getElementById('login-pin').value;
-            if (!selectedId) {
-                selectedId = Object.keys(characters).find(id => 
-                    characters[id] && characters[id].name && characters[id].name.toLowerCase() === nameInput
-                );
-            }
             if (selectedId && characters[selectedId].pin.toString() === pin) {
                 localStorage.setItem('selectedCharId', selectedId);
                 window.location.href = 'index.html';
