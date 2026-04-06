@@ -139,9 +139,9 @@
 
         <div class="class-info-box">
             <div class="stats-row">
-                <span id="hp-val">❤️ 150</span>
+                <span id="hp-val">❤️ 120</span>
                 <span id="atk-val">⚔️ 12</span>
-                <span id="def-val">🛡️ 10</span>
+                <span id="def-val">🛡️ 8</span>
             </div>
             <div class="desc-text" id="class-desc">Magas életerővel rendelkező, közelharci specialista. Szívós és bátor.</div>
             <div style="color:#ff4d4d; margin-top:10px; font-size:0.9em;" id="class-spec">✨ Pajzsütés: Esély kábításra.</div>
@@ -168,13 +168,14 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
+    // SZINKRONIZÁLVA A LOBBY BASE_STATS LISTÁJÁVAL
     const CLASS_DATA = {
-        "Harcos": { img: "https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png", desc: "Magas életerővel rendelkező, közelharci specialista. Szívós és bátor.", spec: "Pajzsütés: Esély az ellenfél kábítására.", hp: 150, atk: 12, def: 10 },
-        "Mágus": { img: "https://i.ibb.co/yFz5bcXv/Copilot-20260403-033651.png", desc: "A misztikus tanok mestere. Kevés védelme van, de pusztító ereje.", spec: "Tűzgolyó: Hatalmas robbanásos sebzés.", hp: 80, atk: 22, def: 4 },
-        "Lovag": { img: "https://i.ibb.co/Fk3n339M/Copilot-20260403-034043.png", desc: "A becsület bajnoka. A legvastagabb páncélt hordja a birodalomban.", spec: "Szent Áldás: Lassú HP regeneráció harc alatt.", hp: 130, atk: 10, def: 15 },
-        "Íjász": { img: "https://i.ibb.co/whd2jNpB/Copilot-20260403-034402.png", desc: "Messziről sújt le, mielőtt az ellenfél észrevenné. Gyors és pontos.", spec: "Dupla Lövés: Esély két egymást követő nyílra.", hp: 100, atk: 16, def: 7 },
-        "Bérgyilkos": { img: "https://i.ibb.co/b525CsLg/Copilot-20260403-032807.png", desc: "Az árnyékok közt vadászik. Egyetlen precíz csapással végez bárkivel.", spec: "Hátbaszúrás: Extra kritikus sebzés.", hp: 90, atk: 20, def: 5 },
-        "Nekromanta": { img: "https://i.ibb.co/NnCwwCbR/Copilot-20260403-033301.png", desc: "A holtak ura. Sötét mágiával szívja el az életet másokból.", spec: "Lélekelszívás: Győzelemkor HP-t tölt vissza.", hp: 110, atk: 15, def: 8 }
+        "Harcos": { img: "https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png", desc: "Magas életerővel rendelkező, közelharci specialista. Szívós és bátor.", spec: "Pajzsütés: Esély az ellenfél kábítására.", hp: 120, atk: 12, def: 8 },
+        "Mágus": { img: "https://i.ibb.co/yFz5bcXv/Copilot-20260403-033651.png", desc: "A misztikus tanok mestere. Kevés védelme van, de pusztító ereje.", spec: "Tűzgolyó: Hatalmas robbanásos sebzés.", hp: 80, atk: 15, def: 4 },
+        "Lovag": { img: "https://i.ibb.co/Fk3n339M/Copilot-20260403-034043.png", desc: "A becsület bajnoka. A legvastagabb páncélt hordja a birodalomban.", spec: "Szent Áldás: Lassú HP regeneráció harc alatt.", hp: 150, atk: 10, def: 12 },
+        "Íjász": { img: "https://i.ibb.co/whd2jNpB/Copilot-20260403-034402.png", desc: "Messziről sújt le, mielőtt az ellenfél észrevenné. Gyors és pontos.", spec: "Dupla Lövés: Esély két egymást követő nyílra.", hp: 90, atk: 14, def: 6 },
+        "Bérgyilkos": { img: "https://i.ibb.co/b525CsLg/Copilot-20260403-032807.png", desc: "Az árnyékok közt vadászik. Egyetlen precíz csapással végez bárkivel.", spec: "Hátbaszúrás: Extra kritikus sebzés.", hp: 85, atk: 16, def: 5 },
+        "Nekromanta": { img: "https://i.ibb.co/NnCwwCbR/Copilot-20260403-033301.png", desc: "A holtak ura. Sötét mágiával szívja el az életet másokból.", spec: "Lélekelszívás: Győzelemkor HP-t tölt vissza.", hp: 100, atk: 13, def: 7 }
     };
 
     function updateClass() {
@@ -204,7 +205,6 @@
         const stats = CLASS_DATA[charClass];
         const newId = db.ref('characters').push().key;
 
-        // BIZTONSÁGI JAVÍTÁS: Kényszerítjük a szám típust és hozzáadunk minden szükséges mezőt
         db.ref('characters/' + newId).set({
             id: newId, 
             name: name, 
@@ -218,7 +218,6 @@
             maxHp: Number(stats.hp),
             atk: Number(stats.atk), 
             def: Number(stats.def),
-            // Ezeket is érdemes nullázni, hogy a Lobby ne 0-át mutasson ha nincs tárgy
             bonusAtk: 0,
             bonusDef: 0,
             status: "offline", 
@@ -231,6 +230,9 @@
             alert("Hiba történt az adatbázis mentésekor!");
         });
     }
+    
+    // Alaphelyzetbe állítás induláskor
+    updateClass();
 </script>
 </body>
 </html>
