@@ -139,12 +139,12 @@
 
         <div class="class-info-box">
             <div class="stats-row">
-                <span id="hp-val">❤️ 120</span>
-                <span id="atk-val">⚔️ 12</span>
-                <span id="def-val">🛡️ 8</span>
+                <span id="hp-val">❤️ -</span>
+                <span id="atk-val">⚔️ -</span>
+                <span id="def-val">🛡️ -</span>
             </div>
-            <div class="desc-text" id="class-desc">Magas életerővel rendelkező, közelharci specialista. Szívós és bátor.</div>
-            <div style="color:#ff4d4d; margin-top:10px; font-size:0.9em;" id="class-spec">✨ Pajzsütés: Esély kábításra.</div>
+            <div class="desc-text" id="class-desc">-</div>
+            <div style="color:#ff4d4d; margin-top:10px; font-size:0.9em;" id="class-spec">✨ -</div>
         </div>
 
         <button class="btn-create" onclick="createHero()">Új kalandor létrehozása</button>
@@ -152,7 +152,7 @@
     </div>
 
     <div class="portrait-side">
-        <div id="hero-img" class="hero-image" style="background-image: url('https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png');"></div>
+        <div id="hero-img" class="hero-image"></div>
     </div>
 </div>
 
@@ -168,7 +168,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // SZINKRONIZÁLVA A LOBBY BASE_STATS LISTÁJÁVAL
+    // FRISSÍTETT STATOK AZ ÚJ LISTA ALAPJÁN
     const CLASS_DATA = {
         "Harcos": { img: "https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png", desc: "Magas életerővel rendelkező, közelharci specialista. Szívós és bátor.", spec: "Pajzsütés: Esély az ellenfél kábítására.", hp: 120, atk: 12, def: 8 },
         "Mágus": { img: "https://i.ibb.co/yFz5bcXv/Copilot-20260403-033651.png", desc: "A misztikus tanok mestere. Kevés védelme van, de pusztító ereje.", spec: "Tűzgolyó: Hatalmas robbanásos sebzés.", hp: 80, atk: 15, def: 4 },
