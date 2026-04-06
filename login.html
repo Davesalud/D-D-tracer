@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Death's Armada - Login</title>
-    <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Crimson+Text:ital@1&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Crimson+Text:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <style>
-        :root { --gold: #c5a059; --bg: #050507; --accent: #8b0000; --glass: rgba(15, 15, 18, 0.95); }
+        :root { --gold: #c5a059; --bg: #050507; --accent: #8b0000; --glass: rgba(10, 10, 12, 0.95); }
         
         body { 
             font-family: 'MedievalSharp', cursive; 
@@ -15,118 +15,148 @@
             margin: 0; 
             display: flex; 
             align-items: center; 
-            justify-content: center; 
+            justify-content: flex-start; 
+            padding-left: 8%;
             min-height: 100vh; 
-            overflow-x: hidden;
-            overflow-y: auto;
+            overflow: hidden;
         }
 
         .master-bg { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.7)), url('https://i.ibb.co/k2cqD5TF/1b9b48cc-e761-4b0b-a9ea-578e6672b24e.jpg'); 
+            background-image: linear-gradient(to right, rgba(0,0,0,0.9) 10%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.8) 100%), 
+                             url('https://i.ibb.co/4QPwwQM/Copilot-20260406-153524.png'); 
             background-size: cover; 
-            background-position: center top; 
+            background-position: center; 
             z-index: -1; 
         }
         
-        .main-container { 
-            display: flex; 
-            gap: 30px; 
-            max-width: 1000px; 
-            width: 95%; 
-            align-items: stretch; 
-            z-index: 10; 
-            padding: 20px 0;
+        .side-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 400px;
+            z-index: 10;
         }
-
-        .patch-notes { 
-            flex: 1; background: var(--glass); border: 1px solid rgba(197, 160, 89, 0.2); 
-            padding: 25px; border-radius: 4px; box-shadow: 0 10px 40px black;
-            backdrop-filter: blur(8px); display: flex; flex-direction: column;
-        }
-        .patch-header { color: var(--gold); border-bottom: 1px solid var(--gold); margin-bottom: 15px; font-size: 1.3em; text-transform: uppercase; letter-spacing: 2px; }
-        .patch-content { font-family: 'Crimson Text', serif; font-style: italic; font-size: 1.1em; color: #ddd; overflow-y: auto; max-height: 350px; line-height: 1.6; }
 
         .card { 
-            width: 420px; background: var(--glass); border: 2px solid var(--gold); 
-            padding: 40px; border-radius: 4px; text-align: center; 
-            box-shadow: 0 0 60px rgba(0,0,0,1); 
-            backdrop-filter: blur(12px); position: relative;
-            box-sizing: border-box;
+            background: var(--glass); 
+            border: 2px solid var(--gold); 
+            padding: 30px; 
+            border-radius: 2px; 
+            text-align: center; 
+            box-shadow: 0 0 50px rgba(0,0,0,1); 
+            backdrop-filter: blur(10px);
+            border-image: linear-gradient(to bottom, #c5a059, #4a3511) 1;
         }
         
-        .logo { font-size: 3.2em; color: var(--accent); text-shadow: 2px 2px 10px black, 0 0 20px rgba(139,0,0,0.5); margin-bottom: 35px; letter-spacing: -1px; }
+        .logo { 
+            font-size: 3.2em; 
+            color: #fff;
+            text-shadow: 0px 0px 15px var(--accent), 2px 2px 2px #000; 
+            margin-bottom: 25px; 
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
         
+        .input-group { position: relative; margin-bottom: 15px; }
+
         input { 
-            width: 100%; padding: 16px; margin-bottom: 20px; background: rgba(0,0,0,0.7); 
+            width: 100%; padding: 14px; background: rgba(0,0,0,0.8); 
             border: 1px solid #444; color: var(--gold); font-family: 'MedievalSharp'; 
             font-size: 1.1em; transition: 0.3s; box-sizing: border-box; text-align: center;
         }
-        input:focus { border-color: var(--gold); outline: none; background: rgba(20,20,20,0.8); }
-
-        /* --- KERESÉSI LISTA JAVÍTÁSA --- */
-        #search-results { 
-            background: #111 !important; 
-            border: 1px solid var(--gold); 
-            border-top: none;
-            max-height: 200px; 
-            overflow-y: auto; 
-            margin-top: -20px; 
-            margin-bottom: 20px; 
-            display: none; 
-            position: absolute; 
-            width: 100%; 
-            z-index: 9999; /* Legyen legfelül */
-            box-shadow: 0 10px 30px black;
+        input:focus { border-color: var(--gold); outline: none; box-shadow: 0 0 10px rgba(197, 160, 89, 0.3); }
+        
+        /* SZŰRŐ LISTA STÍLUSA */
+        .autocomplete-box {
+            position: absolute;
+            top: 100%;
             left: 0;
+            width: 100%;
+            background: #0a0a0a;
+            border: 1px solid var(--gold);
+            border-top: none;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
         }
-        .search-item { 
-            padding: 14px; 
-            cursor: pointer; 
-            border-bottom: 1px solid #222; 
-            text-align: left; 
+        .suggestion-item {
+            padding: 12px;
+            text-align: left;
+            cursor: pointer;
+            border-bottom: 1px solid #222;
             color: var(--gold);
-            background: #111;
+            font-size: 0.95em;
         }
-        .search-item:hover { background: var(--accent); color: white; }
+        .suggestion-item:hover {
+            background: var(--accent);
+            color: white;
+        }
+        .suggestion-item b { color: #fff; text-decoration: underline; }
+
+        .name-exists-hint {
+            font-family: 'Crimson Text';
+            font-size: 0.85em;
+            color: #59c559; /* Zöld, ha létezik (be tud lépni) */
+            margin-top: 5px;
+            display: none;
+        }
+
+        .patch-notes { 
+            background: rgba(0, 0, 0, 0.8); 
+            border-left: 3px solid var(--accent);
+            padding: 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        }
+        .patch-header { 
+            color: var(--gold); font-size: 1.1em; text-transform: uppercase; 
+            margin-bottom: 8px; border-bottom: 1px solid #333; padding-bottom: 5px;
+        }
+        .patch-content { 
+            font-family: 'Crimson Text', serif; font-style: italic; 
+            font-size: 1em; color: #aaa; max-height: 120px; overflow-y: auto; line-height: 1.4; 
+        }
 
         .btn { 
-            width: 100%; padding: 16px; cursor: pointer; border: 1px solid var(--gold); 
+            width: 100%; padding: 14px; cursor: pointer; 
             text-transform: uppercase; transition: 0.3s; font-family: 'MedievalSharp'; 
-            margin-bottom: 12px; font-weight: bold; letter-spacing: 2px; display: flex; align-items: center; justify-content: center;
+            font-weight: bold; letter-spacing: 2px; border: 1px solid var(--gold);
         }
-        .btn-main { background: var(--accent); color: white; border: none; font-size: 1.2em; }
-        .btn-main:hover { background: #b00000; transform: translateY(-3px); }
+        .btn-main { background: var(--accent); color: white; margin-bottom: 10px; }
+        .btn-main:hover { background: #b00000; letter-spacing: 3px; }
+        .btn-sub { background: transparent; color: var(--gold); font-size: 0.8em; opacity: 0.6; }
+        .btn-sub:hover { opacity: 1; background: rgba(197, 160, 89, 0.05); }
 
-        .btn-sub { background: transparent; color: var(--gold); font-size: 0.9em; opacity: 0.8; margin-top: 10px; border: 1px solid transparent; }
-        .btn-sub:hover { opacity: 1; border-color: var(--gold); }
-
-        @media (max-width: 850px) {
-            body { align-items: flex-start; }
-            .main-container { flex-direction: column-reverse; width: 90%; gap: 20px; padding: 40px 0; }
-            .card { width: 100%; padding: 25px; }
-            .logo { font-size: 2.2em; }
-        }
+        /* Scrollbar stílus */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #111; }
+        ::-webkit-scrollbar-thumb { background: var(--gold); }
     </style>
 </head>
 <body>
     <div class="master-bg"></div>
 
-    <div class="main-container">
-        <div class="patch-notes">
-            <div class="patch-header">📜 Fejlesztői Napló</div>
-            <div id="patch-text" class="patch-content">Betöltés...</div>
-        </div>
-
+    <div class="side-panel">
         <div class="card">
             <div class="logo">Death's Armada</div>
-            <div style="position: relative; width: 100%;">
+            
+            <div class="input-group">
                 <input type="text" id="hero-search" placeholder="Kalandor neve..." autocomplete="off">
-                <div id="search-results"></div>
+                <div id="autocomplete-list" class="autocomplete-box"></div>
+                <div id="found-hint" class="name-exists-hint">✓ Ismert kalandor</div>
             </div>
+
             <input type="password" id="login-pin" placeholder="PIN KÓD" maxlength="4" inputmode="numeric">
+            
             <button class="btn btn-main" onclick="login()">Belépés</button>
-            <button class="btn btn-sub" onclick="location.href='creator.html'">✨ Új Kalandor Létrehozása</button>
+            <button class="btn btn-sub" onclick="location.href='creator.html'">Új Karakter Indítása</button>
+        </div>
+
+        <div class="patch-notes">
+            <div class="patch-header">📜 Krónikák</div>
+            <div id="patch-text" class="patch-content">Tollasodnak a hírek...</div>
         </div>
     </div>
 
@@ -142,63 +172,80 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let chars = {}, selectedId = null;
+        let characters = {};
+        let selectedId = null;
 
+        // Adatok betöltése
         db.ref('settings/patchNotes').on('value', snap => {
-            document.getElementById('patch-text').innerHTML = snap.val() || "Üdvözöllek vándor!";
+            document.getElementById('patch-text').innerHTML = snap.val() || "A birodalom békés.";
         });
 
         db.ref('characters').on('value', snap => { 
-            chars = snap.val() || {}; 
+            characters = snap.val() || {}; 
         });
 
         const searchInput = document.getElementById('hero-search');
-        const resDiv = document.getElementById('search-results');
+        const listContainer = document.getElementById('autocomplete-list');
+        const hint = document.getElementById('found-hint');
 
-        // KERESÉS ÉS MEGJELENÍTÉS
-        searchInput.addEventListener('input', (e) => {
-            const text = e.target.value.toLowerCase().trim();
-            resDiv.innerHTML = "";
+        // KERESŐ ÉS SZŰRŐ LOGIKA
+        searchInput.addEventListener('input', function() {
+            const val = this.value.trim();
+            listContainer.innerHTML = '';
+            hint.style.display = 'none';
             selectedId = null;
 
-            if(text.length < 1) { resDiv.style.display = "none"; return; }
+            if (!val) {
+                listContainer.style.display = 'none';
+                return;
+            }
 
-            let found = false;
-            Object.keys(chars).forEach(id => {
-                if(chars[id].name.toLowerCase().includes(text)) {
-                    const d = document.createElement('div');
-                    d.className = "search-item";
-                    d.innerText = chars[id].name;
-                    d.onclick = (event) => { 
-                        event.stopPropagation();
-                        searchInput.value = chars[id].name; 
-                        selectedId = id; 
-                        resDiv.style.display = "none"; 
+            let matches = 0;
+            Object.keys(characters).forEach(id => {
+                const name = characters[id].name;
+                // Ha a név tartalmazza a beírt szöveget
+                if (name.toLowerCase().includes(val.toLowerCase())) {
+                    const item = document.createElement('div');
+                    item.className = 'suggestion-item';
+                    
+                    // Kiemelés a találatnál
+                    const regex = new RegExp(`(${val})`, 'gi');
+                    item.innerHTML = name.replace(regex, "<b>$1</b>");
+                    
+                    item.onclick = () => {
+                        searchInput.value = name;
+                        selectedId = id;
+                        listContainer.style.display = 'none';
+                        hint.style.display = 'block';
                     };
-                    resDiv.appendChild(d);
-                    found = true;
+                    
+                    listContainer.appendChild(item);
+                    matches++;
                 }
             });
-            resDiv.style.display = found ? "block" : "none";
+
+            listContainer.style.display = matches > 0 ? 'block' : 'none';
         });
 
+        // Kattintás kívülre bezárja a listát
         document.addEventListener('click', (e) => {
-            if (e.target !== searchInput) resDiv.style.display = "none";
+            if (e.target !== searchInput) listContainer.style.display = 'none';
         });
 
         function login() {
-            const nameInput = searchInput.value.toLowerCase().trim();
+            const nameInput = searchInput.value.trim().toLowerCase();
             const pin = document.getElementById('login-pin').value;
 
+            // Ha nem kattintott rá, de beírta pontosan a nevet
             if (!selectedId) {
-                selectedId = Object.keys(chars).find(id => chars[id].name.toLowerCase() === nameInput);
+                selectedId = Object.keys(characters).find(id => characters[id].name.toLowerCase() === nameInput);
             }
 
-            if (selectedId && chars[selectedId].pin.toString() === pin) {
+            if (selectedId && characters[selectedId].pin.toString() === pin) {
                 localStorage.setItem('selectedCharId', selectedId);
                 window.location.href = 'index.html';
             } else {
-                alert("Hibás név vagy PIN!");
+                alert("A név vagy a PIN nem megfelelő a belépéshez!");
             }
         }
     </script>
