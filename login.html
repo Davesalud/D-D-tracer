@@ -67,7 +67,6 @@
         }
         input:focus { border-color: var(--gold); outline: none; box-shadow: 0 0 10px rgba(197, 160, 89, 0.3); }
         
-        /* SZŰRŐ LISTA STÍLUSA */
         .autocomplete-box {
             position: absolute;
             top: 100%;
@@ -79,7 +78,7 @@
             max-height: 200px;
             overflow-y: auto;
             display: none;
-            z-index: 1000;
+            z-index: 9999 !important; /* Maximális prioritás */
             box-shadow: 0 10px 30px rgba(0,0,0,0.8);
         }
         .suggestion-item {
@@ -99,7 +98,7 @@
         .name-exists-hint {
             font-family: 'Crimson Text';
             font-size: 0.85em;
-            color: #59c559; /* Zöld, ha létezik (be tud lépni) */
+            color: #59c559;
             margin-top: 5px;
             display: none;
         }
@@ -129,7 +128,6 @@
         .btn-sub { background: transparent; color: var(--gold); font-size: 0.8em; opacity: 0.6; }
         .btn-sub:hover { opacity: 1; background: rgba(197, 160, 89, 0.05); }
 
-        /* Scrollbar stílus */
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-track { background: #111; }
         ::-webkit-scrollbar-thumb { background: var(--gold); }
@@ -175,7 +173,6 @@
         let characters = {};
         let selectedId = null;
 
-        // Adatok betöltése
         db.ref('settings/patchNotes').on('value', snap => {
             document.getElementById('patch-text').innerHTML = snap.val() || "A birodalom békés.";
         });
@@ -188,9 +185,9 @@
         const listContainer = document.getElementById('autocomplete-list');
         const hint = document.getElementById('found-hint');
 
-        // KERESŐ ÉS SZŰRŐ LOGIKA
+        // JAVÍTOTT KERESŐ ÉS SZŰRŐ LOGIKA
         searchInput.addEventListener('input', function() {
-            const val = this.value.trim();
+            const val = this.value.trim().toLowerCase();
             listContainer.innerHTML = '';
             hint.style.display = 'none';
             selectedId = null;
@@ -202,32 +199,35 @@
 
             let matches = 0;
             Object.keys(characters).forEach(id => {
-                const name = characters[id].name;
-                // Ha a név tartalmazza a beírt szöveget
-                if (name.toLowerCase().includes(val.toLowerCase())) {
-                    const item = document.createElement('div');
-                    item.className = 'suggestion-item';
+                const charData = characters[id];
+                
+                // Ellenőrzés, hogy az adat és a név létezik-e (itt volt a hiba)
+                if (charData && charData.name) {
+                    const charName = charData.name;
                     
-                    // Kiemelés a találatnál
-                    const regex = new RegExp(`(${val})`, 'gi');
-                    item.innerHTML = name.replace(regex, "<b>$1</b>");
-                    
-                    item.onclick = () => {
-                        searchInput.value = name;
-                        selectedId = id;
-                        listContainer.style.display = 'none';
-                        hint.style.display = 'block';
-                    };
-                    
-                    listContainer.appendChild(item);
-                    matches++;
+                    if (charName.toLowerCase().includes(val)) {
+                        const item = document.createElement('div');
+                        item.className = 'suggestion-item';
+                        
+                        const regex = new RegExp(`(${val})`, 'gi');
+                        item.innerHTML = charName.replace(regex, "<b>$1</b>");
+                        
+                        item.onclick = () => {
+                            searchInput.value = charName;
+                            selectedId = id;
+                            listContainer.style.display = 'none';
+                            hint.style.display = 'block';
+                        };
+                        
+                        listContainer.appendChild(item);
+                        matches++;
+                    }
                 }
             });
 
             listContainer.style.display = matches > 0 ? 'block' : 'none';
         });
 
-        // Kattintás kívülre bezárja a listát
         document.addEventListener('click', (e) => {
             if (e.target !== searchInput) listContainer.style.display = 'none';
         });
@@ -236,9 +236,10 @@
             const nameInput = searchInput.value.trim().toLowerCase();
             const pin = document.getElementById('login-pin').value;
 
-            // Ha nem kattintott rá, de beírta pontosan a nevet
             if (!selectedId) {
-                selectedId = Object.keys(characters).find(id => characters[id].name.toLowerCase() === nameInput);
+                selectedId = Object.keys(characters).find(id => 
+                    characters[id] && characters[id].name && characters[id].name.toLowerCase() === nameInput
+                );
             }
 
             if (selectedId && characters[selectedId].pin.toString() === pin) {
