@@ -3,38 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Death's Armada - Login</title>
+    <title>Death's Armada - Fixed Ratio</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Crimson+Text:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #c5a059; --bg: #050507; --accent: #8b0000; --glass: rgba(10, 10, 12, 0.95); }
         
-        body { 
-            font-family: 'MedievalSharp', cursive; 
-            background-color: var(--bg); 
-            color: white; 
-            margin: 0; 
-            display: flex; 
-            align-items: center; 
-            justify-content: flex-start; 
-            padding-left: 8%;
-            min-height: 100vh; 
+        /* Teljes sötétség a háttérben, ha nem passzol az arány */
+        html, body {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background-color: #000; display: flex; align-items: center; justify-content: center;
             overflow: hidden;
         }
 
-        .master-bg { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background-image: linear-gradient(to right, rgba(0,0,0,0.9) 10%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.8) 100%), 
-                             url('https://i.ibb.co/4QPwwQM/Copilot-20260406-153524.png'); 
-            background-size: cover; 
-            background-position: center; 
-            z-index: -1; 
+        /* A KÉP ARÁNYÁHOZ IGAZÍTOTT KONTÉNER (1792x1024) */
+        .page-wrapper {
+            position: relative;
+            width: 100vw;
+            height: 57.14vw; /* 1024/1792 arány */
+            max-height: 100vh;
+            max-width: 175vh; /* 1792/1024 arány */
+            background-image: linear-gradient(to right, rgba(0,0,0,0.85) 10%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.8) 100%), 
+                             url('https://i.ibb.co/4QPwwQM/Copilot-20260406-153524.png');
+            background-size: 100% 100%; /* Kitölti a fix területet */
+            background-position: center;
+            display: flex;
+            align-items: center;
+            padding-left: 6%;
+            box-sizing: border-box;
+            box-shadow: 0 0 100px rgba(0,0,0,1);
         }
-        
+
         .side-panel {
             display: flex;
             flex-direction: column;
             gap: 20px;
-            width: 400px;
+            width: 25%; /* A szélességet is arányosítottam */
+            min-width: 350px;
             z-index: 10;
         }
 
@@ -50,7 +54,8 @@
         }
         
         .logo { 
-            font-size: 3.2em; 
+            font-size: 2.8vw; /* Betűméret is arányosan változik */
+            min-size: 28px;
             color: #fff;
             text-shadow: 0px 0px 15px var(--accent), 2px 2px 2px #000; 
             margin-bottom: 25px; 
@@ -68,46 +73,22 @@
         input:focus { border-color: var(--gold); outline: none; box-shadow: 0 0 10px rgba(197, 160, 89, 0.3); }
         
         .autocomplete-box {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            width: 100%;
-            background: #0a0a0a;
-            border: 1px solid var(--gold);
-            border-top: none;
-            max-height: 200px;
-            overflow-y: auto;
-            display: none;
-            z-index: 9999 !important; /* Maximális prioritás */
+            position: absolute; top: 100%; left: 0; width: 100%;
+            background: #0a0a0a; border: 1px solid var(--gold);
+            max-height: 180px; overflow-y: auto; display: none;
+            z-index: 9999 !important;
             box-shadow: 0 10px 30px rgba(0,0,0,0.8);
         }
         .suggestion-item {
-            padding: 12px;
-            text-align: left;
-            cursor: pointer;
-            border-bottom: 1px solid #222;
-            color: var(--gold);
-            font-size: 0.95em;
+            padding: 12px; text-align: left; cursor: pointer;
+            border-bottom: 1px solid #222; color: var(--gold); font-size: 0.95em;
         }
-        .suggestion-item:hover {
-            background: var(--accent);
-            color: white;
-        }
-        .suggestion-item b { color: #fff; text-decoration: underline; }
-
-        .name-exists-hint {
-            font-family: 'Crimson Text';
-            font-size: 0.85em;
-            color: #59c559;
-            margin-top: 5px;
-            display: none;
-        }
+        .suggestion-item:hover { background: var(--accent); color: white; }
 
         .patch-notes { 
             background: rgba(0, 0, 0, 0.8); 
             border-left: 3px solid var(--accent);
             padding: 20px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
         }
         .patch-header { 
             color: var(--gold); font-size: 1.1em; text-transform: uppercase; 
@@ -126,7 +107,6 @@
         .btn-main { background: var(--accent); color: white; margin-bottom: 10px; }
         .btn-main:hover { background: #b00000; letter-spacing: 3px; }
         .btn-sub { background: transparent; color: var(--gold); font-size: 0.8em; opacity: 0.6; }
-        .btn-sub:hover { opacity: 1; background: rgba(197, 160, 89, 0.05); }
 
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-track { background: #111; }
@@ -134,27 +114,27 @@
     </style>
 </head>
 <body>
-    <div class="master-bg"></div>
+    <div class="page-wrapper">
+        <div class="side-panel">
+            <div class="card">
+                <div class="logo">Death's Armada</div>
+                
+                <div class="input-group">
+                    <input type="text" id="hero-search" placeholder="Kalandor neve..." autocomplete="off">
+                    <div id="autocomplete-list" class="autocomplete-box"></div>
+                    <div id="found-hint" class="name-exists-hint" style="color: #59c559; font-size: 0.85em; margin-top: 5px; display: none;">✓ Ismert kalandor</div>
+                </div>
 
-    <div class="side-panel">
-        <div class="card">
-            <div class="logo">Death's Armada</div>
-            
-            <div class="input-group">
-                <input type="text" id="hero-search" placeholder="Kalandor neve..." autocomplete="off">
-                <div id="autocomplete-list" class="autocomplete-box"></div>
-                <div id="found-hint" class="name-exists-hint">✓ Ismert kalandor</div>
+                <input type="password" id="login-pin" placeholder="PIN KÓD" maxlength="4" inputmode="numeric">
+                
+                <button class="btn btn-main" onclick="login()">Belépés</button>
+                <button class="btn btn-sub" onclick="location.href='creator.html'">Új Karakter Indítása</button>
             </div>
 
-            <input type="password" id="login-pin" placeholder="PIN KÓD" maxlength="4" inputmode="numeric">
-            
-            <button class="btn btn-main" onclick="login()">Belépés</button>
-            <button class="btn btn-sub" onclick="location.href='creator.html'">Új Karakter Indítása</button>
-        </div>
-
-        <div class="patch-notes">
-            <div class="patch-header">📜 Krónikák</div>
-            <div id="patch-text" class="patch-content">Tollasodnak a hírek...</div>
+            <div class="patch-notes">
+                <div class="patch-header">📜 Krónikák</div>
+                <div id="patch-text" class="patch-content">Tollasodnak a hírek...</div>
+            </div>
         </div>
     </div>
 
@@ -177,77 +157,56 @@
             document.getElementById('patch-text').innerHTML = snap.val() || "A birodalom békés.";
         });
 
-        db.ref('characters').on('value', snap => { 
-            characters = snap.val() || {}; 
-        });
+        db.ref('characters').on('value', snap => { characters = snap.val() || {}; });
 
         const searchInput = document.getElementById('hero-search');
         const listContainer = document.getElementById('autocomplete-list');
         const hint = document.getElementById('found-hint');
 
-        // JAVÍTOTT KERESŐ ÉS SZŰRŐ LOGIKA
         searchInput.addEventListener('input', function() {
             const val = this.value.trim().toLowerCase();
             listContainer.innerHTML = '';
             hint.style.display = 'none';
             selectedId = null;
 
-            if (!val) {
-                listContainer.style.display = 'none';
-                return;
-            }
+            if (!val) { listContainer.style.display = 'none'; return; }
 
             let matches = 0;
             Object.keys(characters).forEach(id => {
                 const charData = characters[id];
-                
-                // Ellenőrzés, hogy az adat és a név létezik-e (itt volt a hiba)
                 if (charData && charData.name) {
                     const charName = charData.name;
-                    
                     if (charName.toLowerCase().includes(val)) {
                         const item = document.createElement('div');
                         item.className = 'suggestion-item';
-                        
                         const regex = new RegExp(`(${val})`, 'gi');
                         item.innerHTML = charName.replace(regex, "<b>$1</b>");
-                        
                         item.onclick = () => {
                             searchInput.value = charName;
                             selectedId = id;
                             listContainer.style.display = 'none';
                             hint.style.display = 'block';
                         };
-                        
                         listContainer.appendChild(item);
                         matches++;
                     }
                 }
             });
-
             listContainer.style.display = matches > 0 ? 'block' : 'none';
-        });
-
-        document.addEventListener('click', (e) => {
-            if (e.target !== searchInput) listContainer.style.display = 'none';
         });
 
         function login() {
             const nameInput = searchInput.value.trim().toLowerCase();
             const pin = document.getElementById('login-pin').value;
-
             if (!selectedId) {
                 selectedId = Object.keys(characters).find(id => 
                     characters[id] && characters[id].name && characters[id].name.toLowerCase() === nameInput
                 );
             }
-
             if (selectedId && characters[selectedId].pin.toString() === pin) {
                 localStorage.setItem('selectedCharId', selectedId);
                 window.location.href = 'index.html';
-            } else {
-                alert("A név vagy a PIN nem megfelelő a belépéshez!");
-            }
+            } else { alert("Hiba!"); }
         }
     </script>
 </body>
