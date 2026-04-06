@@ -109,7 +109,6 @@
         .btn-kereskedo { background-image: url('https://i.ibb.co/0HSGQK0/Copilot-20260405-001515.png'); }
         .img-btn span { width: 100%; background: rgba(0, 0, 0, 0.8); color: var(--gold); font-family: 'MedievalSharp'; text-align: center; padding: 6px 0; font-size: 0.85em; text-transform: uppercase; transition: 0.3s; }
 
-        /* --- KLÓNOZOTT STATISZTIKAI SÁV --- */
         .stat-bar-clone { 
             background: rgba(0,0,0,0.8); border: 1px solid var(--gold); 
             padding: 10px; border-radius: 5px; display: flex; 
@@ -268,9 +267,9 @@
         checkLevelUp(c);
         const now = Date.now();
         
-        // RESET ELLENŐRZÉS: Ha LVL 1, de túl magasak a statok
+        // RESET ELLENŐRZÉS: Ha LVL 1, kényszerítjük az alapértékeket (se több, se kevesebb nem lehet)
         const base = BASE_STATS[c.charClass] || { atk: 10, def: 5, maxHp: 100 };
-        if (Number(c.level) === 1 && (Number(c.atk) > base.atk || Number(c.maxHp) > base.maxHp)) {
+        if (Number(c.level) === 1 && (Number(c.atk) !== base.atk || Number(c.maxHp) !== base.maxHp || Number(c.def) !== base.def)) {
             db.ref(`characters/${myId}`).update({
                 atk: base.atk, def: base.def, maxHp: base.maxHp, hp: base.maxHp, xp: 0, nextLvlXp: 100
             });
@@ -281,9 +280,9 @@
         document.getElementById('lobby-lvl').innerText = `LVL ${c.level || 1}`;
         document.getElementById('lobby-gold').innerText = c.gold || 0;
         
-        // Összesített statok (Alap + Leltár bónuszok)
-        document.getElementById('lobby-atk').innerText = (Number(c.atk) || base.atk) + (Number(c.bonusAtk) || 0);
-        document.getElementById('lobby-def').innerText = (Number(c.def) || base.def) + (Number(c.bonusDef) || 0);
+        // Összesített statok (Alap stat + Leltár bónuszok)
+        document.getElementById('lobby-atk').innerText = (Number(c.atk) || 0) + (Number(c.bonusAtk) || 0);
+        document.getElementById('lobby-def').innerText = (Number(c.def) || 0) + (Number(c.bonusDef) || 0);
 
         document.getElementById('lobby-class-display').innerText = c.charClass;
         document.getElementById('lobby-hero-img').style.backgroundImage = `url('${HERO_IMAGES[c.charClass]}')`;
