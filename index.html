@@ -28,14 +28,12 @@
             background-size: cover; background-position: center; z-index: -1; 
         }
         
-        /* GOMB ANIMÁCIÓK - JAVÍTVA */
         .side-action-btn, .img-btn {
             transition: 0.4s ease;
             filter: grayscale(30%);
             will-change: transform;
         }
 
-        /* Itt volt a hiba: a translateY(-50%) lemaradt a hoverről */
         .side-action-btn:hover {
             filter: grayscale(0%) brightness(1.2);
             box-shadow: 0 0 20px var(--gold);
@@ -121,7 +119,6 @@
         .stat-box { background: rgba(0,0,0,0.8); border: 1px solid var(--gold); padding: 8px 12px; border-radius: 4px; color: var(--gold); font-family: 'MedievalSharp'; font-size: 1em; display: flex; align-items: center; gap: 6px; min-width: 90px; justify-content: center; }
         .gold-status-box { background: rgba(0,0,0,0.9); border: 2px solid var(--gold); padding: 8px 15px; border-radius: 6px; color: var(--gold); font-family: 'MedievalSharp'; font-size: 1.1em; display: flex; align-items: center; gap: 8px; }
 
-        /* LEVEL UP MODAL */
         #lvl-up-overlay {
             position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.95);
             display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9999;
@@ -146,7 +143,6 @@
 
         @media (max-width: 1200px) {
             .side-action-btn { position: relative; top: 0; transform: none; width: 100%; max-width: 480px; height: 120px; margin: 10px 0; flex-direction: row; align-items: center; justify-content: space-between; }
-            /* Mobilon nincs translateY(-50%), így itt töröljük a hover transform-ot is */
             .side-action-btn:hover { transform: scale(1.02); }
             .side-action-btn span { width: auto; height: 100%; display: flex; align-items: center; padding: 0 30px; border-top: none; border-left: 2px solid var(--gold); background: linear-gradient(90deg, transparent, rgba(0,0,0,0.9)); }
             .logout-corner { top: 10px; right: 10px; }
@@ -237,23 +233,43 @@
     });
 
     function checkLevelUp(c) {
-        if (c.level >= 30 || isLeveling) return;
-        if (c.xp !== undefined && c.nextLvlXp && c.xp >= c.nextLvlXp) {
+        if (Number(c.level || 1) >= 30 || isLeveling) return;
+        const curXp = Number(c.xp || 0);
+        const nextXp = Number(c.nextLvlXp || 100);
+        if (curXp >= nextXp) {
             isLeveling = true;
-            document.getElementById('lvl-title').innerText = `SZINTLÉPÉS! (LVL ${c.level} → ${c.level + 1})`;
+            document.getElementById('lvl-title').innerText = `SZINTLÉPÉS! (LVL ${c.level} → ${Number(c.level) + 1})`;
             document.getElementById('lvl-up-overlay').style.display = 'flex';
         }
     }
 
     function chooseStat(statField, amount) {
         const c = chars[myId];
-        const newLevel = (c.level || 1) + 1;
-        const leftoverXp = c.xp - c.nextLvlXp;
-        const newNextLvlXp = Math.floor(c.nextLvlXp * 1.2);
+        if (!c) return;
+
+        const currentLevel = Number(c.level || 1);
+        const currentXp = Number(c.xp || 0);
+        const currentNextLvlXp = Number(c.nextLvlXp || 100);
         
-        let updates = { level: newLevel, xp: leftoverXp, nextLvlXp: newNextLvlXp, hp: c.maxHp };
-        updates[statField] = (c[statField] || 0) + amount;
-        if(statField === 'maxHp') updates.hp = updates.maxHp;
+        // XP reset: levonjuk a szükséges mennyiséget
+        const leftoverXp = Math.max(0, currentXp - currentNextLvlXp);
+        const newNextLvlXp = Math.floor(currentNextLvlXp * 1.2);
+        
+        let updates = {
+            level: currentLevel + 1,
+            xp: leftoverXp,
+            nextLvlXp: newNextLvlXp
+        };
+
+        // Stat növelése (biztosítva a szám formátumot)
+        updates[statField] = Number(c[statField] || 0) + amount;
+
+        // Szintlépéskor gyógyulás
+        if(statField === 'maxHp') {
+            updates.hp = updates.maxHp;
+        } else {
+            updates.hp = Number(c.maxHp || 100);
+        }
 
         db.ref(`characters/${myId}`).update(updates).then(() => {
             document.getElementById('lvl-up-overlay').style.display = 'none';
@@ -269,22 +285,30 @@
         document.getElementById('lobby-name').innerText = c.name;
         document.getElementById('lobby-lvl').innerText = `LVL ${c.level || 1}`;
         document.getElementById('lobby-gold').innerText = c.gold || 0;
-        document.getElementById('lobby-atk').innerText = c.atk || 0;
-        document.getElementById('lobby-def').innerText = c.def || 0;
+        
+        // Összesített statok (alap + bónusz ha van)
+        const totalAtk = Number(c.atk || 0) + Number(c.bonusAtk || 0);
+        const totalDef = Number(c.def || 0) + Number(c.bonusDef || 0);
+        document.getElementById('lobby-atk').innerText = totalAtk;
+        document.getElementById('lobby-def').innerText = totalDef;
+
         document.getElementById('lobby-class-display').innerText = c.charClass;
         document.getElementById('lobby-hero-img').style.backgroundImage = `url('${HERO_IMAGES[c.charClass]}')`;
         
-        const hpPercent = (c.hp / c.maxHp) * 100;
+        const curHp = Number(c.hp || 0);
+        const mHp = Number(c.maxHp || 100);
+        const hpPercent = (curHp / mHp) * 100;
         document.getElementById('lobby-hp-fill').style.width = hpPercent + "%";
-        document.getElementById('lobby-hp-val').innerText = `${Math.ceil(c.hp)} / ${c.maxHp} HP`;
+        document.getElementById('lobby-hp-val').innerText = `${Math.ceil(curHp)} / ${mHp} HP`;
         
-        const currentXp = c.xp || 0;
-        const goalXp = c.nextLvlXp || 100; 
+        const currentXp = Number(c.xp || 0);
+        const goalXp = Number(c.nextLvlXp || 100); 
         const xpPercent = Math.min(100, (currentXp / goalXp) * 100);
         
         document.getElementById('lobby-xp-fill').style.width = xpPercent + "%";
         document.getElementById('xp-text').innerText = `XP: ${currentXp} / ${goalXp}`;
         
+        // Online hősök listázása
         const listOnline = document.getElementById('list-online');
         const listArena = document.getElementById('list-arena');
         listOnline.innerHTML = ""; listArena.innerHTML = "";
@@ -292,7 +316,7 @@
         Object.keys(chars).forEach(id => {
             const p = chars[id];
             const isRecent = (now - (p.lastUpdate || 0) < 300000);
-            if (isRecent) {
+            if (isRecent && p.name) {
                 const statusColor = p.status === 'searching' ? '#ff4444' : '#4CAF50';
                 const statusText = p.status === 'searching' ? 'ARÉNÁBAN' : 'ONLINE';
                 const item = `<div class="player-mini-card"><span class="p-name">${p.name}</span><span style="font-size:0.7em; color:${statusColor}; margin-left:5px;">${statusText}</span></div>`;
@@ -305,9 +329,9 @@
     setInterval(() => {
         if (!myId || !chars[myId]) return;
         const c = chars[myId];
-        if (c.hp < c.maxHp) {
-            let regen = Math.max(1, Math.floor(c.maxHp * 0.02));
-            db.ref(`characters/${myId}`).update({ hp: Math.min(c.maxHp, c.hp + regen), lastUpdate: Date.now() });
+        if (Number(c.hp) < Number(c.maxHp)) {
+            let regen = Math.max(1, Math.floor(Number(c.maxHp) * 0.02));
+            db.ref(`characters/${myId}`).update({ hp: Math.min(Number(c.maxHp), Number(c.hp) + regen), lastUpdate: Date.now() });
         } else {
             db.ref(`characters/${myId}`).update({ lastUpdate: Date.now() });
         }
