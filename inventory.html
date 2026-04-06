@@ -14,7 +14,6 @@
             min-height: 100vh; overflow-x: hidden;
         }
 
-        /* FIX HÁTTÉR */
         body::before { 
             content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background-image: url('https://i.ibb.co/y1rJBhv/Copilot-20260404-235606.png'); 
@@ -41,7 +40,6 @@
             padding: 20px; width: 100%; max-width: 1200px;
         }
 
-        /* KARAKTER NÉZET */
         .char-view { 
             position: relative; width: 300px; height: 480px; 
             border: 2px solid var(--gold); background: rgba(0,0,0,0.8); 
@@ -59,7 +57,6 @@
         .slot:hover { border-color: white; box-shadow: 0 0 10px var(--gold); }
         .slot img { width: 45px; height: 45px; }
 
-        /* SLOT POZÍCIÓK */
         .slot[data-slot="sisak"] { top: 20px; left: 120px; }
         .slot[data-slot="fegyver"] { top: 150px; left: 20px; }
         .slot[data-slot="páncél"] { top: 150px; left: 120px; }
@@ -67,7 +64,6 @@
         .slot[data-slot="lábvért"] { top: 300px; left: 120px; }
         .slot[data-slot="cipő"] { top: 390px; left: 120px; }
         
-        /* HÁTIZSÁK */
         .bag-container { 
             background: var(--card); border: 2px solid var(--gold); 
             padding: 15px; border-radius: 8px; width: 100%; max-width: 320px; 
@@ -158,19 +154,23 @@
         document.getElementById('hp-fill').style.width = (hp / maxHp * 100) + "%";
         document.getElementById('hp-text').innerText = `${hp} / ${maxHp}`;
 
-        let totalAtk = 10, totalDef = 5;
+        // Statisztikák számítása az adatbázisban tárolt alapértékek + bónuszok alapján
+        const totalAtk = (Number(c.atk) || 10) + (Number(c.bonusAtk) || 0);
+        const totalDef = (Number(c.def) || 5) + (Number(c.bonusDef) || 0);
+        
+        document.getElementById('stat-atk').innerText = totalAtk;
+        document.getElementById('stat-def').innerText = totalDef;
+
         ["sisak", "fegyver", "páncél", "pajzs", "lábvért", "cipő"].forEach(st => {
             const slotEl = document.querySelector(`.slot[data-slot="${st}"]`);
             const itemId = c[`equip_${st}`];
             if(itemId && ITEMS[itemId]) {
                 slotEl.innerHTML = `<img src="${ITEMS[itemId].img}">`;
-                totalAtk += (ITEMS[itemId].atk || 0); totalDef += (ITEMS[itemId].def || 0);
-            } else { slotEl.innerHTML = st.toUpperCase(); }
+            } else { 
+                slotEl.innerHTML = st.toUpperCase(); 
+            }
         });
         
-        document.getElementById('stat-atk').innerText = totalAtk;
-        document.getElementById('stat-def').innerText = totalDef;
-
         const grid = document.getElementById('inventory-grid');
         grid.innerHTML = '';
         const inv = c.inventory || {};
@@ -208,8 +208,16 @@
     function equipItem(itemId, fbKey, slotType) {
         if (currentCharData[`equip_${slotType}`]) return alert("Már van itt valami!");
         isProcessing = true;
+        
+        const item = ITEMS[itemId];
+        const newBonusAtk = (Number(currentCharData.bonusAtk) || 0) + (Number(item.atk) || 0);
+        const newBonusDef = (Number(currentCharData.bonusDef) || 0) + (Number(item.def) || 0);
+
         const updates = {};
         updates[`equip_${slotType}`] = itemId;
+        updates[`bonusAtk`] = newBonusAtk;
+        updates[`bonusDef`] = newBonusDef;
+
         db.ref(`characters/${myId}`).update(updates).then(() => {
             return db.ref(`characters/${myId}/inventory/${fbKey}`).remove();
         }).finally(() => isProcessing = false);
@@ -217,10 +225,18 @@
 
     function unequipItem(slotType, itemId) {
         isProcessing = true;
+        
+        const item = ITEMS[itemId];
+        const newBonusAtk = Math.max(0, (Number(currentCharData.bonusAtk) || 0) - (Number(item.atk) || 0));
+        const newBonusDef = Math.max(0, (Number(currentCharData.bonusDef) || 0) - (Number(item.def) || 0));
+
         const newKey = db.ref(`characters/${myId}/inventory`).push().key;
         const updates = {};
         updates[`equip_${slotType}`] = null;
+        updates[`bonusAtk`] = newBonusAtk;
+        updates[`bonusDef`] = newBonusDef;
         updates[`inventory/${newKey}`] = itemId;
+
         db.ref(`characters/${myId}`).update(updates).finally(() => isProcessing = false);
     }
 
