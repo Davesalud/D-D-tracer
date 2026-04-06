@@ -3,50 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Death's Armada - Fixed Ratio</title>
+    <title>Death's Armada - Fixed Engine</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Crimson+Text:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #c5a059; --bg: #050507; --accent: #8b0000; --glass: rgba(10, 10, 12, 0.95); }
         
-        /* Teljes sötétség a háttérben, ha nem passzol az arány */
+        /* Alapértelmezett margók törlése és teljes sötétség kívül */
         html, body {
             margin: 0; padding: 0; width: 100%; height: 100%;
-            background-color: #000; display: flex; align-items: center; justify-content: center;
-            overflow: hidden;
+            background-color: #000; overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
         }
 
-        /* A KÉP ARÁNYÁHOZ IGAZÍTOTT KONTÉNER (1792x1024) */
-        .page-wrapper {
+        /* FIX JÁTÉK VÁSZON (1792x1024) */
+        #game-container {
             position: relative;
-            width: 100vw;
-            height: 57.14vw; /* 1024/1792 arány */
-            max-height: 100vh;
-            max-width: 175vh; /* 1792/1024 arány */
+            width: 1792px;
+            height: 1024px;
             background-image: linear-gradient(to right, rgba(0,0,0,0.85) 10%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.8) 100%), 
                              url('https://i.ibb.co/4QPwwQM/Copilot-20260406-153524.png');
-            background-size: 100% 100%; /* Kitölti a fix területet */
+            background-size: 100% 100%;
             background-position: center;
-            display: flex;
-            align-items: center;
-            padding-left: 6%;
-            box-sizing: border-box;
+            overflow: hidden;
+            transform-origin: center center; /* Középpontból méretez */
             box-shadow: 0 0 100px rgba(0,0,0,1);
+            flex-shrink: 0;
         }
 
+        /* Tartalom pozicionálása fix pixelekkel */
         .side-panel {
+            position: absolute;
+            top: 50%;
+            left: 120px; /* Fix távolság a szélétől */
+            transform: translateY(-50%);
             display: flex;
             flex-direction: column;
-            gap: 20px;
-            width: 25%; /* A szélességet is arányosítottam */
-            min-width: 350px;
+            gap: 25px;
+            width: 450px;
             z-index: 10;
         }
 
         .card { 
             background: var(--glass); 
             border: 2px solid var(--gold); 
-            padding: 30px; 
-            border-radius: 2px; 
+            padding: 40px; 
             text-align: center; 
             box-shadow: 0 0 50px rgba(0,0,0,1); 
             backdrop-filter: blur(10px);
@@ -54,67 +54,69 @@
         }
         
         .logo { 
-            font-size: 2.8vw; /* Betűméret is arányosan változik */
-            min-size: 28px;
+            font-size: 58px; /* Fix méret */
             color: #fff;
             text-shadow: 0px 0px 15px var(--accent), 2px 2px 2px #000; 
-            margin-bottom: 25px; 
-            letter-spacing: 1px;
+            margin-bottom: 30px; 
+            letter-spacing: 2px;
             text-transform: uppercase;
+            font-family: 'MedievalSharp';
         }
         
-        .input-group { position: relative; margin-bottom: 15px; }
+        .input-group { position: relative; margin-bottom: 20px; }
 
         input { 
-            width: 100%; padding: 14px; background: rgba(0,0,0,0.8); 
+            width: 100%; padding: 18px; background: rgba(0,0,0,0.8); 
             border: 1px solid #444; color: var(--gold); font-family: 'MedievalSharp'; 
-            font-size: 1.1em; transition: 0.3s; box-sizing: border-box; text-align: center;
+            font-size: 24px; transition: 0.3s; box-sizing: border-box; text-align: center;
         }
-        input:focus { border-color: var(--gold); outline: none; box-shadow: 0 0 10px rgba(197, 160, 89, 0.3); }
+        input:focus { border-color: var(--gold); outline: none; box-shadow: 0 0 15px rgba(197, 160, 89, 0.3); }
         
         .autocomplete-box {
             position: absolute; top: 100%; left: 0; width: 100%;
             background: #0a0a0a; border: 1px solid var(--gold);
-            max-height: 180px; overflow-y: auto; display: none;
-            z-index: 9999 !important;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            max-height: 250px; overflow-y: auto; display: none;
+            z-index: 9999;
         }
         .suggestion-item {
-            padding: 12px; text-align: left; cursor: pointer;
-            border-bottom: 1px solid #222; color: var(--gold); font-size: 0.95em;
+            padding: 15px; text-align: left; cursor: pointer;
+            border-bottom: 1px solid #222; color: var(--gold); font-size: 20px;
         }
         .suggestion-item:hover { background: var(--accent); color: white; }
 
         .patch-notes { 
             background: rgba(0, 0, 0, 0.8); 
-            border-left: 3px solid var(--accent);
-            padding: 20px;
+            border-left: 5px solid var(--accent);
+            padding: 25px;
         }
         .patch-header { 
-            color: var(--gold); font-size: 1.1em; text-transform: uppercase; 
-            margin-bottom: 8px; border-bottom: 1px solid #333; padding-bottom: 5px;
+            color: var(--gold); font-size: 26px; text-transform: uppercase; 
+            margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px;
+            font-family: 'MedievalSharp';
         }
         .patch-content { 
             font-family: 'Crimson Text', serif; font-style: italic; 
-            font-size: 1em; color: #aaa; max-height: 120px; overflow-y: auto; line-height: 1.4; 
+            font-size: 22px; color: #aaa; max-height: 150px; overflow-y: auto; line-height: 1.4; 
         }
 
         .btn { 
-            width: 100%; padding: 14px; cursor: pointer; 
+            width: 100%; padding: 20px; cursor: pointer; 
             text-transform: uppercase; transition: 0.3s; font-family: 'MedievalSharp'; 
             font-weight: bold; letter-spacing: 2px; border: 1px solid var(--gold);
+            font-size: 22px;
         }
-        .btn-main { background: var(--accent); color: white; margin-bottom: 10px; }
-        .btn-main:hover { background: #b00000; letter-spacing: 3px; }
-        .btn-sub { background: transparent; color: var(--gold); font-size: 0.8em; opacity: 0.6; }
+        .btn-main { background: var(--accent); color: white; margin-bottom: 15px; }
+        .btn-main:hover { background: #b00000; letter-spacing: 4px; }
+        .btn-sub { background: transparent; color: var(--gold); font-size: 18px; opacity: 0.6; }
 
-        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #111; }
         ::-webkit-scrollbar-thumb { background: var(--gold); }
     </style>
 </head>
 <body>
-    <div class="page-wrapper">
+
+    <div id="game-container">
         <div class="side-panel">
             <div class="card">
                 <div class="logo">Death's Armada</div>
@@ -122,7 +124,7 @@
                 <div class="input-group">
                     <input type="text" id="hero-search" placeholder="Kalandor neve..." autocomplete="off">
                     <div id="autocomplete-list" class="autocomplete-box"></div>
-                    <div id="found-hint" class="name-exists-hint" style="color: #59c559; font-size: 0.85em; margin-top: 5px; display: none;">✓ Ismert kalandor</div>
+                    <div id="found-hint" style="color: #59c559; font-size: 18px; margin-top: 8px; display: none; font-family: 'MedievalSharp';">✓ Ismert kalandor</div>
                 </div>
 
                 <input type="password" id="login-pin" placeholder="PIN KÓD" maxlength="4" inputmode="numeric">
@@ -133,7 +135,7 @@
 
             <div class="patch-notes">
                 <div class="patch-header">📜 Krónikák</div>
-                <div id="patch-text" class="patch-content">Tollasodnak a hírek...</div>
+                <div id="patch-text" class="patch-content">A birodalom hírei érkeznek...</div>
             </div>
         </div>
     </div>
@@ -141,6 +143,25 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <script>
+        /* MÉRETEZŐ LOGIKA */
+        function scaleContainer() {
+            const container = document.getElementById('game-container');
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+            
+            const scaleX = windowWidth / 1792;
+            const scaleY = windowHeight / 1024;
+            
+            // A kisebb értéket választjuk, hogy ne lógjon le a tartalom
+            const scale = Math.min(scaleX, scaleY);
+            
+            container.style.transform = `scale(${scale})`;
+        }
+
+        window.addEventListener('resize', scaleContainer);
+        window.addEventListener('load', scaleContainer);
+
+        /* FIREBASE ÉS LOGIN LOGIKA */
         const firebaseConfig = { 
             apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU", 
             authDomain: "dnd-tracker-4fe05.firebaseapp.com", 
@@ -206,7 +227,7 @@
             if (selectedId && characters[selectedId].pin.toString() === pin) {
                 localStorage.setItem('selectedCharId', selectedId);
                 window.location.href = 'index.html';
-            } else { alert("Hiba!"); }
+            } else { alert("Hiba a névben vagy a PIN kódban!"); }
         }
     </script>
 </body>
