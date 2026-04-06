@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Death's Armada - 2048 UltraWide</title>
+    <title>Death's Armada - 2048 Dragon Edition</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Crimson+Text:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #c5a059; --bg: #050507; --accent: #8b0000; --glass: rgba(10, 10, 12, 0.95); }
@@ -19,9 +19,10 @@
             position: relative;
             width: 2048px;
             height: 1024px;
+            /* AZ ÚJ SÁRKÁNYOS KÉP BEILLESZTVE */
             background: linear-gradient(to right, rgba(0,0,0,0.85) 15%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.8) 100%), 
-                        url('https://i.ibb.co/YKnhhBh/Copilot-20260406-161516.png');
-            background-size: cover; 
+                        url('https://i.ibb.co/bZBtvtf/Copilot-20260406-162751.png');
+            background-size: 100% 100%; 
             background-position: center;
             overflow: hidden;
             transform-origin: center center;
@@ -32,7 +33,7 @@
         .side-panel {
             position: absolute;
             top: 50%;
-            left: 150px; /* Kicsit beljebb toltam a szélesebb kijelző miatt */
+            left: 150px;
             transform: translateY(-50%);
             display: flex;
             flex-direction: column;
@@ -74,7 +75,6 @@
             font-size: 24px;
         }
         .btn-main { background: var(--accent); color: white; margin-bottom: 15px; }
-        .btn-main:hover { background: #b00000; letter-spacing: 5px; }
         .btn-sub { background: transparent; color: var(--gold); font-size: 18px; opacity: 0.6; }
 
         .patch-notes { 
@@ -99,10 +99,6 @@
         }
         .suggestion-item { padding: 18px; color: var(--gold); font-size: 22px; cursor: pointer; text-align: left; }
         .suggestion-item:hover { background: var(--accent); color: white; }
-
-        ::-webkit-scrollbar { width: 10px; }
-        ::-webkit-scrollbar-track { background: #111; }
-        ::-webkit-scrollbar-thumb { background: var(--gold); }
     </style>
 </head>
 <body>
@@ -134,7 +130,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <script>
-        /* MÉRETEZŐ LOGIKA 2048-RA */
         function scaleContainer() {
             const container = document.getElementById('game-container');
             const scale = Math.min(window.innerWidth / 2048, window.innerHeight / 1024);
@@ -143,7 +138,6 @@
         window.addEventListener('resize', scaleContainer);
         window.addEventListener('load', scaleContainer);
 
-        /* FIREBASE KONFIG */
         const firebaseConfig = { 
             apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU", 
             authDomain: "dnd-tracker-4fe05.firebaseapp.com", 
@@ -198,7 +192,7 @@
                 localStorage.setItem('selectedCharId', selectedId);
                 window.location.href = 'index.html';
             } else { 
-                alert("Hiba a névben vagy a PIN kódban!"); 
+                alert("Hiba!"); 
             }
         }
     </script>
