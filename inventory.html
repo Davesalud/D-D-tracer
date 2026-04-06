@@ -154,7 +154,7 @@
         document.getElementById('hp-fill').style.width = (hp / maxHp * 100) + "%";
         document.getElementById('hp-text').innerText = `${hp} / ${maxHp}`;
 
-        // Statisztikák számítása az adatbázisban tárolt alapértékek + bónuszok alapján
+        // Alap statok + Adatbázisban tárolt bónuszok
         const totalAtk = (Number(c.atk) || 10) + (Number(c.bonusAtk) || 0);
         const totalDef = (Number(c.def) || 5) + (Number(c.bonusDef) || 0);
         
@@ -192,24 +192,37 @@
     function handleInventoryClick(itemId, fbKey) {
         if (isProcessing) return;
         const item = ITEMS[itemId];
+        if (!item) return;
+
         const msg = item.type === "consumable" ? `Megiszod: ${item.name}? (+${item.heal} HP)` : `Felveszed: ${item.name}?`;
+        
         if (confirm(msg)) {
-            if (item.type === "consumable") useConsumable(itemId, fbKey);
-            else equipItem(itemId, fbKey, item.type);
+            if (item.type === "consumable") {
+                useConsumable(itemId, fbKey);
+            } else {
+                equipItem(itemId, fbKey, item.type);
+            }
         }
     }
 
     function handleSlotClick(slotType) {
         if (isProcessing) return;
         const itemId = currentCharData[`equip_${slotType}`];
-        if (itemId && confirm(`Leveszed: ${ITEMS[itemId].name}?`)) unequipItem(slotType, itemId);
+        if (itemId && confirm(`Leveszed: ${ITEMS[itemId].name}?`)) {
+            unequipItem(slotType, itemId);
+        }
     }
 
     function equipItem(itemId, fbKey, slotType) {
-        if (currentCharData[`equip_${slotType}`]) return alert("Már van itt valami!");
+        // Ellenőrizzük, van-e már valami abban a slotban
+        if (currentCharData[`equip_${slotType}`]) {
+            return alert("Ebben a slotban már van valami! Előbb vedd le.");
+        }
+
         isProcessing = true;
-        
         const item = ITEMS[itemId];
+        
+        // Új bónuszok kiszámítása
         const newBonusAtk = (Number(currentCharData.bonusAtk) || 0) + (Number(item.atk) || 0);
         const newBonusDef = (Number(currentCharData.bonusDef) || 0) + (Number(item.def) || 0);
 
@@ -220,13 +233,16 @@
 
         db.ref(`characters/${myId}`).update(updates).then(() => {
             return db.ref(`characters/${myId}/inventory/${fbKey}`).remove();
+        }).catch(err => {
+            console.error("Felszerelési hiba:", err);
         }).finally(() => isProcessing = false);
     }
 
     function unequipItem(slotType, itemId) {
         isProcessing = true;
-        
         const item = ITEMS[itemId];
+        
+        // Bónuszok levonása (nem engedjük 0 alá)
         const newBonusAtk = Math.max(0, (Number(currentCharData.bonusAtk) || 0) - (Number(item.atk) || 0));
         const newBonusDef = Math.max(0, (Number(currentCharData.bonusDef) || 0) - (Number(item.def) || 0));
 
@@ -237,15 +253,21 @@
         updates[`bonusDef`] = newBonusDef;
         updates[`inventory/${newKey}`] = itemId;
 
-        db.ref(`characters/${myId}`).update(updates).finally(() => isProcessing = false);
+        db.ref(`characters/${myId}`).update(updates).catch(err => {
+            console.error("Levételi hiba:", err);
+        }).finally(() => isProcessing = false);
     }
 
     function useConsumable(itemId, fbKey) {
-        const hp = parseInt(currentCharData.hp || 0);
-        const maxHp = currentCharData.maxHp || 100;
-        if (hp >= maxHp) return alert("Tele vagy!");
+        const hp = Number(currentCharData.hp) || 0;
+        const maxHp = Number(currentCharData.maxHp) || 100;
+        
+        if (hp >= maxHp) return alert("Az életerőd már maximumon van!");
+        
         isProcessing = true;
-        const newHP = Math.min(maxHp, hp + (ITEMS[itemId].heal || 0));
+        const healAmount = Number(ITEMS[itemId].heal) || 0;
+        const newHP = Math.min(maxHp, hp + healAmount);
+        
         db.ref(`characters/${myId}`).update({ hp: newHP }).then(() => {
             return db.ref(`characters/${myId}/inventory/${fbKey}`).remove();
         }).finally(() => isProcessing = false);
