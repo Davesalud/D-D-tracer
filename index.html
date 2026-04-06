@@ -217,6 +217,16 @@
 
     if (!myId) { window.location.href = 'login.html'; }
 
+    // Kaszt alap statok resethez
+    const BASE_STATS = {
+        "Harcos": { atk: 12, def: 8, maxHp: 120 },
+        "Mágus": { atk: 15, def: 4, maxHp: 80 },
+        "Lovag": { atk: 10, def: 12, maxHp: 150 },
+        "Íjász": { atk: 14, def: 6, maxHp: 90 },
+        "Bérgyilkos": { atk: 16, def: 5, maxHp: 85 },
+        "Nekromanta": { atk: 13, def: 7, maxHp: 100 }
+    };
+
     db.ref(`characters/${myId}`).update({ status: "online", lastUpdate: Date.now() });
 
     const HERO_IMAGES = { "Harcos": "https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png", "Mágus": "https://i.ibb.co/yFz5bcXv/Copilot-20260403-033651.png", "Lovag": "https://i.ibb.co/Fk3n339M/Copilot-20260403-034043.png", "Íjász": "https://i.ibb.co/whd2jNpB/Copilot-20260403-034402.png", "Bérgyilkos": "https://i.ibb.co/b525CsLg/Copilot-20260403-032807.png", "Nekromanta": "https://i.ibb.co/NnCwwCbR/Copilot-20260403-033301.png" };
@@ -258,18 +268,27 @@
         checkLevelUp(c);
         const now = Date.now();
         
+        // RESET ELLENŐRZÉS: Ha LVL 1, de túl magasak a statok
+        const base = BASE_STATS[c.charClass] || { atk: 10, def: 5, maxHp: 100 };
+        if (Number(c.level) === 1 && (Number(c.atk) > base.atk || Number(c.maxHp) > base.maxHp)) {
+            db.ref(`characters/${myId}`).update({
+                atk: base.atk, def: base.def, maxHp: base.maxHp, hp: base.maxHp, xp: 0, nextLvlXp: 100
+            });
+            return;
+        }
+
         document.getElementById('lobby-name').innerText = c.name;
         document.getElementById('lobby-lvl').innerText = `LVL ${c.level || 1}`;
         document.getElementById('lobby-gold').innerText = c.gold || 0;
         
         // Összesített statok (Alap + Leltár bónuszok)
-        document.getElementById('lobby-atk').innerText = (Number(c.atk) || 10) + (Number(c.bonusAtk) || 0);
-        document.getElementById('lobby-def').innerText = (Number(c.def) || 5) + (Number(c.bonusDef) || 0);
+        document.getElementById('lobby-atk').innerText = (Number(c.atk) || base.atk) + (Number(c.bonusAtk) || 0);
+        document.getElementById('lobby-def').innerText = (Number(c.def) || base.def) + (Number(c.bonusDef) || 0);
 
         document.getElementById('lobby-class-display').innerText = c.charClass;
         document.getElementById('lobby-hero-img').style.backgroundImage = `url('${HERO_IMAGES[c.charClass]}')`;
         
-        const curHp = Number(c.hp || 0), mHp = Number(c.maxHp || 100);
+        const curHp = Number(c.hp || 0), mHp = Number(c.maxHp || base.maxHp);
         document.getElementById('lobby-hp-fill').style.width = (curHp / mHp * 100) + "%";
         document.getElementById('lobby-hp-val').innerText = `${Math.ceil(curHp)} / ${mHp} HP`;
         
@@ -291,7 +310,6 @@
         });
     }
 
-    // Regeneráció és státusz frissítés (megmaradt minden!)
     setInterval(() => {
         if (!myId || !chars[myId]) return;
         const c = chars[myId];
