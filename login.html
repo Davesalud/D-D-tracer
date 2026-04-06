@@ -3,21 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Death's Armada - Full Screen</title>
+    <title>Death's Armada - Adventurers</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Crimson+Text:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <style>
-        :root { --gold: #c5a059; --accent: #8b0000; --glass: rgba(10, 10, 12, 0.98); }
+        :root { --gold: #c5a059; --accent: #8b0000; --glass: rgba(10, 10, 12, 0.95); }
         
         html, body {
             margin: 0;
             padding: 0;
             width: 100%;
             height: 100%;
-            /* TELJES KITÖLTÉSŰ HÁTTÉR */
             background-color: #000;
-            background-image: linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.7) 100%), 
-                             url('https://i.ibb.co/bZBtvtf/Copilot-20260406-162751.png');
-            background-size: cover; /* Teljes kitöltés torzítás nélkül */
+            /* AZ ÚJ KÉP BEILLESZTVE */
+            background-image: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0) 50%, rgba(0,0,0,0.8) 100%), 
+                             url('https://i.ibb.co/5XNkZKLq/fantasy-group-adventurers.jpg');
+            background-size: cover;
             background-position: center center;
             background-repeat: no-repeat;
             background-attachment: fixed;
@@ -25,27 +25,30 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            font-family: 'MedievalSharp', serif;
         }
 
-        /* KRÓNIKÁK - BAL FENT */
+        /* KRÓNIKÁK - JOBB FENT */
         .patch-notes { 
             position: fixed;
-            top: 40px;
-            left: 40px;
-            width: 350px;
+            top: 30px;
+            right: 30px;
+            width: 320px;
             background: rgba(0, 0, 0, 0.85); 
-            border-left: 5px solid var(--accent);
-            padding: 20px;
+            border-right: 5px solid var(--accent);
+            padding: 15px;
             z-index: 10;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+            text-align: right;
         }
-        .patch-header { color: var(--gold); font-size: 22px; margin-bottom: 5px; text-transform: uppercase; font-family: 'MedievalSharp'; border-bottom: 1px solid #333; }
-        .patch-content { font-family: 'Crimson Text', serif; font-style: italic; color: #aaa; font-size: 18px; }
+        .patch-header { color: var(--gold); font-size: 20px; margin-bottom: 5px; text-transform: uppercase; border-bottom: 1px solid #333; }
+        .patch-content { font-family: 'Crimson Text', serif; font-style: italic; color: #aaa; font-size: 17px; }
 
-        /* BEJELENTKEZÉS - KÖZÉPEN A HALÁLFEJ ALATT */
-        .login-anchor {
+        /* BEJELENTKEZÉS - KÖZÉPEN ALUL */
+        .login-container {
             position: relative;
-            margin-top: 15vh; /* A képernyő magasságához mérten toljuk a halálfej alá */
-            width: 450px;
+            margin-top: 40vh; /* Lefelé toljuk, az alsó harmadba */
+            width: 440px;
             z-index: 20;
         }
 
@@ -60,12 +63,11 @@
         }
         
         .logo { 
-            font-size: 44px;
+            font-size: 40px;
             color: #fff;
             text-shadow: 0px 0px 15px var(--accent), 2px 2px 2px #000; 
             margin-bottom: 25px; 
             text-transform: uppercase;
-            font-family: 'MedievalSharp';
         }
         
         .search-container { position: relative; width: 100%; margin-bottom: 15px; }
@@ -82,16 +84,18 @@
             max-height: 180px; overflow-y: auto; display: none; z-index: 999;
         }
 
-        .suggestion-item { padding: 12px; color: var(--gold); font-size: 20px; cursor: pointer; text-align: left; }
+        .suggestion-item { padding: 12px; color: var(--gold); font-size: 18px; cursor: pointer; text-align: left; }
         .suggestion-item:hover { background: var(--accent); color: white; }
 
         .btn { 
             width: 100%; padding: 18px; cursor: pointer; 
             text-transform: uppercase; font-family: 'MedievalSharp'; 
-            font-weight: bold; border: none; font-size: 22px;
+            font-weight: bold; border: none; font-size: 22px; transition: 0.3s;
         }
-        .btn-main { background: var(--accent); color: white; margin-bottom: 12px; }
-        .btn-sub { background: transparent; color: var(--gold); border: 1px solid rgba(197, 160, 89, 0.4); font-size: 16px; opacity: 0.8; }
+        .btn-main { background: var(--accent); color: white; margin-bottom: 10px; }
+        .btn-main:hover { background: #b00000; letter-spacing: 2px; }
+        .btn-sub { background: transparent; color: var(--gold); border: 1px solid rgba(197, 160, 89, 0.4); font-size: 15px; opacity: 0.8; }
+        .btn-sub:hover { opacity: 1; border-color: var(--gold); }
     </style>
 </head>
 <body>
@@ -101,7 +105,7 @@
         <div id="patch-text" class="patch-content">A birodalom békés.</div>
     </div>
 
-    <div class="login-anchor">
+    <div class="login-container">
         <div class="card">
             <div class="logo">Death's Armada</div>
             
@@ -133,7 +137,7 @@
         let selId = null;
 
         db.ref('characters').on('value', s => { chars = s.val() || {}; });
-        db.ref('settings/patchNotes').on('value', s => { document.getElementById('patch-text').innerHTML = s.val() || ""; });
+        db.ref('settings/patchNotes').on('value', s => { document.getElementById('patch-text').innerHTML = s.val() || "A birodalom békés."; });
 
         const inp = document.getElementById('hero-search');
         const list = document.getElementById('autocomplete-list');
@@ -159,7 +163,7 @@
             if (selId && chars[selId].pin.toString() === pin) {
                 localStorage.setItem('selectedCharId', selId);
                 window.location.href = 'index.html';
-            } else { alert("Hiba!"); }
+            } else { alert("Hiba a névben vagy PIN kódban!"); }
         }
     </script>
 </body>
