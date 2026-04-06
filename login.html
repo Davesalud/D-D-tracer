@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Death's Armada - 2048 Fix</title>
+    <title>Death's Armada - Background Fix</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Crimson+Text:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <style>
-        :root { --gold: #c5a059; --bg: #050507; --accent: #8b0000; --glass: rgba(10, 10, 12, 0.95); }
+        :root { --gold: #c5a059; --accent: #8b0000; --glass: rgba(5, 5, 7, 0.98); }
         
         html, body {
             margin: 0; padding: 0; width: 100%; height: 100%;
@@ -18,11 +18,13 @@
             position: relative;
             width: 2048px;
             height: 1024px;
-            background: linear-gradient(to right, rgba(0,0,0,0.85) 20%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.8) 100%), 
-                        url('https://i.ibb.co/bZBtvtf/Copilot-20260406-162751.png');
-            background-size: 100% 100%;
-            background-position: center;
-            overflow: hidden;
+            /* HÁTTÉR JAVÍTÁSA */
+            background-image: linear-gradient(to right, rgba(0,0,0,0.9) 25%, rgba(0,0,0,0) 50%, rgba(0,0,0,0.8) 100%), 
+                             url('https://i.ibb.co/bZBtvtf/Copilot-20260406-162751.png');
+            background-size: cover; /* Kitölti a teret torzítás nélkül */
+            background-position: center center; /* Középre igazítja a sárkányt és a várost */
+            background-repeat: no-repeat;
+            
             transform-origin: center center;
             box-shadow: 0 0 100px rgba(0,0,0,1);
             flex-shrink: 0;
@@ -31,12 +33,12 @@
         .side-panel {
             position: absolute;
             top: 50%;
-            left: 100px;
+            left: 80px;
             transform: translateY(-50%);
             display: flex;
             flex-direction: column;
-            gap: 30px;
-            width: 500px; /* Szélesebb panel a jobb olvashatóságért */
+            gap: 25px;
+            width: 460px;
             z-index: 10;
         }
 
@@ -45,65 +47,52 @@
             border: 2px solid var(--gold); 
             padding: 40px; 
             text-align: center; 
-            backdrop-filter: blur(15px);
+            backdrop-filter: blur(10px);
             border-image: linear-gradient(to bottom, #c5a059, #4a3511) 1;
+            box-shadow: 20px 20px 50px rgba(0,0,0,0.8);
         }
         
         .logo { 
-            font-size: 60px;
+            font-size: 56px;
             color: #fff;
-            text-shadow: 0px 0px 20px var(--accent), 2px 2px 2px #000; 
-            margin-bottom: 40px; 
+            text-shadow: 0px 0px 15px var(--accent), 2px 2px 2px #000; 
+            margin-bottom: 30px; 
             text-transform: uppercase;
             font-family: 'MedievalSharp';
         }
         
-        /* INPUT CSOPORT JAVÍTÁSA */
-        .input-wrapper {
-            position: relative;
-            width: 100%;
-            margin-bottom: 20px;
-        }
+        .search-container { position: relative; width: 100%; margin-bottom: 15px; }
 
         input { 
-            width: 100%; padding: 20px; background: rgba(0,0,0,0.8); 
-            border: 1px solid #444; color: var(--gold); font-family: 'MedievalSharp'; 
-            font-size: 26px; box-sizing: border-box; text-align: center;
+            width: 100%; padding: 18px; background: rgba(255,255,255,0.95); 
+            border: 1px solid #000; color: #000; font-family: 'MedievalSharp'; 
+            font-size: 22px; box-sizing: border-box; text-align: center;
         }
 
         .autocomplete-box {
-            position: absolute; 
-            top: 100%; 
-            left: 0; 
-            width: 100%; 
-            background: #0a0a0a; 
-            border: 1px solid var(--gold); 
-            max-height: 250px; 
-            overflow-y: auto; 
-            display: none; 
-            z-index: 9999; /* Minden felett jelenjen meg */
-            box-shadow: 0 10px 30px rgba(0,0,0,0.9);
+            position: absolute; top: 100%; left: 0; width: 100%; 
+            background: #111; border: 1px solid var(--gold); 
+            max-height: 200px; overflow-y: auto; display: none; z-index: 999; 
         }
 
-        .suggestion-item { padding: 15px; color: var(--gold); font-size: 22px; cursor: pointer; text-align: left; border-bottom: 1px solid #222; }
+        .suggestion-item { padding: 12px; color: var(--gold); font-size: 20px; cursor: pointer; text-align: left; }
         .suggestion-item:hover { background: var(--accent); color: white; }
 
         .btn { 
-            width: 100%; padding: 20px; cursor: pointer; 
+            width: 100%; padding: 18px; cursor: pointer; 
             text-transform: uppercase; font-family: 'MedievalSharp'; 
-            font-weight: bold; border: 1px solid var(--gold);
-            font-size: 24px; margin-top: 10px;
+            font-weight: bold; border: none; font-size: 22px;
         }
-        .btn-main { background: var(--accent); color: white; }
-        .btn-sub { background: transparent; color: var(--gold); font-size: 18px; opacity: 0.7; margin-top: 15px; }
+        .btn-main { background: var(--accent); color: white; margin-bottom: 10px; }
+        .btn-sub { background: transparent; color: var(--gold); border: 1px solid rgba(197, 160, 89, 0.4); font-size: 16px; opacity: 0.8; }
 
         .patch-notes { 
-            background: rgba(0, 0, 0, 0.85); 
-            border-left: 6px solid var(--accent);
-            padding: 30px;
+            background: rgba(0, 0, 0, 0.9); 
+            border-left: 5px solid var(--accent);
+            padding: 25px;
         }
-        .patch-header { color: var(--gold); font-size: 28px; margin-bottom: 10px; font-family: 'MedievalSharp'; border-bottom: 1px solid #333; }
-        .patch-content { font-family: 'Crimson Text', serif; font-style: italic; color: #ccc; font-size: 22px; }
+        .patch-header { color: var(--gold); font-size: 24px; margin-bottom: 5px; font-family: 'MedievalSharp'; }
+        .patch-content { font-family: 'Crimson Text', serif; font-style: italic; color: #aaa; font-size: 20px; }
     </style>
 </head>
 <body>
@@ -113,12 +102,12 @@
             <div class="card">
                 <div class="logo">Death's Armada</div>
                 
-                <div class="input-wrapper">
+                <div class="search-container">
                     <input type="text" id="hero-search" placeholder="Kalandor neve..." autocomplete="off">
                     <div id="autocomplete-list" class="autocomplete-box"></div>
                 </div>
 
-                <input type="password" id="login-pin" placeholder="PIN KÓD" maxlength="4" style="margin-bottom: 20px;">
+                <input type="password" id="login-pin" placeholder="PIN KÓD" maxlength="4" style="margin-bottom: 15px;">
                 
                 <button class="btn btn-main" onclick="login()">Belépés</button>
                 <button class="btn btn-sub" onclick="location.href='creator.html'">Új Karakter Indítása</button>
@@ -134,15 +123,14 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <script>
-        function scaleContainer() {
-            const container = document.getElementById('game-container');
-            const scale = Math.min(window.innerWidth / 2048, window.innerHeight / 1024);
-            container.style.transform = `scale(${scale})`;
+        function scale() {
+            const c = document.getElementById('game-container');
+            const s = Math.min(window.innerWidth / 2048, window.innerHeight / 1024);
+            c.style.transform = `scale(${s})`;
         }
-        window.onresize = scaleContainer;
-        window.onload = scaleContainer;
+        window.onresize = scale;
+        window.onload = scale;
 
-        // Firebase config (maradt az eredeti)
         const firebaseConfig = { 
             apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU", 
             authDomain: "dnd-tracker-4fe05.firebaseapp.com", 
@@ -152,40 +140,35 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let characters = {};
-        let selectedId = null;
+        let chars = {};
+        let selId = null;
 
-        db.ref('characters').on('value', snap => { characters = snap.val() || {}; });
-        db.ref('settings/patchNotes').on('value', snap => { document.getElementById('patch-text').innerHTML = snap.val() || "A birodalom békés."; });
+        db.ref('characters').on('value', s => { chars = s.val() || {}; });
+        db.ref('settings/patchNotes').on('value', s => { document.getElementById('patch-text').innerHTML = s.val() || ""; });
 
-        const searchInput = document.getElementById('hero-search');
-        const listContainer = document.getElementById('autocomplete-list');
+        const inp = document.getElementById('hero-search');
+        const list = document.getElementById('autocomplete-list');
 
-        searchInput.addEventListener('input', function() {
+        inp.addEventListener('input', function() {
             const val = this.value.toLowerCase();
-            listContainer.innerHTML = '';
-            if (!val) { listContainer.style.display = 'none'; return; }
-
-            Object.keys(characters).forEach(id => {
-                if (characters[id].name && characters[id].name.toLowerCase().includes(val)) {
-                    const item = document.createElement('div');
-                    item.className = 'suggestion-item';
-                    item.innerText = characters[id].name;
-                    item.onclick = () => {
-                        searchInput.value = characters[id].name;
-                        selectedId = id;
-                        listContainer.style.display = 'none';
-                    };
-                    listContainer.appendChild(item);
+            list.innerHTML = '';
+            if (!val) { list.style.display = 'none'; return; }
+            Object.keys(chars).forEach(id => {
+                if (chars[id].name && chars[id].name.toLowerCase().includes(val)) {
+                    const d = document.createElement('div');
+                    d.className = 'suggestion-item';
+                    d.innerText = chars[id].name;
+                    d.onclick = () => { inp.value = chars[id].name; selId = id; list.style.display = 'none'; };
+                    list.appendChild(d);
                 }
             });
-            listContainer.style.display = listContainer.childElementCount > 0 ? 'block' : 'none';
+            list.style.display = list.childElementCount > 0 ? 'block' : 'none';
         });
 
         function login() {
             const pin = document.getElementById('login-pin').value;
-            if (selectedId && characters[selectedId].pin.toString() === pin) {
-                localStorage.setItem('selectedCharId', selectedId);
+            if (selId && chars[selId].pin.toString() === pin) {
+                localStorage.setItem('selectedCharId', selId);
                 window.location.href = 'index.html';
             } else { alert("Hiba!"); }
         }
