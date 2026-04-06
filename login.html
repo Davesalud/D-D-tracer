@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Death's Armada - Full Wide Fixed</title>
+    <title>Death's Armada - Square Edition</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Crimson+Text:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #c5a059; --bg: #050507; --accent: #8b0000; --glass: rgba(10, 10, 12, 0.95); }
@@ -14,13 +14,13 @@
             display: flex; align-items: center; justify-content: center;
         }
 
-        /* FIX SZÉLESVÁSZNYÚ KONTÉNER (1792x1024) */
+        /* FIX NÉGYZETES KONTÉNER (1024x1024) */
         #game-container {
             position: relative;
-            width: 1792px;
+            width: 1024px;
             height: 1024px;
-            /* Itt kényszerítjük a képet, hogy pontosan 1792x1024 legyen, nem négyzetes */
-            background: linear-gradient(to right, rgba(0,0,0,0.85) 15%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.8) 100%), 
+            /* A háttérkép most pontosan 1:1 arányban tölti ki a területet */
+            background: linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.8) 100%), 
                         url('https://i.ibb.co/4QPwwQM/Copilot-20260406-153524.png');
             background-size: 100% 100%; 
             background-position: center;
@@ -30,80 +30,66 @@
             flex-shrink: 0;
         }
 
+        /* A panel középre vagy egy kicsit eltolva a négyzetben */
         .side-panel {
             position: absolute;
             top: 50%;
-            left: 120px;
-            transform: translateY(-50%);
+            left: 50%;
+            transform: translate(-50%, -50%); /* Teljesen középre igazítva a négyzetben */
             display: flex;
             flex-direction: column;
-            gap: 25px;
-            width: 450px;
+            gap: 20px;
+            width: 400px;
             z-index: 10;
         }
 
         .card { 
             background: var(--glass); 
             border: 2px solid var(--gold); 
-            padding: 40px; 
+            padding: 30px; 
             text-align: center; 
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(8px);
             border-image: linear-gradient(to bottom, #c5a059, #4a3511) 1;
         }
         
         .logo { 
-            font-size: 58px;
+            font-size: 48px;
             color: #fff;
             text-shadow: 0px 0px 15px var(--accent), 2px 2px 2px #000; 
-            margin-bottom: 30px; 
+            margin-bottom: 20px; 
             text-transform: uppercase;
             font-family: 'MedievalSharp';
-            letter-spacing: 2px;
         }
         
         input { 
-            width: 100%; padding: 18px; background: rgba(0,0,0,0.8); 
+            width: 100%; padding: 15px; background: rgba(0,0,0,0.8); 
             border: 1px solid #444; color: var(--gold); font-family: 'MedievalSharp'; 
-            font-size: 24px; margin-bottom: 15px; box-sizing: border-box; text-align: center;
+            font-size: 20px; margin-bottom: 12px; box-sizing: border-box; text-align: center;
         }
-        input:focus { border-color: var(--gold); outline: none; box-shadow: 0 0 15px rgba(197, 160, 89, 0.3); }
 
         .btn { 
-            width: 100%; padding: 20px; cursor: pointer; 
-            text-transform: uppercase; transition: 0.3s; font-family: 'MedievalSharp'; 
-            font-weight: bold; letter-spacing: 2px; border: 1px solid var(--gold);
-            font-size: 22px;
+            width: 100%; padding: 15px; cursor: pointer; 
+            text-transform: uppercase; font-family: 'MedievalSharp'; 
+            font-weight: bold; border: 1px solid var(--gold);
+            font-size: 20px;
         }
-        .btn-main { background: var(--accent); color: white; margin-bottom: 15px; }
-        .btn-main:hover { background: #b00000; letter-spacing: 4px; }
-        .btn-sub { background: transparent; color: var(--gold); font-size: 18px; opacity: 0.6; }
+        .btn-main { background: var(--accent); color: white; margin-bottom: 10px; }
+        .btn-sub { background: transparent; color: var(--gold); font-size: 16px; opacity: 0.7; }
 
         .patch-notes { 
-            background: rgba(0, 0, 0, 0.8); 
-            border-left: 5px solid var(--accent);
-            padding: 25px;
+            background: rgba(0, 0, 0, 0.85); 
+            border-left: 4px solid var(--accent);
+            padding: 20px;
         }
-        .patch-header { 
-            color: var(--gold); font-size: 26px; text-transform: uppercase; 
-            margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px;
-            font-family: 'MedievalSharp';
-        }
-        .patch-content { 
-            font-family: 'Crimson Text', serif; font-style: italic; 
-            font-size: 22px; color: #aaa; max-height: 150px; overflow-y: auto; line-height: 1.4; 
-        }
+        .patch-header { color: var(--gold); font-size: 22px; margin-bottom: 8px; border-bottom: 1px solid #333; }
+        .patch-content { font-family: 'Crimson Text', serif; font-style: italic; font-size: 18px; color: #aaa; max-height: 100px; overflow-y: auto; }
 
         .autocomplete-box {
             position: absolute; width: 100%; background: #0a0a0a; 
-            border: 1px solid var(--gold); max-height: 250px; overflow-y: auto; 
+            border: 1px solid var(--gold); max-height: 200px; overflow-y: auto; 
             display: none; z-index: 9999;
         }
-        .suggestion-item { padding: 15px; color: var(--gold); font-size: 20px; cursor: pointer; text-align: left; }
-        .suggestion-item:hover { background: var(--accent); color: white; }
-
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #111; }
-        ::-webkit-scrollbar-thumb { background: var(--gold); }
+        .suggestion-item { padding: 12px; color: var(--gold); font-size: 18px; cursor: pointer; text-align: left; }
     </style>
 </head>
 <body>
@@ -116,10 +102,9 @@
                 <div style="position: relative;">
                     <input type="text" id="hero-search" placeholder="Kalandor neve..." autocomplete="off">
                     <div id="autocomplete-list" class="autocomplete-box"></div>
-                    <div id="found-hint" style="color: #59c559; font-size: 18px; margin-top: 8px; display: none; font-family: 'MedievalSharp';">✓ Ismert kalandor</div>
                 </div>
 
-                <input type="password" id="login-pin" placeholder="PIN KÓD" maxlength="4" inputmode="numeric">
+                <input type="password" id="login-pin" placeholder="PIN KÓD" maxlength="4">
                 
                 <button class="btn btn-main" onclick="login()">Belépés</button>
                 <button class="btn btn-sub" onclick="location.href='creator.html'">Új Karakter Indítása</button>
@@ -127,7 +112,7 @@
 
             <div class="patch-notes">
                 <div class="patch-header">📜 Krónikák</div>
-                <div id="patch-text" class="patch-content">Töltés...</div>
+                <div id="patch-text" class="patch-content">A birodalom hírei...</div>
             </div>
         </div>
     </div>
@@ -137,7 +122,8 @@
     <script>
         function scaleContainer() {
             const container = document.getElementById('game-container');
-            const scale = Math.min(window.innerWidth / 1792, window.innerHeight / 1024);
+            // Most 1024-re skálázunk minden irányba
+            const scale = Math.min(window.innerWidth / 1024, window.innerHeight / 1024);
             container.style.transform = `scale(${scale})`;
         }
         window.addEventListener('resize', scaleContainer);
@@ -155,27 +141,18 @@
         let characters = {};
         let selectedId = null;
 
-        db.ref('settings/patchNotes').on('value', snap => {
-            document.getElementById('patch-text').innerHTML = snap.val() || "A birodalom békés.";
-        });
-
         db.ref('characters').on('value', snap => { characters = snap.val() || {}; });
 
         const searchInput = document.getElementById('hero-search');
         const listContainer = document.getElementById('autocomplete-list');
-        const hint = document.getElementById('found-hint');
 
         searchInput.addEventListener('input', function() {
             const val = this.value.trim().toLowerCase();
             listContainer.innerHTML = '';
-            hint.style.display = 'none';
-            selectedId = null;
-
             if (!val) { listContainer.style.display = 'none'; return; }
 
             Object.keys(characters).forEach(id => {
                 const char = characters[id];
-                // BIZTONSÁGI ELLENŐRZÉS: Csak akkor keresünk, ha a név létezik (ez javítja a toLowerCase hibát)
                 if (char && char.name && char.name.toLowerCase().includes(val)) {
                     const item = document.createElement('div');
                     item.className = 'suggestion-item';
@@ -184,7 +161,6 @@
                         searchInput.value = char.name;
                         selectedId = id;
                         listContainer.style.display = 'none';
-                        hint.style.display = 'block';
                     };
                     listContainer.appendChild(item);
                 }
@@ -197,9 +173,7 @@
             if (selectedId && characters[selectedId] && characters[selectedId].pin.toString() === pin) {
                 localStorage.setItem('selectedCharId', selectedId);
                 window.location.href = 'index.html';
-            } else { 
-                alert("Hiba a névben vagy a PIN kódban!"); 
-            }
+            } else { alert("Hiba!"); }
         }
     </script>
 </body>
