@@ -6,7 +6,7 @@
     <title>Death's Armada - ARENA v3.0 ⚔️</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
     <style>
-        :root { --gold: #c5a059; --accent: #8b0000; --bg: #050507; }
+        :root { --gold: #c5a059; --accent: #8b0000; --bg: #050507; --glass: rgba(15, 15, 20, 0.95); }
         body { 
             background: var(--bg); color: white; font-family: 'MedievalSharp', cursive; margin: 0;
             background-image: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.95)), url('https://wallpaperaccess.com/full/1155861.jpg');
@@ -14,66 +14,100 @@
         }
         .arena-header { padding: 10px; border-bottom: 2px solid var(--gold); text-align: center; background: rgba(0,0,0,0.8); display: flex; justify-content: space-between; align-items: center; }
         .battlefield { display: flex; flex: 1; justify-content: space-around; align-items: center; padding: 10px; gap: 10px; }
-        .fighter-card { flex: 1; max-width: 320px; padding: 15px; border: 2px solid #333; background: rgba(15, 15, 20, 0.95); border-radius: 12px; text-align: center; position: relative; }
+        .fighter-card { flex: 1; max-width: 320px; padding: 15px; border: 2px solid #333; background: var(--glass); border-radius: 12px; text-align: center; position: relative; }
         .fighter-card.active { border-color: var(--gold); box-shadow: 0 0 15px var(--gold); }
-        .hero-portrait { width: 100%; height: 200px; border: 1px solid var(--gold); margin: 10px 0; background-size: cover; background-position: center 20%; border-radius: 4px; background-color: #000; }
-        .hp-bar { width: 100%; height: 22px; background: #000; border: 1px solid #444; margin: 10px 0; overflow: hidden; position: relative; }
+        .hero-portrait { width: 100%; height: 180px; border: 1px solid var(--gold); margin: 10px 0; background-size: cover; background-position: center 20%; border-radius: 4px; background-color: #000; }
+        
+        /* HP & MP BARS */
+        .bar-container { width: 100%; height: 20px; background: #000; border: 1px solid #444; margin: 5px 0; overflow: hidden; position: relative; border-radius: 3px; }
         .hp-fill { height: 100%; background: linear-gradient(90deg, #8b0000, #ff0000); width: 100%; transition: 0.6s; }
-        .hp-text { position: absolute; width: 100%; text-align: center; font-size: 12px; top: 2px; font-weight: bold; text-shadow: 1px 1px 2px black; }
+        .mp-fill { height: 100%; background: linear-gradient(90deg, #00448b, #0088ff); width: 0%; transition: 0.6s; }
+        .bar-text { position: absolute; width: 100%; text-align: center; font-size: 11px; top: 2px; font-weight: bold; text-shadow: 1px 1px 2px black; z-index: 2; }
+
+        /* SKILLS */
+        .skills-wrapper { display: flex; gap: 8px; justify-content: center; margin: 10px 0; }
+        .skill-slot { 
+            width: 55px; height: 55px; background: rgba(0,0,0,0.8); border: 1px solid var(--gold); 
+            border-radius: 6px; position: relative; cursor: pointer; color: white; font-family: 'MedievalSharp';
+            font-size: 0.7em; transition: 0.2s; padding: 2px;
+        }
+        .skill-slot:hover:not(:disabled) { background: rgba(197, 160, 89, 0.3); transform: scale(1.05); }
+        .skill-slot:disabled { opacity: 0.4; cursor: not-allowed; }
+        
+        /* Tooltip */
+        .skill-slot::after {
+            content: attr(data-tip); position: absolute; bottom: 65px; left: 50%; transform: translateX(-50%);
+            background: black; border: 1px solid var(--gold); padding: 8px; width: 140px; 
+            font-size: 0.9em; display: none; z-index: 100; pointer-events: none; border-radius: 5px;
+        }
+        .skill-slot:hover::after { display: block; }
+
+        .cd-overlay { 
+            position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8);
+            display:flex; align-items:center; justify-content:center; color:#ff4444; font-size: 1.5em; border-radius: 5px;
+        }
+
         .dice-box { width: 60px; height: 60px; border: 2px solid var(--gold); display: flex; align-items: center; justify-content: center; font-size: 2em; background: rgba(139, 0, 0, 0.3); color: var(--gold); border-radius: 10px; }
         .dice-rolling { animation: rotate 0.2s linear infinite; }
         @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .battle-log { width: 100%; max-width: 280px; height: 120px; background: rgba(0,0,0,0.8); border: 1px solid #444; padding: 8px; font-size: 0.85em; overflow-y: auto; color: #ccc; border-radius: 5px; }
+        
         .btn { background: var(--accent); color: white; border: 1px solid var(--gold); padding: 12px; font-family: 'MedievalSharp'; cursor: pointer; width: 100%; margin-top: 5px; text-transform: uppercase; }
         .btn:disabled { opacity: 0.3; cursor: not-allowed; }
         .btn-exit { background: #222; width: auto; padding: 8px 20px; font-size: 0.9em; border: 1px solid var(--gold); }
-        
+
         #win-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.98); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; text-align: center; padding: 20px; }
         .win-active { display: flex !important; }
-        .futo-kep { width: 200px; height: 200px; border: 3px solid var(--gold); border-radius: 15px; margin: 15px 0; background-size: cover; background-position: center; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
     </style>
 </head>
 <body>
 
 <div id="win-screen">
     <h1 id="win-title" style="color: var(--gold); font-size: 2.8em; margin: 0;">GYŐZELEM!</h1>
-    
     <div id="futo-ui" style="display:none; flex-direction:column; align-items:center;">
-        <div class="futo-kep" style="background-image: url('https://i.ibb.co/R4N45SWs/Copilot-20260405-020111.png');"></div>
+        <div style="width:200px; height:200px; border:3px solid var(--gold); border-radius:15px; margin:15px 0; background-image: url('https://i.ibb.co/R4N45SWs/Copilot-20260405-020111.png'); background-size:cover;"></div>
         <h2 style="color: #ff4444; margin: 10px 0;">Hová menekülsz te kisnyuszimuszi?</h2>
     </div>
-
     <div id="rewards" style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; border: 1px solid rgba(197,160,89,0.3); width: 240px; margin: 10px auto;">
-        <p id="reward-xp" style="margin: 5px 0; font-size: 1.2em; font-weight: bold;"></p>
-        <p id="reward-gold" style="margin: 5px 0; font-size: 1.2em; font-weight: bold;"></p>
+        <p id="reward-xp"></p><p id="reward-gold"></p>
     </div>
-
-    <div style="width: 280px; margin-top: 20px;">
-        <button class="btn" onclick="safeExit()">🏰 VISSZATÉRÉS A VÁRBA</button>
-    </div>
+    <button class="btn" style="width:280px" onclick="safeExit()">🏰 VISSZATÉRÉS A VÁRBA</button>
 </div>
 
 <div class="arena-header">
     <button id="main-exit-btn" class="btn btn-exit" onclick="handleExit()">🏰 KILÉPÉS</button>
-    <h2 id="turn-display" style="margin:0; flex:1;">KERESÉS...</h2>
+    <h2 id="turn-display">KERESÉS...</h2>
     <div style="width:100px;"></div>
 </div>
 
 <div class="battlefield">
     <div id="p-card" class="fighter-card">
         <h3 id="p-name">Te</h3>
-        <div class="hp-bar"><div id="p-hp-fill" class="hp-fill"></div><div class="hp-text" id="p-hp-val">0/0</div></div>
+        <div class="bar-container"><div id="p-hp-fill" class="hp-fill"></div><div class="bar-text" id="p-hp-val">0/0 HP</div></div>
+        <div class="bar-container" style="height:12px;"><div id="p-mp-fill" class="mp-fill"></div><div class="bar-text" id="p-mp-val" style="font-size:9px; top:0;">0/0 MP</div></div>
         <div id="p-img" class="hero-portrait"></div>
-        <button id="btn-attack" class="btn" onclick="performAction('attack')" disabled>⚔️ Támadás</button>
+        
+        <div class="skills-wrapper" id="p-skills">
+            <button class="skill-slot" id="sk-0" onclick="useSkill(0)" disabled>?</button>
+            <button class="skill-slot" id="sk-1" onclick="useSkill(1)" disabled>?</button>
+            <button class="skill-slot" id="sk-2" onclick="useSkill(2)" disabled>?</button>
+        </div>
+        
+        <button id="btn-attack" class="btn" onclick="performAction('attack')" disabled>⚔️ Alap Támadás</button>
     </div>
+
     <div style="display:flex; flex-direction:column; align-items:center; gap:10px;">
         <div id="dice" class="dice-box">?</div>
         <div id="log" class="battle-log"></div>
     </div>
+
     <div id="e-card" class="fighter-card">
         <h3 id="e-name">Ellenfél</h3>
-        <div class="hp-bar"><div id="e-hp-fill" class="hp-fill"></div><div class="hp-text" id="e-hp-val">---</div></div>
+        <div class="bar-container"><div id="e-hp-fill" class="hp-fill"></div><div class="bar-text" id="e-hp-val">---</div></div>
         <div id="e-img" class="hero-portrait"></div>
+        <div id="e-skills-info" style="font-size: 0.75em; color: #aaa; margin-top: 10px; text-align: left; padding: 5px; border-top: 1px solid #333;">
+            Várakozás képességekre...
+        </div>
     </div>
 </div>
 
@@ -81,28 +115,33 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <script>
-    const firebaseConfig = { apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU", authDomain: "dnd-tracker-4fe05.firebaseapp.com", projectId: "dnd-tracker-4fe05", databaseURL: "https://dnd-tracker-4fe05-default-rtdb.europe-west1.firebasedatabase.app", storageBucket: "dnd-tracker-4fe05.firebasestorage.app", messagingSenderId: "886037504950", appId: "1:886037504950:web:46e80b46f0e26e24429717" };
+    const firebaseConfig = { apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU", authDomain: "dnd-tracker-4fe05.firebaseapp.com", projectId: "dnd-tracker-4fe05", databaseURL: "https://dnd-tracker-4fe05-default-rtdb.europe-west1.firebasedatabase.app" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const myId = localStorage.getItem('selectedCharId');
     let currentRoom = null, bRef = null, rewarded = false, myHpAtEnd = 0, isFighting = false;
+    let myCooldowns = [0, 0, 0];
+    let lastProcessedTurn = "";
 
     const HERO_IMGS = { "Harcos":"https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png", "Mágus":"https://i.ibb.co/yFz5bcXv/Copilot-20260403-033651.png", "Lovag":"https://i.ibb.co/Fk3n339M/Copilot-20260403-034043.png", "Íjász":"https://i.ibb.co/whd2jNpB/Copilot-20260403-034402.png", "Bérgyilkos":"https://i.ibb.co/b525CsLg/Copilot-20260403-032807.png", "Nekromanta":"https://i.ibb.co/NnCwwCbR/Copilot-20260403-033301.png" };
 
-    // 10 mp frissítés
-    setInterval(() => { 
-        if(myId) db.ref(`characters/${myId}`).update({ lastUpdate: Date.now(), status: isFighting ? "online" : "searching" }); 
-    }, 10000);
+    const SKILLS = {
+        "Harcos": [{n:"Pajzsütés", c:15, cd:3, p:1.6, d:"Sebzés + Kábítás"}, {n:"Bárdcsapás", c:25, cd:5, p:2.2, d:"Erős vágás"}, {n:"ULTI", c:50, cd:99, p:4.5, d:"ROHAM: Csak 1x!"}],
+        "Mágus": [{n:"Tűznyíl", c:20, cd:2, p:1.8, d:"Gyors mágia"}, {n:"Villám", c:35, cd:4, p:2.6, d:"Nagy sebzés"}, {n:"ULTI", c:60, cd:99, p:5.5, d:"APOKALIPSZIS!"}],
+        "Lovag": [{n:"Szent Ütés", c:15, cd:3, p:1.4, d:"Sebzés + Védelem"}, {n:"Ítélet", c:30, cd:5, p:2.0, d:"Isteni erő"}, {n:"ULTI", c:50, cd:99, p:4.0, d:"ÉGI ÁLDÁS!"}],
+        "Íjász": [{n:"Tripla Nyíl", c:20, cd:3, p:1.7, d:"Gyors sorozat"}, {n:"Mérgezett", c:30, cd:5, p:2.3, d:"Kritikus lövés"}, {n:"ULTI", c:55, cd:99, p:4.8, d:"NYÍLESŐ!"}],
+        "Bérgyilkos": [{n:"Hátbaszúrás", c:20, cd:3, p:2.0, d:"Hirtelen sebzés"}, {n:"Méreng", c:30, cd:4, p:2.5, d:"Halálos pont"}, {n:"ULTI", c:50, cd:99, p:5.0, d:"KIVÉGZÉS!"}],
+        "Nekromanta": [{n:"Lélekszívás", c:20, cd:3, p:1.5, d:"Életerő lopás"}, {n:"Csontváz", c:35, cd:5, p:2.4, d:"Sötét idézés"}, {n:"ULTI", c:60, cd:99, p:5.2, d:"HOLTAK SEREGE!"}]
+    };
 
     function handleExit() {
-        if (!isFighting) { safeExit(); } 
-        else { if(confirm("Ha most elmenekülsz, -5 XP és -5 Arany a büntetés! Biztos?")) { processEndGame(false, true); } }
+        if (!isFighting) safeExit();
+        else if(confirm("Menekülés? Büntetés: -5 XP, -5 Arany!")) processEndGame(false, true);
     }
 
     function findMatch() {
         db.ref('battles').once('value', snap => {
-            const rooms = snap.val();
-            let found = null;
+            const rooms = snap.val(); let found = null;
             if (rooms) { for (let id in rooms) { if (rooms[id].p2 && rooms[id].p2.id === "waiting" && rooms[id].p1.id !== myId) { found = id; break; } } }
             found ? joinBattle(found) : createNewBattle();
         });
@@ -111,16 +150,14 @@
     function createNewBattle() {
         currentRoom = "room_" + Math.random().toString(36).substr(2, 6);
         bRef = db.ref('battles/' + currentRoom);
-        db.ref(`characters/${myId}`).update({ status: "searching", lastUpdate: Date.now() });
         db.ref(`characters/${myId}`).once('value', s => {
             const c = s.val();
             bRef.set({
-                p1: { id: myId, name: c.name, hp: c.hp, maxHp: c.maxHp, class: c.charClass },
+                p1: { id: myId, name: c.name, hp: c.hp, maxHp: c.maxHp, mp: c.mp || 50, maxMp: c.mp || 50, class: c.charClass, atk: c.atk },
                 p2: { id: "waiting", name: "Várakozás...", hp: 0, maxHp: 100 },
-                turn: myId, lastRoll: "?", log: ["Ellenfelet keresünk..."], winner: "none"
+                turn: myId, lastRoll: "?", log: ["Keresés..."], winner: "none"
             });
-            bRef.onDisconnect().remove();
-            listen();
+            bRef.onDisconnect().remove(); listen();
         });
     }
 
@@ -128,21 +165,17 @@
         currentRoom = id; bRef = db.ref('battles/' + currentRoom);
         db.ref(`characters/${myId}`).once('value', s => {
             const c = s.val();
-            bRef.update({ "p2": { id: myId, name: c.name, hp: c.hp, maxHp: c.maxHp, class: c.charClass }, "log": ["Harc indul!"], "winner": "none" });
+            bRef.update({ "p2": { id: myId, name: c.name, hp: c.hp, maxHp: c.maxHp, mp: c.mp || 50, maxMp: c.mp || 50, class: c.charClass, atk: c.atk }, "log": ["Harc indul!"], "winner": "none" });
             listen();
         });
     }
 
-    function listen() { 
-        bRef.on('value', snap => { 
+    function listen() {
+        bRef.on('value', snap => {
             const b = snap.val(); if(!b) return;
-            if (b.winner && b.winner !== "none" && !rewarded) {
-                rewarded = true;
-                processEndGame(b.winner === myId, false);
-                return;
-            }
-            updateArena(b); 
-        }); 
+            if (b.winner !== "none" && !rewarded) { rewarded = true; processEndGame(b.winner === myId, false); return; }
+            updateArena(b);
+        });
     }
 
     function updateArena(b) {
@@ -151,33 +184,88 @@
         const opp = isP1 ? b.p2 : b.p1;
         myHpAtEnd = me.hp;
 
+        // Kör váltásnál CD csökkentés
+        if (b.turn === myId && lastProcessedTurn !== myId) {
+            myCooldowns = myCooldowns.map(c => c > 0 ? c - 1 : 0);
+            lastProcessedTurn = myId;
+        } else if (b.turn !== myId) {
+            lastProcessedTurn = b.turn;
+        }
+
+        // UI Frissítés
         if (opp.id !== "waiting") {
             isFighting = true;
-            document.getElementById('main-exit-btn').innerText = "🏃 MEGFUTAMODÁS";
-            document.getElementById('main-exit-btn').style.background = "#4a1a1a";
             document.getElementById('e-name').innerText = opp.name;
             document.getElementById('e-img').style.backgroundImage = `url('${HERO_IMGS[opp.class]}')`;
             document.getElementById('e-hp-fill').style.width = (opp.hp/opp.maxHp*100)+"%";
             document.getElementById('e-hp-val').innerText = Math.ceil(opp.hp) + " / " + opp.maxHp + " HP";
+            
+            // Ellenfele skilljei (olvasható)
+            const eSkills = SKILLS[opp.class];
+            document.getElementById('e-skills-info').innerHTML = `<b>${opp.class} képességek:</b><br>` + 
+                eSkills.map(s => `• ${s.n}: ${s.d}`).join("<br>");
         }
 
-        document.getElementById('p-name').innerText = me.name;
         document.getElementById('p-img').style.backgroundImage = `url('${HERO_IMGS[me.class]}')`;
         document.getElementById('p-hp-fill').style.width = (me.hp/me.maxHp*100)+"%";
-        document.getElementById('p-hp-val').innerText = Math.ceil(me.hp) + " / " + me.maxHp + " HP";
+        document.getElementById('p-hp-val').innerText = Math.ceil(me.hp) + "/" + me.maxHp + " HP";
+        document.getElementById('p-mp-fill').style.width = (me.mp/me.maxMp*100)+"%";
+        document.getElementById('p-mp-val').innerText = Math.ceil(me.mp) + "/" + me.maxMp + " MP";
 
         const myTurn = (b.turn === myId && isFighting && me.hp > 0 && opp.hp > 0);
         document.getElementById('turn-display').innerText = myTurn ? "TE KÖVETKEZEL!" : (opp.id === "waiting" ? "KERESÉS..." : "ELLENFÉL...");
         document.getElementById('p-card').classList.toggle('active', myTurn);
         document.getElementById('btn-attack').disabled = !myTurn;
 
+        // Skill gombok frissítése
+        const mySkills = SKILLS[me.class];
+        mySkills.forEach((s, i) => {
+            const btn = document.getElementById(`sk-${i}`);
+            btn.innerText = s.n;
+            btn.setAttribute('data-tip', `${s.n}\n💧 ${s.c} MP\n✨ ${s.d}`);
+            
+            // CD Overlay
+            let ov = btn.querySelector('.cd-overlay');
+            if (myCooldowns[i] > 0) {
+                if(!ov) { ov = document.createElement('div'); ov.className='cd-overlay'; btn.appendChild(ov); }
+                ov.innerText = myCooldowns[i];
+                btn.disabled = true;
+            } else {
+                if(ov) ov.remove();
+                btn.disabled = !myTurn || me.mp < s.c;
+            }
+        });
+
         document.getElementById('dice').innerText = b.lastRoll;
         document.getElementById('log').innerHTML = b.log ? b.log.map(l => `<div>${l}</div>`).reverse().join('') : "";
+    }
 
-        if (isFighting && (me.hp <= 0 || opp.hp <= 0) && !rewarded) {
-            rewarded = true;
-            processEndGame(me.hp > 0, false);
-        }
+    function useSkill(idx) {
+        bRef.once('value', snap => {
+            const b = snap.val();
+            const isP1 = b.p1.id === myId;
+            const me = isP1 ? b.p1 : b.p2;
+            const s = SKILLS[me.class][idx];
+            
+            if (me.mp < s.c) return;
+            
+            myCooldowns[idx] = s.cd;
+            const dice = document.getElementById('dice');
+            dice.classList.add('dice-rolling');
+
+            setTimeout(() => {
+                dice.classList.remove('dice-rolling');
+                const dmg = Math.floor((Math.random() * 8 + 10) * s.p);
+                const updates = {};
+                updates[isP1 ? 'p2/hp' : 'p1/hp'] = Math.max(0, (isP1 ? b.p2.hp : b.p1.hp) - dmg);
+                updates[isP1 ? 'p1/mp' : 'p2/mp'] = me.mp - s.c;
+                updates['turn'] = isP1 ? b.p2.id : b.p1.id;
+                updates['lastRoll'] = "✨";
+                let nLog = b.log || []; nLog.push(`${me.name} -> ${s.n} (${dmg})`);
+                updates['log'] = nLog.slice(-5);
+                bRef.update(updates);
+            }, 600);
+        });
     }
 
     function performAction(type) {
@@ -195,7 +283,7 @@
                 updates[isP1 ? 'p2/hp' : 'p1/hp'] = Math.max(0, (isP1 ? b.p2.hp : b.p1.hp) - dmg);
                 updates['turn'] = isP1 ? b.p2.id : b.p1.id;
                 updates['lastRoll'] = roll;
-                let nLog = b.log || []; nLog.push(`${me.name}: ${roll === 20 ? 'KRITIKUS!' : 'Támadás'} (${dmg})`);
+                let nLog = b.log || []; nLog.push(`${me.name}: ${roll===20?'KRITIKUS!':'Ütés'} (${dmg})`);
                 updates['log'] = nLog.slice(-5);
                 bRef.update(updates);
             });
@@ -203,48 +291,30 @@
     }
 
     function processEndGame(isWin, isFuto) {
-        let xpGain = isWin ? 15 : (isFuto ? -5 : 3);
-        let goldGain = isWin ? 10 : (isFuto ? -5 : -2);
-        
+        let xpG = isWin ? 15 : (isFuto ? -5 : 3), goldG = isWin ? 10 : (isFuto ? -5 : -2);
         if (isFuto && bRef) {
             bRef.once('value', snap => {
-                const b = snap.val();
-                if (b) {
-                    const oppId = (b.p1.id === myId) ? b.p2.id : b.p1.id;
-                    bRef.update({ winner: oppId });
-                }
+                const b = snap.val(); if(b) bRef.update({ winner: (b.p1.id===myId?b.p2.id:b.p1.id) });
             });
         }
-
         db.ref(`characters/${myId}`).once('value', s => {
             const c = s.val();
-            let nXp = Math.max(0, (c.xp || 0) + xpGain), nGold = Math.max(0, (c.gold || 0) + goldGain);
-            db.ref(`characters/${myId}`).update({ xp: nXp, gold: nGold, status: "online", hp: Math.max(0, myHpAtEnd) });
-            
+            db.ref(`characters/${myId}`).update({ xp: Math.max(0,(c.xp||0)+xpG), gold: Math.max(0,(c.gold||0)+goldG), status: "online", hp: Math.max(0, myHpAtEnd) });
             document.getElementById('win-screen').classList.add('win-active');
-            if (isFuto) {
-                document.getElementById('win-title').innerText = "MEGFUTAMODTÁL!";
-                document.getElementById('futo-ui').style.display = 'flex';
-                document.getElementById('reward-xp').style.color = "#ff4444";
-                document.getElementById('reward-gold').style.color = "#ff4444";
-            } else {
-                document.getElementById('win-title').innerText = isWin ? "GYŐZELEM!" : "VERESÉG!";
-                document.getElementById('futo-ui').style.display = 'none';
-                document.getElementById('reward-xp').style.color = isWin ? "#4facfe" : "#ff4444";
-                document.getElementById('reward-gold').style.color = isWin ? "#c5a059" : "#ff4444";
-            }
-            document.getElementById('reward-xp').innerText = `XP: ${xpGain > 0 ? '+' : ''}${xpGain}`;
-            document.getElementById('reward-gold').innerText = `ARANY: ${goldGain > 0 ? '+' : ''}${goldGain}`;
+            document.getElementById('win-title').innerText = isFuto ? "MEGFUTAMODTÁL!" : (isWin ? "GYŐZELEM!" : "VERESÉG!");
+            document.getElementById('futo-ui').style.display = isFuto ? 'flex' : 'none';
+            document.getElementById('reward-xp').innerText = `XP: ${xpG>0?'+':''}${xpG}`;
+            document.getElementById('reward-gold').innerText = `ARANY: ${goldG>0?'+':''}${goldG}`;
         });
     }
 
-    function safeExit() { 
-        if(bRef) bRef.off(); 
+    function safeExit() {
+        if(bRef) bRef.off();
         db.ref(`characters/${myId}`).update({ status: "online" }).then(() => {
-            if(currentRoom) db.ref('battles/'+currentRoom).remove(); 
-            window.location.replace('index.html'); 
+            window.location.replace('index.html');
         });
     }
+
     findMatch();
 </script>
 </body>
