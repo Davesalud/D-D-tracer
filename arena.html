@@ -17,34 +17,30 @@
         
         .fighter-card { flex: 1; max-width: 320px; padding: 15px; border: 2px solid #333; background: var(--glass); border-radius: 12px; text-align: center; position: relative; transition: 0.3s; }
         .fighter-card.active { border-color: var(--gold); box-shadow: 0 0 20px var(--gold); transform: scale(1.02); }
-        .hero-portrait { width: 100%; height: 180px; border: 1px solid var(--gold); margin: 10px 0; background-size: cover; background-position: center 20%; border-radius: 6px; box-shadow: inset 0 0 15px black; }
+        .hero-portrait { width: 100%; height: 160px; border: 1px solid var(--gold); margin: 10px 0; background-size: cover; background-position: center 20%; border-radius: 6px; box-shadow: inset 0 0 15px black; }
         
-        /* HP & MP BARS */
         .bar-container { width: 100%; height: 20px; background: #000; border: 1px solid #444; margin: 5px 0; overflow: hidden; position: relative; border-radius: 4px; }
         .hp-fill { height: 100%; background: linear-gradient(90deg, #600, #f00); width: 100%; transition: 0.6s; }
         .mp-fill { height: 100%; background: linear-gradient(90deg, #003366, #0088ff); width: 0%; transition: 0.6s; }
         .bar-text { position: absolute; width: 100%; text-align: center; font-size: 11px; top: 2px; font-weight: bold; text-shadow: 1px 1px 2px black; z-index: 5; }
 
-        /* SKILLS UI */
         .skills-wrapper { display: flex; gap: 8px; justify-content: center; margin: 10px 0; }
         .skill-slot { 
             width: 60px; height: 60px; background: #111; border: 2px solid var(--gold); border-radius: 8px;
             cursor: pointer; position: relative; display: flex; align-items: center; justify-content: center;
-            transition: 0.2s; overflow: hidden; font-size: 0.75em; padding: 4px; color: #fff;
+            transition: 0.2s; overflow: hidden; font-size: 0.75em; padding: 4px; color: #fff; text-align: center;
         }
         .skill-slot:hover:not(:disabled) { background: var(--gold); color: black; transform: translateY(-3px); }
         .skill-slot:disabled { opacity: 0.3; filter: grayscale(1); }
 
-        /* POP-UP INFO BOX (A gombok alatt jelenik meg hoverre) */
         #p-spell-info {
             background: rgba(0,0,0,0.95); border: 1px solid var(--gold); border-left: 4px solid var(--gold);
             padding: 10px; margin-top: 10px; min-height: 80px; text-align: left;
-            font-size: 0.9em; line-height: 1.3; border-radius: 4px; visibility: hidden; opacity: 0; transition: 0.3s;
+            font-size: 0.85em; line-height: 1.4; border-radius: 4px; visibility: hidden; opacity: 0; transition: 0.3s;
         }
         #p-spell-info.active { visibility: visible; opacity: 1; }
 
         .cd-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); display:flex; align-items:center; justify-content:center; color:#ff4444; font-size: 1.6em; z-index: 10; }
-
         .dice-box { width: 60px; height: 60px; border: 2px solid var(--gold); font-size: 2em; background: #000; color: var(--gold); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
         .battle-log { width: 100%; max-width: 280px; height: 130px; background: rgba(0,0,0,0.85); border: 1px solid #444; padding: 10px; font-size: 0.85em; overflow-y: auto; color: #bbb; border-radius: 8px; }
 
@@ -77,7 +73,6 @@
         <h3 id="p-name" style="color: var(--gold); margin: 5px 0;">Hősöd</h3>
         <div class="bar-container"><div id="p-hp-fill" class="hp-fill"></div><div class="bar-text" id="p-hp-val">0/0 HP</div></div>
         <div class="bar-container" style="height:12px;"><div id="p-mp-fill" class="mp-fill"></div><div class="bar-text" id="p-mp-val" style="font-size:9px; top:0;">0/0 MP</div></div>
-        
         <div id="p-img" class="hero-portrait"></div>
         
         <div class="skills-wrapper" id="p-skills">
@@ -86,10 +81,7 @@
             <button class="skill-slot" id="sk-2" onclick="useSkill(2)" disabled>?</button>
         </div>
 
-        <div id="p-spell-info">
-            <i>Vigyük az egeret egy képesség fölé...</i>
-        </div>
-        
+        <div id="p-spell-info"><i>Érintsd meg a képességet!</i></div>
         <button id="btn-attack" class="btn" onclick="performAction('attack')" disabled>⚔️ ALAP TÁMADÁS</button>
     </div>
 
@@ -102,7 +94,7 @@
         <h3 id="e-name" style="color: #ff4444; margin: 5px 0;">Ellenfél</h3>
         <div class="bar-container"><div id="e-hp-fill" class="hp-fill"></div><div class="bar-text" id="e-hp-val">HP: ---</div></div>
         <div id="e-img" class="hero-portrait"></div>
-        <div id="e-skills-info" style="font-size: 0.8em; color: #aaa; text-align: left; padding: 10px; background: rgba(0,0,0,0.5); border-radius: 5px; min-height: 100px;">
+        <div id="e-skills-info" style="font-size: 0.8em; color: #aaa; text-align: left; padding: 10px; background: rgba(0,0,0,0.5); border-radius: 5px; min-height: 80px;">
             Várakozás...
         </div>
     </div>
@@ -113,15 +105,13 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <script>
-    // FIREBASE ÉS ALAPVÁLTOZÓK
     const firebaseConfig = { apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU", authDomain: "dnd-tracker-4fe05.firebaseapp.com", projectId: "dnd-tracker-4fe05", databaseURL: "https://dnd-tracker-4fe05-default-rtdb.europe-west1.firebasedatabase.app" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const myId = localStorage.getItem('selectedCharId');
     
     let currentRoom = null, bRef = null, isFighting = false, rewarded = false;
-    let myCooldowns = [0, 0, 0];
-    let lastTurnOwner = "";
+    let myCooldowns = [0, 0, 0], lastTurnOwner = "";
 
     const HERO_IMGS = { 
         "Harcos":"https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png", 
@@ -130,7 +120,6 @@
         "Bérgyilkos":"https://i.ibb.co/b525CsLg/Copilot-20260403-032807.png" 
     };
 
-    // MATCHMAKING RENDSZER
     function findMatch() {
         db.ref('battles').once('value', snap => {
             const rooms = snap.val(); let found = null;
@@ -146,7 +135,7 @@
             const c = s.val();
             const classData = SKILLS_DATA[c.charClass] || SKILLS_DATA["Harcos"];
             bRef.set({
-                p1: { id: myId, name: c.name, hp: c.hp, maxHp: c.maxHp, mp: classData.manaPool, maxMp: classData.manaPool, class: c.charClass },
+                p1: { id: myId, name: c.name, hp: c.hp, maxHp: c.maxHp, mp: classData.manaPool, maxMp: classData.manaPool, class: c.charClass, atk: (c.atk || 10) + (c.bonusAtk || 0) },
                 p2: { id: "waiting", name: "Várakozás...", hp: 0, maxHp: 100 },
                 turn: myId, lastRoll: "?", log: ["Keresés..."], winner: "none"
             });
@@ -160,15 +149,13 @@
             const c = s.val();
             const classData = SKILLS_DATA[c.charClass] || SKILLS_DATA["Harcos"];
             bRef.update({ 
-                "p2": { id: myId, name: c.name, hp: c.hp, maxHp: c.maxHp, mp: classData.manaPool, maxMp: classData.manaPool, class: c.charClass }, 
-                "log": ["A párbaj megkezdődött!"], 
-                "winner": "none" 
+                "p2": { id: myId, name: c.name, hp: c.hp, maxHp: c.maxHp, mp: classData.manaPool, maxMp: classData.manaPool, class: c.charClass, atk: (c.atk || 10) + (c.bonusAtk || 0) }, 
+                "log": ["A párbaj megkezdődött!"], "winner": "none" 
             });
             listen();
         });
     }
 
-    // ARENA FRISSÍTÉSE
     function listen() {
         bRef.on('value', snap => {
             const b = snap.val(); if(!b) return;
@@ -181,27 +168,22 @@
         const isP1 = b.p1.id === myId;
         const me = isP1 ? b.p1 : b.p2;
         const opp = isP1 ? b.p2 : b.p1;
+        const myAtk = Number(me.atk) || 10;
 
-        // CD csökkentés körváltáskor
         if (b.turn === myId && lastTurnOwner !== myId && isFighting) {
             myCooldowns = myCooldowns.map(c => c > 0 ? c - 1 : 0);
         }
         lastTurnOwner = b.turn;
 
-        // Ellenfél adatai
         if (opp.id !== "waiting") {
             isFighting = true;
             document.getElementById('e-name').innerText = opp.name;
             document.getElementById('e-img').style.backgroundImage = `url('${HERO_IMGS[opp.class]}')`;
             document.getElementById('e-hp-fill').style.width = (opp.hp/opp.maxHp*100) + "%";
             document.getElementById('e-hp-val').innerText = `${Math.ceil(opp.hp)} / ${opp.maxHp} HP`;
-            
-            const eSkills = SKILLS_DATA[opp.class].skills;
-            document.getElementById('e-skills-info').innerHTML = `<b>${opp.class} képességei:</b><br>` + 
-                eSkills.map(s => `• ${s.name}`).join("<br>");
+            document.getElementById('e-skills-info').innerHTML = `<b>${opp.class} ellen:</b><br>` + SKILLS_DATA[opp.class].skills.map(s => `• ${s.name}`).join("<br>");
         }
 
-        // Saját adatok
         document.getElementById('p-name').innerText = me.name;
         document.getElementById('p-img').style.backgroundImage = `url('${HERO_IMGS[me.class]}')`;
         document.getElementById('p-hp-fill').style.width = (me.hp/me.maxHp*100) + "%";
@@ -212,59 +194,54 @@
         const isMyTurn = (b.turn === myId && isFighting);
         document.getElementById('turn-display').innerText = isMyTurn ? "TE KÖVETKEZEL!" : "ELLENFÉLRE VÁRVA...";
         document.getElementById('p-card').classList.toggle('active', isMyTurn);
-        document.getElementById('btn-attack').disabled = !isMyTurn;
 
-        // Gombok frissítése a skills.js alapján
+        // Alap támadás infó
+        const btnAttack = document.getElementById('btn-attack');
+        btnAttack.disabled = !isMyTurn;
+        btnAttack.onmouseover = () => {
+            const min = Math.floor(myAtk * 0.8), max = Math.floor(myAtk * 1.2);
+            const info = document.getElementById('p-spell-info');
+            info.innerHTML = `<b style="color:var(--gold)">Alap Támadás</b><br>⚔️ Várható sebzés: <span style="color:#ff4444">${min}-${max}</span><br>🎯 Kritikus esély: 5% (2.5x sebzés)`;
+            info.classList.add('active');
+        };
+        btnAttack.onmouseout = () => document.getElementById('p-spell-info').classList.remove('active');
+
+        // Képességek infó
         const mySkills = SKILLS_DATA[me.class].skills;
         mySkills.forEach((s, i) => {
             const btn = document.getElementById(`sk-${i}`);
-            btn.innerHTML = `<span style="font-size:0.8em">${s.name}</span>`;
+            btn.innerHTML = `<span>${s.name}</span>`;
             
-            // Hover események (Pop-up)
             btn.onmouseover = () => {
+                const estDmg = Math.floor(myAtk * s.power);
                 const info = document.getElementById('p-spell-info');
-                info.innerHTML = `<b style="color:var(--gold)">${s.name}</b><br>
-                                  <span style="color:#0088ff">💧 ${s.cost} MP | ⏳ CD: ${s.cd} kör</span><br>
-                                  <i>"${s.txt}"</i>`;
+                info.innerHTML = `<b style="color:var(--gold)">${s.name}</b> (💧${s.cost} MP)<br>⚔️ Várható sebzés: <span style="color:#ff4444">${estDmg}</span><br>⏳ CD: ${s.cd} kör | <i>"${s.txt}"</i>`;
                 info.classList.add('active');
             };
             btn.onmouseout = () => document.getElementById('p-spell-info').classList.remove('active');
 
-            // CD kezelés
             let cdOverlay = btn.querySelector('.cd-overlay');
             if (myCooldowns[i] > 0) {
                 if(!cdOverlay) { cdOverlay = document.createElement('div'); cdOverlay.className='cd-overlay'; btn.appendChild(cdOverlay); }
-                cdOverlay.innerText = myCooldowns[i];
-                btn.disabled = true;
+                cdOverlay.innerText = myCooldowns[i]; btn.disabled = true;
             } else {
-                if(cdOverlay) cdOverlay.remove();
-                btn.disabled = !isMyTurn || me.mp < s.cost;
+                if(cdOverlay) cdOverlay.remove(); btn.disabled = !isMyTurn || me.mp < s.cost;
             }
         });
 
         document.getElementById('dice').innerText = b.lastRoll;
         document.getElementById('log').innerHTML = b.log ? b.log.map(l => `<div>${l}</div>`).reverse().join('') : "";
-        
-        // Halál ellenőrzése
         if(isFighting && me.hp <= 0 && b.winner === "none") { bRef.update({ winner: opp.id }); }
     }
 
-    // AKCIÓK
     function useSkill(idx) {
         bRef.once('value', snap => {
             const b = snap.val();
             const isP1 = b.p1.id === myId;
             const me = isP1 ? b.p1 : b.p2;
             const s = SKILLS_DATA[me.class].skills[idx];
-            
             myCooldowns[idx] = s.cd;
-            
-            // Lovag speciális arányos sebzés logika
-            let baseDmg = 12;
-            if(me.class === "Lovag" && s.name === "Szent Csapás") {
-                baseDmg += (me.mp / 5); 
-            }
-            const dmg = Math.floor((Math.random() * 5 + baseDmg) * s.power);
+            const dmg = Math.floor((me.atk || 10) * s.power * (0.9 + Math.random() * 0.2));
 
             const updates = {};
             updates[isP1 ? 'p2/hp' : 'p1/hp'] = Math.max(0, (isP1 ? b.p2.hp : b.p1.hp) - dmg);
@@ -283,7 +260,8 @@
             const isP1 = b.p1.id === myId;
             const me = isP1 ? b.p1 : b.p2;
             const roll = Math.floor(Math.random() * 20) + 1;
-            let dmg = roll === 20 ? 25 : Math.floor(Math.random() * 8) + 10;
+            let dmg = Math.floor((me.atk || 10) * (0.8 + Math.random() * 0.4));
+            if (roll === 20) dmg = Math.floor(dmg * 2.5);
             
             const updates = {};
             updates[isP1 ? 'p2/hp' : 'p1/hp'] = Math.max(0, (isP1 ? b.p2.hp : b.p1.hp) - dmg);
@@ -295,33 +273,19 @@
         });
     }
 
-    // JÁTÉK VÉGE
     function showEndScreen(win) {
         document.getElementById('win-screen').classList.add('win-active');
         document.getElementById('win-title').innerText = win ? "GYŐZELEM!" : "VERESÉG!";
         document.getElementById('reward-xp').innerText = win ? "+15 XP" : "+3 XP";
         document.getElementById('reward-gold').innerText = win ? "+10 Arany" : "-2 Arany";
-
         db.ref(`characters/${myId}`).once('value', s => {
             const c = s.val();
-            db.ref(`characters/${myId}`).update({
-                xp: (c.xp || 0) + (win ? 15 : 3),
-                gold: (c.gold || 0) + (win ? 10 : -2),
-                status: "online"
-            });
+            db.ref(`characters/${myId}`).update({ xp: (c.xp || 0) + (win ? 15 : 3), gold: (c.gold || 0) + (win ? 10 : -2), status: "online" });
         });
     }
 
-    function handleExit() {
-        if(!isFighting || confirm("Ha most kilépsz, veszítesz! Biztos?")) safeExit();
-    }
-
-    function safeExit() {
-        if(bRef) bRef.off();
-        db.ref(`characters/${myId}`).update({ status: "online" }).then(() => {
-            window.location.replace('index.html');
-        });
-    }
+    function handleExit() { if(!isFighting || confirm("Kilépsz?")) safeExit(); }
+    function safeExit() { if(bRef) bRef.off(); db.ref(`characters/${myId}`).update({ status: "online" }).then(() => { window.location.replace('index.html'); }); }
 
     findMatch();
 </script>
