@@ -9,12 +9,13 @@
         :root { --gold: #c5a059; --accent: #8b0000; --bg: #050507; --glass: rgba(15, 15, 20, 0.95); }
         body { 
             background: var(--bg); color: white; font-family: 'MedievalSharp', cursive; margin: 0;
-            background-image: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.95)), url('https://wallpaperaccess.com/full/1155861.jpg');
-            background-size: cover; height: 100vh; overflow: hidden; display: flex; flex-direction: column;
+            /* AZ ÚJ, JÓ HÁTTÉRKÉP BEÁLLÍTÁSA */
+            background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.8)), url('https://i.ibb.co/JjJy8Qry/Copilot-20260407-160524.png');
+            background-size: cover; background-position: center; height: 100vh; overflow: hidden; display: flex; flex-direction: column;
         }
         .arena-header { padding: 10px; border-bottom: 2px solid var(--gold); text-align: center; background: rgba(0,0,0,0.8); display: flex; justify-content: space-between; align-items: center; }
         .battlefield { display: flex; flex: 1; justify-content: space-around; align-items: center; padding: 10px; gap: 10px; }
-        .fighter-card { flex: 1; max-width: 320px; padding: 15px; border: 2px solid #333; background: var(--glass); border-radius: 12px; text-align: center; position: relative; }
+        .fighter-card { flex: 1; max-width: 320px; padding: 15px; border: 2px solid #333; background: var(--glass); border-radius: 12px; text-align: center; position: relative; display: flex; flex-direction: column; }
         .fighter-card.active { border-color: var(--gold); box-shadow: 0 0 15px var(--gold); }
         .hero-portrait { width: 100%; height: 180px; border: 1px solid var(--gold); margin: 10px 0; background-size: cover; background-position: center 20%; border-radius: 4px; background-color: #000; }
         
@@ -29,18 +30,20 @@
         .skill-slot { 
             width: 55px; height: 55px; background: rgba(0,0,0,0.8); border: 1px solid var(--gold); 
             border-radius: 6px; position: relative; cursor: pointer; color: white; font-family: 'MedievalSharp';
-            font-size: 0.7em; transition: 0.2s; padding: 2px;
+            font-size: 0.7em; transition: 0.2s; padding: 2px; overflow: hidden;
         }
         .skill-slot:hover:not(:disabled) { background: rgba(197, 160, 89, 0.3); transform: scale(1.05); }
         .skill-slot:disabled { opacity: 0.4; cursor: not-allowed; }
         
-        /* Tooltip */
-        .skill-slot::after {
-            content: attr(data-tip); position: absolute; bottom: 65px; left: 50%; transform: translateX(-50%);
-            background: black; border: 1px solid var(--gold); padding: 8px; width: 140px; 
-            font-size: 0.9em; display: none; z-index: 100; pointer-events: none; border-radius: 5px;
+        /* ÚJ SPELL INFO BOX STÍLUS (A RÉGI TOOLTIP HELYETT) */
+        #p-spell-info {
+            background: rgba(0,0,0,0.9); border: 1px solid var(--gold); border-radius: 5px;
+            padding: 10px; margin-top: 10px; min-height: 60px; text-align: left;
+            font-size: 0.9em; color: #ccc; visibility: hidden; opacity: 0; transition: 0.3s;
         }
-        .skill-slot:hover::after { display: block; }
+        #p-spell-info.active { visibility: visible; opacity: 1; }
+        .spell-info-name { color: var(--gold); font-weight: bold; display: block; margin-bottom: 3px; }
+        .spell-info-cost { color: #0088ff; font-size: 0.85em; font-style: italic; display: block; margin-bottom: 5px; }
 
         .cd-overlay { 
             position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8);
@@ -94,6 +97,10 @@
         </div>
         
         <button id="btn-attack" class="btn" onclick="performAction('attack')" disabled>⚔️ Alap Támadás</button>
+        
+        <div id="p-spell-info">
+            Válassz egy képességet...
+        </div>
     </div>
 
     <div style="display:flex; flex-direction:column; align-items:center; gap:10px;">
@@ -105,7 +112,7 @@
         <h3 id="e-name">Ellenfél</h3>
         <div class="bar-container"><div id="e-hp-fill" class="hp-fill"></div><div class="bar-text" id="e-hp-val">---</div></div>
         <div id="e-img" class="hero-portrait"></div>
-        <div id="e-skills-info" style="font-size: 0.75em; color: #aaa; margin-top: 10px; text-align: left; padding: 5px; border-top: 1px solid #333;">
+        <div id="e-skills-info" style="font-size: 0.75em; color: #aaa; margin-top: 10px; text-align: left; padding: 5px; border-top: 1px solid #333; flex:1; overflow-y:auto;">
             Várakozás képességekre...
         </div>
     </div>
@@ -222,7 +229,10 @@
         mySkills.forEach((s, i) => {
             const btn = document.getElementById(`sk-${i}`);
             btn.innerText = s.n;
-            btn.setAttribute('data-tip', `${s.n}\n💧 ${s.c} MP\n✨ ${s.d}`);
+            
+            // RÉGI TOOLTIP ELTÁVOLÍTVA, ÚJ HOVER ESEMÉNYEK HOZZÁADVA
+            btn.onmouseover = () => showSpellInfo(s);
+            btn.onmouseout = () => hideSpellInfo();
             
             // CD Overlay
             let ov = btn.querySelector('.cd-overlay');
@@ -238,6 +248,20 @@
 
         document.getElementById('dice').innerText = b.lastRoll;
         document.getElementById('log').innerHTML = b.log ? b.log.map(l => `<div>${l}</div>`).reverse().join('') : "";
+    }
+
+    // ÚJ FÜGGVÉNYEK A SPELL INFO MEGJELENÍTÉSÉHEZ
+    function showSpellInfo(spell) {
+        const infoBox = document.getElementById('p-spell-info');
+        infoBox.innerHTML = `<span class="spell-info-name">${spell.n}</span>
+                             <span class="spell-info-cost">💧 ${spell.c} MP | ⏳ CD: ${spell.cd} kör</span>
+                             <span class="spell-info-desc">✨ ${spell.d}</span>`;
+        infoBox.classList.add('active');
+    }
+
+    function hideSpellInfo() {
+        const infoBox = document.getElementById('p-spell-info');
+        infoBox.classList.remove('active');
     }
 
     function useSkill(idx) {
