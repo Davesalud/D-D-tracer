@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Death's Armada - ARENA v4.8 ⚔️</title>
+    <title>Death's Armada - ARENA v4.9 ⚔️</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #c5a059; --accent: #8b0000; --bg: #050507; --glass: rgba(15, 15, 20, 0.95); }
@@ -25,11 +25,19 @@
         .bar-text { position: absolute; width: 100%; text-align: center; font-size: 10px; top: 1px; font-weight: bold; text-shadow: 1px 1px 2px black; z-index: 5; }
         
         .skill-slot { width: 55px; height: 55px; background: #111; border: 2px solid var(--gold); border-radius: 6px; cursor: pointer; background-size: cover; margin: 0 4px; position: relative; }
+        
+        /* HOVER / HOP-UP INFORMÁCIÓ */
+        .skill-info-box { height: 50px; margin-top: 10px; border: 1px solid #444; background: rgba(0,0,0,0.5); border-radius: 5px; font-size: 0.85em; padding: 5px; color: #ccc; }
+
         .dice-box { width: 70px; height: 70px; border: 2px solid var(--gold); font-size: 1.5em; background: #000; color: var(--gold); border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 10px rgba(197, 160, 89, 0.2); }
         .battle-log { width: 100%; max-width: 250px; height: 120px; background: rgba(0,0,0,0.85); border: 1px solid #444; padding: 8px; font-size: 0.8em; overflow-y: auto; color: #ddd; border-radius: 6px; }
         
-        .btn { background: var(--accent); color: white; border: 1px solid var(--gold); padding: 10px; font-family: 'MedievalSharp'; cursor: pointer; width: 100%; border-radius: 4px; font-weight: bold; margin-bottom: 5px; }
-        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn { background: var(--accent); color: white; border: 1px solid var(--gold); padding: 10px; font-family: 'MedievalSharp'; cursor: pointer; width: 100%; border-radius: 4px; font-weight: bold; margin-bottom: 5px; position: relative; }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none !important; }
+
+        /* VIZUÁLIS KIEMELÉSEK */
+        .glow-attack:not(:disabled) { box-shadow: 0 0 15px #ffcc00, inset 0 0 10px #ffcc00; border-color: #ffcc00; }
+        .glow-defend:not(:disabled) { box-shadow: 0 0 15px #00e5ff, inset 0 0 10px #00e5ff; border-color: #00e5ff; }
 
         #ready-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); z-index: 1500; display:none; flex-direction:column; align-items:center; justify-content:center; }
         #win-screen, #flee-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.98); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; text-align: center; }
@@ -54,8 +62,10 @@
 <div id="win-screen">
     <h1 id="win-title" style="color: var(--gold); font-size: 3em;">GYŐZELEM!</h1>
     <div id="rewards" style="padding: 20px; border: 1px solid var(--gold); width: 250px; margin: 20px 0; background: rgba(255,255,255,0.05); text-align: center;">
+        <p id="reward-status" style="color: #aaa; margin-bottom: 10px;"></p>
         <p id="reward-xp" style="font-size: 1.4em;"></p>
         <p id="reward-gold" style="font-size: 1.4em; color: gold;"></p>
+        <p id="reward-hp" style="color: #ff4444; margin-top: 10px;"></p>
     </div>
     <button class="btn" style="width:250px" onclick="safeExit()">🏰 VISSZATÉRÉS</button>
 </div>
@@ -74,13 +84,17 @@
         <div id="p-img" class="hero-portrait"></div>
         <div class="bar-container"><div id="p-hp-fill" class="hp-fill"></div><div class="bar-text" id="p-hp-val">0/0 HP</div></div>
         <div class="bar-container" style="height:12px;"><div id="p-mp-fill" class="mp-fill"></div><div class="bar-text" id="p-mp-val">0/0 MP</div></div>
+        
         <div style="display: flex; justify-content: center; margin: 10px 0;">
-            <button class="skill-slot" id="sk-0" onclick="useSkill(0)" disabled></button>
-            <button class="skill-slot" id="sk-1" onclick="useSkill(1)" disabled></button>
-            <button class="skill-slot" id="sk-2" onclick="useSkill(2)" disabled></button>
+            <button class="skill-slot" id="sk-0" onclick="useSkill(0)" onmouseover="showSkillInfo(0)" onmouseout="clearSkillInfo()" disabled></button>
+            <button class="skill-slot" id="sk-1" onclick="useSkill(1)" onmouseover="showSkillInfo(1)" onmouseout="clearSkillInfo()" disabled></button>
+            <button class="skill-slot" id="sk-2" onclick="useSkill(2)" onmouseover="showSkillInfo(2)" onmouseout="clearSkillInfo()" disabled></button>
         </div>
-        <button id="btn-attack" class="btn" onclick="performAction('attack')" disabled>⚔️ TÁMADÁS</button>
-        <button id="btn-defend" class="btn" style="background:#2c3e50" onclick="performAction('defend')" disabled>🛡️ VÉDEKEZÉS</button>
+
+        <div id="skill-desc" class="skill-info-box">Hop-up: Vigye fölé az egeret!</div>
+
+        <button id="btn-attack" class="btn glow-attack" onclick="performAction('attack')" disabled>⚔️ TÁMADÁS</button>
+        <button id="btn-defend" class="btn glow-defend" style="background:#2c3e50" onclick="performAction('defend')" disabled>🛡️ VÉDEKEZÉS</button>
     </div>
 
     <div style="display:flex; flex-direction:column; align-items:center; gap:15px;">
@@ -110,6 +124,7 @@
     let currentRoom = null, bRef = null, isFighting = false, rewarded = false, hasFled = false;
     let myCooldowns = [0, 0, 0], lastTurnOwner = "";
     let turnTimer = null, timeLeft = 15;
+    let myClassData = null;
 
     const HERO_IMGS = { 
         "Harcos":"https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png", 
@@ -119,6 +134,16 @@
         "Nekromanta":"https://i.ibb.co/NnCwwCbR/Copilot-20260403-033301.png",
         "Íjász":"https://i.ibb.co/whd2jNpB/Copilot-20260403-034402.png"
     };
+
+    function showSkillInfo(idx) {
+        if(!myClassData) return;
+        const s = myClassData.skills[idx];
+        document.getElementById('skill-desc').innerHTML = `<strong>${s.name}</strong>: ${s.desc} <br><span style="color:#ff4444">Sebzés: ~${s.power}</span> | <span style="color:#0088ff">MP: ${s.cost}</span>`;
+    }
+
+    function clearSkillInfo() {
+        document.getElementById('skill-desc').innerText = "Hop-up: Vigye fölé az egeret!";
+    }
 
     function findMatch() {
         document.getElementById('ready-overlay').style.display = 'flex';
@@ -138,6 +163,7 @@
         bRef = db.ref('battles/' + currentRoom);
         db.ref(`characters/${myId}`).once('value', s => {
             const c = s.val();
+            myClassData = SKILLS_DATA[c.charClass];
             bRef.set({
                 p1: { id: myId, name: c.name, hp: Number(c.hp), maxHp: Number(c.maxHp || 100), mp: Number(c.mp || 0), maxMp: Number(c.maxMp || 100), class: c.charClass, atk: Number(c.atk || 10), def: Number(c.def || 5), ready: false, roll: 0 },
                 p2: { id: "waiting", ready: false },
@@ -151,11 +177,11 @@
         currentRoom = id; bRef = db.ref('battles/' + currentRoom);
         db.ref(`characters/${myId}`).once('value', s => {
             const c = s.val();
+            myClassData = SKILLS_DATA[c.charClass];
             bRef.update({ 
                 "p2": { id: myId, name: c.name, hp: Number(c.hp), maxHp: Number(c.maxHp || 100), mp: Number(c.mp || 0), maxMp: Number(c.maxMp || 100), class: c.charClass, atk: Number(c.atk || 10), def: Number(c.def || 5), ready: false, roll: 0 },
                 "status": "setup"
             }).then(() => {
-                // Kényszerítsük a gombot aktívra a belépőnél
                 document.getElementById('btn-ready').disabled = false;
             });
             bRef.child('p2').onDisconnect().set({ id: "waiting", ready: false });
@@ -194,7 +220,6 @@
             const me = isP1 ? b.p1 : b.p2;
             const opp = isP1 ? b.p2 : b.p1;
 
-            // --- JAVÍTOTT MATCHMAKING & READY ---
             if(b.p1 && b.p2 && b.p2.id !== "waiting") {
                 if(!me.ready) {
                     const rBtn = document.getElementById('btn-ready');
@@ -211,7 +236,6 @@
                 }
             }
 
-            // --- KEZDÉS ELDÖNTÉSE ---
             if(b.p1.roll > 0 && b.p2.roll > 0 && b.status !== "fighting") {
                 const firstId = b.p1.roll >= b.p2.roll ? b.p1.id : b.p2.id;
                 const msg = firstId === myId ? "TE KEZDESZ!" : "ELLENSÉG KEZD!";
@@ -235,7 +259,7 @@
                 if(b.winner === "fled") {
                     if(!hasFled) safeExit(); 
                 } else {
-                    showEndScreen(b.winner === myId); 
+                    showEndScreen(b.winner === myId, me.hp); 
                 }
                 return; 
             }
@@ -343,14 +367,29 @@
         });
     }
 
-    function showEndScreen(win) {
+    function showEndScreen(win, finalHp) {
         document.getElementById('win-screen').style.display = 'flex';
-        document.getElementById('win-title').innerText = win ? "GYŐZELEM!" : "VERESÉG!";
+        const title = document.getElementById('win-title');
+        title.innerText = win ? "GYŐZELEM!" : "VERESÉG!";
+        title.style.color = win ? "#c5a059" : "#ff4444";
+        
+        document.getElementById('reward-status').innerText = win ? "Dicsőséges csata volt!" : "A sötétség elnyelt...";
         document.getElementById('reward-xp').innerText = win ? "+15 XP" : "+3 XP";
         document.getElementById('reward-gold').innerText = win ? "+10 Arany" : "-2 Arany";
+        
+        // Mentés és HP kezelés
+        let savedHp = Math.ceil(finalHp);
+        if(savedHp <= 0) savedHp = 1; // Ha meghalt, 1 HP-val tér vissza
+
+        document.getElementById('reward-hp').innerText = `Maradék életerő: ${savedHp} HP`;
+
         db.ref(`characters/${myId}`).once('value', s => {
             const c = s.val();
-            db.ref(`characters/${myId}`).update({ xp: (c.xp || 0) + (win ? 15 : 3), gold: Math.max(0, (c.gold || 0) + (win ? 10 : -2)) });
+            db.ref(`characters/${myId}`).update({ 
+                xp: (c.xp || 0) + (win ? 15 : 3), 
+                gold: Math.max(0, (c.gold || 0) + (win ? 10 : -2)),
+                hp: savedHp
+            });
         });
     }
 
