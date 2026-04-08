@@ -244,16 +244,17 @@
         document.getElementById('lobby-class-display').innerText = c.charClass;
         document.getElementById('lobby-hero-img').style.backgroundImage = `url('${HERO_IMAGES[c.charClass]}')`;
         
-        // HP KISZÁMÍTÁS
-        const hpPercent = (Number(c.hp) / Number(c.maxHp)) * 100;
+        // --- JAVÍTOTT HP/MP KIJELZÉS ---
+        const maxHp = Number(c.maxHp) || 100;
+        const hpPercent = (Number(c.hp || 0) / maxHp) * 100;
         document.getElementById('lobby-hp-fill').style.width = Math.min(100, Math.max(0, hpPercent)) + "%";
-        document.getElementById('lobby-hp-val').innerText = `${Math.ceil(c.hp)} / ${c.maxHp} HP`;
+        document.getElementById('lobby-hp-val').innerText = `${Math.ceil(c.hp || 0)} / ${maxHp} HP`;
         
-        // MANA KISZÁMÍTÁS - JAVÍTVA: A saját maxMp értéket használja
-        const maxMp = Number(c.maxMp) || 100;
+        const maxMp = Number(c.maxMp) || 50; 
         const mpPercent = (Number(c.mp || 0) / maxMp) * 100;
         document.getElementById('lobby-mp-fill').style.width = Math.min(100, Math.max(0, mpPercent)) + "%";
         document.getElementById('lobby-mp-val').innerText = `${Math.ceil(c.mp || 0)} / ${maxMp} MP`;
+        // ------------------------------
         
         document.getElementById('lobby-xp-fill').style.width = (Number(c.xp)/Number(c.nextLvlXp)*100) + "%";
         document.getElementById('xp-text').innerText = `XP: ${c.xp} / ${c.nextLvlXp}`;
@@ -271,17 +272,16 @@
         });
     }
 
-    // REGENERÁCIÓ JAVÍTVA - A hős saját maximumait figyeli
     setInterval(() => {
         if (!myId || !chars[myId]) return;
         const c = chars[myId];
         const rates = REGEN_RATES[c.charClass] || { hp: 5, mp: 5 };
-        const mHp = Number(c.maxHp) || 100;
-        const mMp = Number(c.maxMp) || 100;
+        const maxHp = Number(c.maxHp) || 100;
+        const maxMp = Number(c.maxMp) || 50;
         
         db.ref(`characters/${myId}`).update({ 
-            hp: Math.min(mHp, Number(c.hp || 0) + rates.hp),
-            mp: Math.min(mMp, Number(c.mp || 0) + rates.mp),
+            hp: Math.min(maxHp, Number(c.hp || 0) + rates.hp),
+            mp: Math.min(maxMp, Number(c.mp || 0) + rates.mp),
             lastUpdate: Date.now() 
         });
     }, 60000);
