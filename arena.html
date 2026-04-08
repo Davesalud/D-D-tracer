@@ -286,7 +286,7 @@
 
             if (b.status === "fighting") {
                 document.getElementById('ready-overlay').style.display = 'none';
-                isFighting = true;
+                isFighting = true;  // ← előbb állítjuk be, hogy updateUI már helyesen lássa
             }
 
             if (b.winner !== "none" && !rewarded) {
@@ -295,7 +295,8 @@
                 else { showEndScreen(b.winner === myId, me.hp); }
                 return;
             }
-            updateUI(b, me, opp);
+
+            updateUI(b, me, opp);  // ← már tudja hogy isFighting = true
         });
     }
 
