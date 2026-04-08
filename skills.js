@@ -1,6 +1,6 @@
 /**
  * Death's Armada - Hős Képességek Adatbázisa v2.0
- * Konzisztens elnevezések, mana költségek és sebzési szorzók.
+ * Képekkel kiegészített verzió
  */
 
 const SKILLS_DATA = {
@@ -12,6 +12,7 @@ const SKILLS_DATA = {
                 cost: 15, 
                 cd: 1, 
                 power: 1.2, 
+                img: "https://i.ibb.co/kVDdHFxb/1.jpg",
                 txt: "A harcos nehéz pajzsával arcba vágja az ellenséget, aki megszédül a brutális csapástól." 
             },
             { 
@@ -19,6 +20,7 @@ const SKILLS_DATA = {
                 cost: 20, 
                 cd: 2, 
                 power: 1.5, 
+                img: "https://i.ibb.co/FbvFzFGJ/N-vtelen.jpg",
                 txt: "Minden vágással életerőt szívsz el, miközben ellenfeled sebei vérezni kezdenek." 
             },
             { 
@@ -26,6 +28,7 @@ const SKILLS_DATA = {
                 cost: 40, 
                 cd: 99, 
                 power: 2.5, 
+                img: "https://i.ibb.co/3ykRxmmq/ulti.jpg",
                 txt: "Megállíthatatlan roham, ami áttöri a legerősebb páncélt is. (Csak egyszer használható!)" 
             }
         ]
@@ -38,6 +41,7 @@ const SKILLS_DATA = {
                 cost: 30, 
                 cd: 1, 
                 power: 1.8, 
+                img: "https://i.ibb.co/XZNf106p/1.jpg",
                 txt: "Koncentrált mágikus lángok, melyek elevenen porrá égetik az ellenség húsát." 
             },
             { 
@@ -45,6 +49,7 @@ const SKILLS_DATA = {
                 cost: 25, 
                 cd: 2, 
                 power: 1.4, 
+                img: "https://i.ibb.co/cKWxyMbJ/1.jpg",
                 txt: "Fagyos tüske, ami jégbe zárja az ellenség minden mozdulatát." 
             },
             { 
@@ -52,6 +57,7 @@ const SKILLS_DATA = {
                 cost: 80, 
                 cd: 99, 
                 power: 3.5, 
+                img: "https://i.ibb.co/nMRzGwF2/ulti.jpg",
                 txt: "Megnyílik az ég, izzó meteorok hullanak alá. Ez a végítélet pillanata!" 
             }
         ]
@@ -64,6 +70,7 @@ const SKILLS_DATA = {
                 cost: 20, 
                 cd: 1, 
                 power: 1.3, 
+                img: "https://i.ibb.co/Z1NGqhdh/1.jpg",
                 txt: "Isteni fény kíséretében sújtasz le, megtisztítva a bűnösöket." 
             },
             { 
@@ -71,6 +78,7 @@ const SKILLS_DATA = {
                 cost: 30, 
                 cd: 3, 
                 power: 0.5, 
+                img: "https://i.ibb.co/ym80gy3B/2.jpg",
                 txt: "Isteni pajzs vonja körbe a lovagot, ami elnyeli a beérkező csapások egy részét." 
             },
             { 
@@ -78,6 +86,7 @@ const SKILLS_DATA = {
                 cost: 50, 
                 cd: 99, 
                 power: 2.2, 
+                img: "https://i.ibb.co/VcJDZhQk/ulti.jpg",
                 txt: "A mennyek haragja sújt le, miközben a hit ereje összeforrasztja sebeidet." 
             }
         ]
@@ -90,6 +99,7 @@ const SKILLS_DATA = {
                 cost: 20, 
                 cd: 1, 
                 power: 1.2, 
+                img: "https://i.ibb.co/Kp5b2WZD/2.jpg",
                 txt: "A nyíl hegyén lévő méreg lassan emészti fel az ellenség életerejét." 
             },
             { 
@@ -97,6 +107,7 @@ const SKILLS_DATA = {
                 cost: 25, 
                 cd: 2, 
                 power: 1.6, 
+                img: "https://i.ibb.co/GfRZ1ng5/ulti.jpg",
                 txt: "Tökéletes célzás, ami áthatol a legkisebb réseken is a páncélzaton." 
             },
             { 
@@ -104,6 +115,7 @@ const SKILLS_DATA = {
                 cost: 50, 
                 cd: 99, 
                 power: 2.8, 
+                img: "https://i.ibb.co/Lhkdcqmb/1.jpg",
                 txt: "Vesszők százai lepik el a csatateret, nincs hová menekülni az égi áldás elől." 
             }
         ]
@@ -116,6 +128,7 @@ const SKILLS_DATA = {
                 cost: 25, 
                 cd: 1, 
                 power: 2.0, 
+                img: "https://i.ibb.co/mFT1D4xL/Blood-Mage-7.png",
                 txt: "Az árnyakból előbukkanva tőreidet mélyen az ellenfél bordái közé döföd." 
             },
             { 
@@ -123,6 +136,7 @@ const SKILLS_DATA = {
                 cost: 30, 
                 cd: 3, 
                 power: 0.8, 
+                img: "https://i.ibb.co/qFrHMFXN/Engineer-7.png",
                 txt: "Sötét füst marad utánad, amiből váratlanul sújtasz le újra." 
             },
             { 
@@ -130,6 +144,7 @@ const SKILLS_DATA = {
                 cost: 60, 
                 cd: 99, 
                 power: 4.0, 
+                img: "https://i.ibb.co/Kc3L2P33/Blood-Mage-8.png",
                 txt: "Villámgyors vágások sorozata, ami azonnal véget vet a földi szenvedésnek." 
             }
         ]
@@ -142,6 +157,7 @@ const SKILLS_DATA = {
                 cost: 25, 
                 cd: 1, 
                 power: 1.4, 
+                img: "https://i.ibb.co/hxcGJzqZ/N-vtelen.jpg",
                 txt: "Kínzott lelkek sikolya kíséri a sötét energiát, ami az ellenség húsába mar." 
             },
             { 
@@ -149,6 +165,7 @@ const SKILLS_DATA = {
                 cost: 40, 
                 cd: 4, 
                 power: 1.1, 
+                img: "https://i.ibb.co/S4ft5vJT/2.jpg",
                 txt: "Sötét kötelék alakul ki: az ellenség életereje közvetlenül téged táplál." 
             },
             { 
@@ -156,13 +173,14 @@ const SKILLS_DATA = {
                 cost: 90, 
                 cd: 99, 
                 power: 3.2, 
+                img: "https://i.ibb.co/CKhc0K9m/ulti.jpg",
                 txt: "A sírok megnyílnak, és a feltámasztott holtak serege lerohanja a célpontot." 
             }
         ]
     }
 };
 
-// --- BIZTONSÁGI MÁSOLATOK (Ékezet nélküli kulcsok a hibák elkerülésére) ---
+// Biztonsági másolatok
 SKILLS_DATA["Ijász"] = SKILLS_DATA["Íjász"];
 SKILLS_DATA["Magus"] = SKILLS_DATA["Mágus"];
 SKILLS_DATA["Bergyilkos"] = SKILLS_DATA["Bérgyilkos"];
