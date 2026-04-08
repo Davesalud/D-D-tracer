@@ -23,13 +23,13 @@
             overflow-y: auto; 
         }
         
+        /* VISSZAÁLLÍTVA AZ EREDETI HÁTTÉR */
         .master-bg { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.8)), url('https://i.pinimg.com/originals/26/2b/dd/262bdd02564bf6dabbe89df4f93e8e26.jpg'); 
             background-size: cover; background-position: center; z-index: -1; 
         }
 
-        /* KONTÉNER AMI ÖSSZEFOGJA A KÁRTYÁT ÉS A GOMBOKAT */
         .lobby-wrapper {
             position: relative;
             display: flex;
@@ -43,7 +43,7 @@
             position: absolute;
             top: 50%;
             transform: translateY(-50%);
-            width: 140px; /* Kicsit keskenyebb, hogy ne legyen túl robusztus */
+            width: 140px;
             height: 300px;
             border: 2px solid var(--gold); 
             border-radius: 8px;
@@ -72,7 +72,6 @@
             letter-spacing: 1px;
         }
 
-        /* POZÍCIONÁLÁS KÖZVETLENÜL A KÁRTYA MELLÉ */
         #btn-side-kampany { left: -150px; background-image: url('https://i.ibb.co/S4VL891M/Copilot-20260405-021905.png'); }
         #btn-side-arena { right: -150px; background-image: url('https://i.ibb.co/p66KV1Vb/Copilot-20260405-021201.png'); }
 
@@ -89,7 +88,6 @@
             backdrop-filter: blur(15px); position: relative; z-index: 5;
         }
         
-        /* ... TÖBBI STÍLUS MARADT ... */
         .lobby-hero-portrait { width: 100%; aspect-ratio: 1/1; border: 2px solid var(--gold); margin: 15px 0; background-size: cover; background-position: center 20%; border-radius: 4px; }
         .bar-container { height: 20px; background: #000; border: 1px solid #333; position: relative; margin-top: 8px; border-radius: 3px; overflow: hidden; }
         .bar-fill { height: 100%; transition: width 0.5s ease; background: linear-gradient(90deg, #600, #b00); width: 0%; }
@@ -190,7 +188,6 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script>
-    // A JS rész megegyezik a beküldött kódoddal (Regeneráció, XP, Szintlépés mind benne van!)
     const firebaseConfig = { apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU", authDomain: "dnd-tracker-4fe05.firebaseapp.com", projectId: "dnd-tracker-4fe05", databaseURL: "https://dnd-tracker-4fe05-default-rtdb.europe-west1.firebasedatabase.app" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
@@ -200,8 +197,8 @@
 
     if (!myId) { window.location.href = 'login.html'; }
 
+    // EGYSÉGESÍTETT KÉPEK ÉS REGEN RÁTÁK
     const REGEN_RATES = { "Harcos": { hp: 7, mp: 2 }, "Mágus": { hp: 2, mp: 10 }, "Lovag": { hp: 9, mp: 3 }, "Íjász": { hp: 5, mp: 5 }, "Bérgyilkos": { hp: 4, mp: 6 }, "Nekromanta": { hp: 5, mp: 8 } };
-    const BASE_STATS = { "Harcos": { atk: 12, def: 8, maxHp: 120 }, "Mágus": { atk: 15, def: 4, maxHp: 80 }, "Lovag": { atk: 10, def: 12, maxHp: 150 }, "Íjász": { atk: 14, def: 6, maxHp: 90 }, "Bérgyilkos": { atk: 16, def: 5, maxHp: 85 }, "Nekromanta": { atk: 13, def: 7, maxHp: 100 } };
     const HERO_IMAGES = { "Harcos": "https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png", "Mágus": "https://i.ibb.co/yFz5bcXv/Copilot-20260403-033651.png", "Lovag": "https://i.ibb.co/Fk3n339M/Copilot-20260403-034043.png", "Íjász": "https://i.ibb.co/whd2jNpB/Copilot-20260403-034402.png", "Bérgyilkos": "https://i.ibb.co/b525CsLg/Copilot-20260403-032807.png", "Nekromanta": "https://i.ibb.co/NnCwwCbR/Copilot-20260403-033301.png" };
 
     db.ref(`characters/${myId}`).update({ status: "online", lastUpdate: Date.now() });
@@ -241,7 +238,6 @@
         checkLevelUp(c);
         const now = Date.now();
         
-        // Alap adatok
         document.getElementById('lobby-name').innerText = c.name;
         document.getElementById('lobby-lvl').innerText = `LVL ${c.level || 1}`;
         document.getElementById('lobby-gold').innerText = c.gold || 0;
@@ -250,16 +246,20 @@
         document.getElementById('lobby-class-display').innerText = c.charClass;
         document.getElementById('lobby-hero-img').style.backgroundImage = `url('${HERO_IMAGES[c.charClass]}')`;
         
-        // Bar-ok
-        document.getElementById('lobby-hp-fill').style.width = (Number(c.hp)/Number(c.maxHp)*100) + "%";
+        // HP KISZÁMÍTÁS (0-100%)
+        const hpPercent = (Number(c.hp) / Number(c.maxHp)) * 100;
+        document.getElementById('lobby-hp-fill').style.width = Math.min(100, Math.max(0, hpPercent)) + "%";
         document.getElementById('lobby-hp-val').innerText = `${Math.ceil(c.hp)} / ${c.maxHp} HP`;
-        document.getElementById('lobby-mp-fill').style.width = (Number(c.mp || 0)) + "%";
-        document.getElementById('lobby-mp-val').innerText = `${Math.ceil(c.mp || 0)} / 100 MP`;
+        
+        // MANA KISZÁMÍTÁS (0-100% a karakter saját maxMp-je alapján)
+        const maxMp = Number(c.maxMp) || 100;
+        const mpPercent = (Number(c.mp || 0) / maxMp) * 100;
+        document.getElementById('lobby-mp-fill').style.width = Math.min(100, Math.max(0, mpPercent)) + "%";
+        document.getElementById('lobby-mp-val').innerText = `${Math.ceil(c.mp || 0)} / ${maxMp} MP`;
         
         document.getElementById('lobby-xp-fill').style.width = (Number(c.xp)/Number(c.nextLvlXp)*100) + "%";
         document.getElementById('xp-text').innerText = `XP: ${c.xp} / ${c.nextLvlXp}`;
         
-        // Online lista
         const listOnline = document.getElementById('list-online');
         const listArena = document.getElementById('list-arena');
         listOnline.innerHTML = ""; listArena.innerHTML = "";
@@ -273,14 +273,16 @@
         });
     }
 
-    // Regeneráció
+    // REGENERÁCIÓ JAVÍTVA
     setInterval(() => {
         if (!myId || !chars[myId]) return;
         const c = chars[myId];
         const rates = REGEN_RATES[c.charClass] || { hp: 5, mp: 5 };
+        const maxMp = Number(c.maxMp) || 100;
+        
         db.ref(`characters/${myId}`).update({ 
-            hp: Math.min(Number(c.maxHp), Number(c.hp) + rates.hp),
-            mp: Math.min(100, Number(c.mp || 0) + rates.mp),
+            hp: Math.min(Number(c.maxHp), Number(c.hp || 0) + rates.hp),
+            mp: Math.min(maxMp, Number(c.mp || 0) + rates.mp),
             lastUpdate: Date.now() 
         });
     }, 60000);
