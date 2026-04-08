@@ -317,7 +317,7 @@
             document.getElementById('e-skills-info').innerText = "Várakozás ellenfélre...";
         }
 
-        const myTurn = b.turn === myId && isFighting;
+        const myTurn = String(b.turn) === String(myId) && isFighting;
         document.getElementById('btn-attack').disabled = !myTurn;
         document.getElementById('btn-defend').disabled = !myTurn;
         document.getElementById('turn-display').innerText = myTurn ? "TE KÖVETKEZEL!" : (isFighting ? "ELLENFÉL JÖN..." : "KERESÉS...");
@@ -332,11 +332,11 @@
         document.getElementById('dice').innerText = b.lastRoll || "?";
         document.getElementById('log').innerHTML = b.log ? b.log.map(l => `<div>${l}</div>`).reverse().join('') : "";
 
-        if (myTurn && lastTurnOwner !== myId) {
+        if (myTurn && String(lastTurnOwner) !== String(myId)) {
             myCooldowns = myCooldowns.map(c => c > 0 ? c - 1 : 0);
             startTimer();
         } else if (!myTurn) { clearInterval(turnTimer); document.getElementById('timer-box').style.display = 'none'; }
-        lastTurnOwner = b.turn;
+        lastTurnOwner = String(b.turn);
         if(isFighting && me.hp <= 0 && b.winner === "none") bRef.update({ winner: opp.id });
     }
 
@@ -348,7 +348,7 @@
 
     function skipTurn() {
         bRef.once('value', snap => {
-            const b = snap.val(); if (!b || b.turn !== myId) return;
+            const b = snap.val(); if (!b || String(b.turn) !== String(myId)) return;
             const isP1 = b.p1.id === myId;
             bRef.update({ turn: isP1 ? b.p2.id : b.p1.id, log: [...(b.log||[]).slice(-4), `${myHero.name} kifutott az időből!`], lastRoll: "⏳" });
         });
