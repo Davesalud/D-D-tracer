@@ -5,7 +5,7 @@
     <title>DM Master Control - Death's Armada</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
     <style>
-        :root { --gold: #c5a059; --accent: #8b0000; --bg: #050507; --card: rgba(20, 20, 25, 0.9); }
+        :root { --gold: #c5a059; --accent: #8b0000; --bg: #050507; --card: rgba(20, 20, 25, 0.9); --blue: #0088ff; }
         body { background: var(--bg); color: var(--gold); font-family: 'Segoe UI', sans-serif; padding: 20px; margin: 0; padding-bottom: 80px; }
         
         .header-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent); padding: 10px 20px; margin-bottom: 20px; }
@@ -14,7 +14,17 @@
         .control-panel { background: rgba(139, 0, 0, 0.1); border: 1px solid var(--gold); padding: 15px; margin: 0 20px 20px 20px; border-radius: 8px; }
         .patch-editor textarea { width: 100%; height: 60px; background: #000; color: #ccc; border: 1px solid #444; padding: 10px; font-family: 'serif'; margin-bottom: 10px; }
 
+        /* Aréna szekció stílusai */
+        .arena-monitor { background: rgba(0, 136, 255, 0.05); border: 1px solid var(--blue); padding: 15px; margin: 0 20px 20px 20px; border-radius: 8px; }
+        .room-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; margin-top: 10px; }
+        .room-card { background: #111; border: 1px solid #333; padding: 12px; border-radius: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        .status-tag { font-size: 0.7em; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; font-weight: bold; }
+        .status-waiting { background: #27ae60; color: white; }
+        .status-fighting { background: #e74c3c; color: white; }
+        .status-setup { background: #f1c40f; color: black; }
+
         .btn-top { padding: 8px 15px; font-family: 'MedievalSharp'; cursor: pointer; border: none; background: var(--accent); color: white; font-size: 0.9em; border-radius: 4px; }
+        .btn-blue { background: var(--blue); }
 
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; padding: 0 20px; }
         .char-card { background: var(--card); border: 1px solid #444; padding: 15px; border-radius: 5px; display: flex; flex-direction: column; box-shadow: 0 4px 15px rgba(0,0,0,0.5); position: relative; }
@@ -56,6 +66,14 @@
         </div>
     </div>
 
+    <div class="arena-monitor">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span class="label" style="color:var(--blue); margin:0;">⚔️ Aréna Szobák Felügyelete</span>
+            <button class="btn-top" style="width: auto; padding: 5px 15px; background: #c0392b;" onclick="clearAllRooms()">🧹 Összes szoba törlése</button>
+        </div>
+        <div id="room-list" class="room-grid">Szobák keresése...</div>
+    </div>
+
     <div id="char-list" class="grid">A sereg gyülekezik...</div>
 
     <div class="bottom-nav">
@@ -70,7 +88,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // Patch Notes betöltése és mentése
+        // Patch Notes betöltése
         db.ref('settings/patchNotes').on('value', snap => {
             if(snap.val()) document.getElementById('patch-input').value = snap.val();
         });
@@ -80,6 +98,50 @@
             db.ref('settings/patchNotes').set(text).then(() => alert("Krónikák frissítve!"));
         }
 
+        // ARÉNA SZOBÁK FIGYELÉSE
+        db.ref('battles').on('value', snap => {
+            const rooms = snap.val();
+            const container = document.getElementById('room-list');
+            container.innerHTML = '';
+
+            if (!rooms) {
+                container.innerHTML = '<div style="color: #444; font-style: italic; font-size: 0.8em;">Nincsenek aktív szobák az adatbázisban.</div>';
+                return;
+            }
+
+            for (let id in rooms) {
+                const r = rooms[id];
+                const statusClass = "status-" + r.status;
+                const p1Name = r.p1 ? r.p1.name : "Ismeretlen";
+                const p2Name = (r.p2 && r.p2.id !== "waiting") ? r.p2.name : "Várakozás...";
+                
+                const roomDiv = document.createElement('div');
+                roomDiv.className = 'room-card';
+                roomDiv.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <span style="font-size:0.7em; color:#666;">ID: ${id}</span>
+                        <span class="status-tag ${statusClass}">${r.status}</span>
+                    </div>
+                    <div style="text-align:center; margin:10px 0; border-top:1px solid #222; padding-top:10px;">
+                        <div style="color:var(--gold); font-weight:bold;">${p1Name}</div>
+                        <div style="color:#444; font-size:0.8em;">VS</div>
+                        <div style="color:#ccc;">${p2Name}</div>
+                    </div>
+                    <button onclick="deleteRoom('${id}')" style="background:#222; color:#ff4444; border:1px solid #444; font-size:0.7em; margin-top:5px;">Szoba Törlése</button>
+                `;
+                container.appendChild(roomDiv);
+            }
+        });
+
+        function deleteRoom(id) {
+            if(confirm("Törlöd ezt a szobát? A harc azonnal megszakad!")) db.ref(`battles/${id}`).remove();
+        }
+
+        function clearAllRooms() {
+            if(confirm("Biztosan kiüríted az összes Aréna szobát?")) db.ref('battles').remove();
+        }
+
+        // KARAKTEREK FIGYELÉSE
         function timeSince(date) {
             if (!date) return "Soha nem volt aktív";
             const seconds = Math.floor((new Date() - date) / 1000);
