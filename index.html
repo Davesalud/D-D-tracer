@@ -40,8 +40,8 @@
 
         .side-action-btn { 
             position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
+            bottom: 0;
+            transform: none;
             width: 140px;
             height: 300px;
             border: 2px solid var(--gold); 
@@ -76,7 +76,7 @@
 
         .side-action-btn:hover {
             box-shadow: 0 0 20px var(--gold);
-            transform: translateY(-50%) scale(1.05);
+            transform: scale(1.05);
             filter: brightness(1.2);
         }
 
@@ -186,7 +186,6 @@
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
 <script src="regen.js"></script>
 
 <script>
@@ -199,9 +198,14 @@
 
     if (!myId) { window.location.href = 'login.html'; }
 
+    // Frissítéses szökés büntetés üzenete
+    if (localStorage.getItem('fled_penalty') === '1') {
+        localStorage.removeItem('fled_penalty');
+        setTimeout(() => alert("⚠️ Megszöktel a csatából frissítéssel!\nBüntetés: -15 Arany levonva."), 500);
+    }
+
     const HERO_IMAGES = { "Harcos": "https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png", "Mágus": "https://i.ibb.co/yFz5bcXv/Copilot-20260403-033651.png", "Lovag": "https://i.ibb.co/Fk3n339M/Copilot-20260403-034043.png", "Íjász": "https://i.ibb.co/whd2jNpB/Copilot-20260403-034402.png", "Bérgyilkos": "https://i.ibb.co/b525CsLg/Copilot-20260403-032807.png", "Nekromanta": "https://i.ibb.co/NnCwwCbR/Copilot-20260403-033301.png" };
 
-    // --- KEZDETI REGEN ÉS STÁTUSZ ---
     checkAndApplyRegen(myId);
     db.ref(`characters/${myId}/status`).once('value', s => {
         const currentStatus = s.val();
@@ -210,7 +214,6 @@
         }
     });
 
-    // Firebase figyelő
     db.ref('characters').on('value', snap => { 
         chars = snap.val() || {}; 
         if (myId && chars[myId]) updateLobbyUI(); 
@@ -286,12 +289,17 @@
         });
     }
 
-    // PERCENKÉNTI REGEN CIKLUS
     setInterval(() => {
         if (myId) checkAndApplyRegen(myId);
     }, 60000);
 
-    function logout() { db.ref(`characters/${myId}`).update({ status: "offline" }).then(() => { localStorage.removeItem('selectedCharId'); window.location.href = 'login.html'; }); }
+    function logout() { 
+        db.ref(`characters/${myId}`).update({ status: "offline" }).then(() => { 
+            localStorage.removeItem('selectedCharId'); 
+            window.location.href = 'login.html'; 
+        }); 
+    }
+
     function enterDM() { if(prompt("DM PIN:") === "4469") window.location.href = 'dm.html'; }
 </script>
 </body>
