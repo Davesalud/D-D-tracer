@@ -27,24 +27,6 @@
             background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.8)), url('https://i.pinimg.com/originals/26/2b/dd/262bdd02564bf6dabbe89df4f93e8e26.jpg'); 
             background-size: cover; background-position: center; z-index: -1; 
         }
-        
-        .side-action-btn, .img-btn {
-            transition: 0.4s ease;
-            filter: grayscale(30%);
-            will-change: transform;
-        }
-
-        .side-action-btn:hover {
-            filter: grayscale(0%) brightness(1.2);
-            box-shadow: 0 0 20px var(--gold);
-            transform: translateY(-50%) scale(1.05); 
-        }
-
-        .img-btn:hover {
-            filter: grayscale(0%) brightness(1.2);
-            box-shadow: 0 0 20px var(--gold);
-            transform: scale(1.05);
-        }
 
         .logout-corner { position: fixed; top: 20px; right: 20px; z-index: 1000; }
         .btn-logout { 
@@ -61,27 +43,11 @@
             z-index: 1000; transition: 0.3s; box-shadow: 0 0 15px rgba(0,0,0,0.5); font-size: 24px;
         }
 
-        .side-action-btn { 
-            position: fixed; top: 50%; transform: translateY(-50%); 
-            width: 240px; height: 350px; border: 2px solid var(--gold); 
-            border-radius: 8px; background-size: cover; background-position: center; 
-            cursor: pointer; display: flex; flex-direction: column; justify-content: flex-end; 
-            text-decoration: none; overflow: hidden; z-index: 10; 
-        }
-        .side-action-btn span { 
-            background: rgba(0, 0, 0, 0.85); color: var(--gold); 
-            font-family: 'MedievalSharp'; text-align: center; padding: 15px 0; 
-            width: 100%; text-transform: uppercase; border-top: 1px solid var(--gold); 
-            font-size: 1.2em; letter-spacing: 2px; transition: 0.3s;
-        }
-        #btn-side-kampany { left: 2%; background-image: url('https://i.ibb.co/S4VL891M/Copilot-20260405-021905.png'); }
-        #btn-side-arena { right: 2%; background-image: url('https://i.ibb.co/p66KV1Vb/Copilot-20260405-021201.png'); }
-
         .card { 
             background: var(--card); border: 1px solid var(--gold); 
             padding: 25px; border-radius: 4px; width: 95%; max-width: 480px; 
             text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,1); 
-            backdrop-filter: blur(15px); margin: 60px 0; position: relative; z-index: 5;
+            backdrop-filter: blur(15px); margin: 40px 0; position: relative; z-index: 5;
         }
         
         .lobby-hero-portrait { 
@@ -91,58 +57,47 @@
             border-radius: 4px; box-shadow: inset 0 0 50px black; 
         }
         
-        .bar-container { height: 24px; background: #000; border: 1px solid #333; position: relative; margin-top: 10px; border-radius: 3px; overflow: hidden; }
+        .bar-container { height: 20px; background: #000; border: 1px solid #333; position: relative; margin-top: 10px; border-radius: 3px; overflow: hidden; }
         .bar-fill { height: 100%; transition: width 0.5s ease; background: linear-gradient(90deg, #600, #b00); width: 0%; }
-        .hp-count-text { font-size: 14px; color: #ccc; margin-top: 4px; font-weight: bold; font-family: 'MedievalSharp'; }
+        .mana-fill { height: 100%; transition: width 0.5s ease; background: linear-gradient(90deg, #004cff, #00d4ff); width: 0%; }
+        .hp-count-text { font-size: 13px; color: #ccc; margin-top: 2px; font-weight: bold; font-family: 'MedievalSharp'; }
         
-        .xp-container { height: 8px; background: #111; border: 1px solid #333; margin-top: 8px; border-radius: 4px; overflow: hidden; }
-        .xp-fill { height: 100%; background: linear-gradient(90deg, #004cff, #00d4ff); width: 0%; transition: width 1s ease-out; }
+        .xp-container { height: 6px; background: #111; border: 1px solid #333; margin-top: 8px; border-radius: 4px; overflow: hidden; }
+        .xp-fill { height: 100%; background: linear-gradient(90deg, #c5a059, #fff); width: 0%; transition: width 1s ease-out; }
 
-        .nav-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0; }
+        .nav-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }
+        
+        /* KALANDOK SZEKCIÓ */
+        .adventure-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(197,160,89,0.3); }
+
         .img-btn { 
             display: flex; align-items: flex-end; justify-content: center; 
-            height: 100px; border: 1px solid var(--gold); border-radius: 4px; 
+            height: 80px; border: 1px solid var(--gold); border-radius: 4px; 
             text-decoration: none; background-size: cover; background-position: center; 
-            overflow: hidden;
+            overflow: hidden; transition: 0.3s; filter: grayscale(40%);
         }
+        .img-btn:hover { filter: grayscale(0%); transform: scale(1.03); box-shadow: 0 0 15px var(--gold); }
+        .img-btn span { width: 100%; background: rgba(0, 0, 0, 0.85); color: var(--gold); font-family: 'MedievalSharp'; text-align: center; padding: 4px 0; font-size: 0.75em; text-transform: uppercase; }
+
         .btn-felszereles { background-image: url('https://i.ibb.co/F4FDF8gF/Copilot-20260405-001049.png'); }
         .btn-kereskedo { background-image: url('https://i.ibb.co/0HSGQK0/Copilot-20260405-001515.png'); }
-        .img-btn span { width: 100%; background: rgba(0, 0, 0, 0.8); color: var(--gold); font-family: 'MedievalSharp'; text-align: center; padding: 6px 0; font-size: 0.85em; text-transform: uppercase; transition: 0.3s; }
+        .btn-arena { background-image: url('https://i.ibb.co/p66KV1Vb/Copilot-20260405-021201.png'); }
+        .btn-solo { background-image: url('https://i.ibb.co/S4VL891M/Copilot-20260405-021905.png'); }
+        .btn-team { background-image: url('https://i.ibb.co/y1rJBhv/Copilot-20260404-235606.png'); }
 
         .stat-bar-clone { 
             background: rgba(0,0,0,0.8); border: 1px solid var(--gold); 
-            padding: 10px; border-radius: 5px; display: flex; 
-            justify-content: center; gap: 20px; margin: 15px 0; flex-wrap: wrap;
-            font-family: 'MedievalSharp'; color: var(--gold);
+            padding: 8px; border-radius: 5px; display: flex; 
+            justify-content: center; gap: 15px; margin: 15px 0; flex-wrap: wrap;
+            font-family: 'MedievalSharp'; color: var(--gold); font-size: 0.9em;
         }
-        .stat-item { display: flex; align-items: center; gap: 8px; font-size: 1.1em; }
-
-        #lvl-up-overlay {
-            position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.95);
-            display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9999;
-        }
-        .lvl-card {
-            background: #111; border: 2px solid var(--gold); padding: 30px; border-radius: 8px;
-            text-align: center; max-width: 400px; width: 90%; box-shadow: 0 0 50px rgba(197,160,89,0.3);
-        }
-        .stat-option {
-            background: rgba(255,255,255,0.05); border: 1px solid #444; color: #fff;
-            padding: 15px; margin: 10px 0; border-radius: 4px; cursor: pointer;
-            font-family: 'MedievalSharp'; transition: 0.3s; display: block; width: 100%;
-        }
-        .stat-option:hover { background: var(--gold); color: #000; border-color: #fff; transform: scale(1.05); }
 
         .online-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-        .status-container { background: rgba(0,0,0,0.6); border: 1px solid rgba(197, 160, 89, 0.2); padding: 10px; border-radius: 4px; min-height: 100px; }
-        .status-header { font-family: 'MedievalSharp'; color: var(--gold); font-size: 0.75em; text-transform: uppercase; border-bottom: 1px solid rgba(197, 160, 89, 0.3); margin-bottom: 5px; padding-bottom: 3px; }
-        .scroll-area { max-height: 80px; overflow-y: auto; text-align: left; }
-        .player-mini-card { background: rgba(255,255,255,0.03); padding: 4px 6px; margin-bottom: 4px; border-left: 2px solid var(--gold); font-size: 0.8em; }
+        .status-container { background: rgba(0,0,0,0.6); border: 1px solid rgba(197, 160, 89, 0.2); padding: 8px; border-radius: 4px; min-height: 80px; }
+        .status-header { font-family: 'MedievalSharp'; color: var(--gold); font-size: 0.7em; text-transform: uppercase; border-bottom: 1px solid rgba(197, 160, 89, 0.3); margin-bottom: 5px; }
+        .scroll-area { max-height: 60px; overflow-y: auto; text-align: left; }
+        .player-mini-card { background: rgba(255,255,255,0.03); padding: 3px 5px; margin-bottom: 3px; border-left: 2px solid var(--gold); font-size: 0.75em; }
 
-        @media (max-width: 1200px) {
-            .side-action-btn { position: relative; top: 0; transform: none; width: 100%; max-width: 480px; height: 120px; margin: 10px 0; flex-direction: row; align-items: center; justify-content: space-between; }
-            .side-action-btn span { width: auto; height: 100%; display: flex; align-items: center; padding: 0 30px; border-top: none; border-left: 2px solid var(--gold); background: linear-gradient(90deg, transparent, rgba(0,0,0,0.9)); }
-            .logout-corner { top: 10px; right: 10px; }
-        }
     </style>
 </head>
 <body>
@@ -160,22 +115,23 @@
 
 <div class="logout-corner"><button class="btn-logout" onclick="logout()">Kilépés</button></div>
 
-<a href="campaign.html" id="btn-side-kampany" class="side-action-btn"><span>📜 KAMPÁNY</span></a>
-
 <div class="card">
-    <div style="display:flex; justify-content: space-between; align-items: center; margin-top: 10px;">
-        <h1 id="lobby-name" style="font-family:'MedievalSharp'; color:var(--gold); margin:0; font-size: 1.6em;">...</h1>
-        <span id="lobby-lvl" style="color: var(--gold); font-family:'MedievalSharp'; font-size: 1.1em; border: 1px solid var(--gold); padding: 2px 10px;">LVL -</span>
+    <div style="display:flex; justify-content: space-between; align-items: center;">
+        <h1 id="lobby-name" style="font-family:'MedievalSharp'; color:var(--gold); margin:0; font-size: 1.5em;">...</h1>
+        <span id="lobby-lvl" style="color: var(--gold); font-family:'MedievalSharp'; font-size: 1em; border: 1px solid var(--gold); padding: 2px 8px;">LVL -</span>
     </div>
-    <p id="lobby-class-display" style="margin:5px 0; font-style:italic; color:#aaa; text-transform: uppercase; font-size: 0.9em;">-</p>
+    <p id="lobby-class-display" style="margin:2px 0; font-style:italic; color:#aaa; text-transform: uppercase; font-size: 0.8em;">-</p>
     
     <div id="lobby-hero-img" class="lobby-hero-portrait"></div>
     
     <div class="bar-container"><div class="bar-fill" id="lobby-hp-fill"></div></div>
     <div class="hp-count-text" id="lobby-hp-val">0 / 0 HP</div>
+
+    <div class="bar-container"><div class="mana-fill" id="lobby-mp-fill"></div></div>
+    <div class="hp-count-text" id="lobby-mp-val">0 / 0 MP</div>
     
     <div class="xp-container"><div id="lobby-xp-fill" class="xp-fill"></div></div>
-    <div id="xp-text" style="font-size: 11px; color: #888; text-align: right; margin-top: 4px;">XP: - / -</div>
+    <div id="xp-text" style="font-size: 10px; color: #888; text-align: right; margin-top: 2px;">XP: - / -</div>
     
     <div class="nav-grid">
         <a href="inventory.html" class="img-btn btn-felszereles"><span>Felszerelés</span></a>
@@ -183,9 +139,15 @@
     </div>
 
     <div class="stat-bar-clone">
-        <div class="stat-item">💰 <b id="lobby-gold">0</b></div>
-        <div class="stat-item">⚔️ <b id="lobby-atk">0</b></div>
-        <div class="stat-item">🛡️ <b id="lobby-def">0</b></div>
+        <div>💰 <b id="lobby-gold">0</b></div>
+        <div>⚔️ <b id="lobby-atk">0</b></div>
+        <div>🛡️ <b id="lobby-def">0</b></div>
+    </div>
+
+    <div class="adventure-grid">
+        <a href="arena.html" class="img-btn btn-arena"><span>Aréna</span></a>
+        <a href="solocampaign.html" class="img-btn btn-solo"><span>Szóló</span></a>
+        <a href="teamcampaign.html" class="img-btn btn-team"><span>Csapat</span></a>
     </div>
     
     <div class="online-grid">
@@ -199,8 +161,6 @@
         </div>
     </div>
 </div>
-
-<a href="arena.html" id="btn-side-arena" class="side-action-btn"><span>⚔️ ARÉNA</span></a>
 
 <div class="dm-key-btn" onclick="enterDM()" title="DM belépés">🔑</div>
 
@@ -216,7 +176,15 @@
 
     if (!myId) { window.location.href = 'login.html'; }
 
-    // Kaszt alap statok resethez
+    const REGEN_SETTINGS = {
+        "Harcos": { hp: 7, mp: 2 },
+        "Mágus": { hp: 2, mp: 10 },
+        "Lovag": { hp: 9, mp: 3 },
+        "Íjász": { hp: 5, mp: 5 },
+        "Bérgyilkos": { hp: 4, mp: 6 },
+        "Nekromanta": { hp: 5, mp: 8 }
+    };
+
     const BASE_STATS = {
         "Harcos": { atk: 12, def: 8, maxHp: 120 },
         "Mágus": { atk: 15, def: 4, maxHp: 80 },
@@ -226,75 +194,63 @@
         "Nekromanta": { atk: 13, def: 7, maxHp: 100 }
     };
 
-    db.ref(`characters/${myId}`).update({ status: "online", lastUpdate: Date.now() });
-
     const HERO_IMAGES = { "Harcos": "https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png", "Mágus": "https://i.ibb.co/yFz5bcXv/Copilot-20260403-033651.png", "Lovag": "https://i.ibb.co/Fk3n339M/Copilot-20260403-034043.png", "Íjász": "https://i.ibb.co/whd2jNpB/Copilot-20260403-034402.png", "Bérgyilkos": "https://i.ibb.co/b525CsLg/Copilot-20260403-032807.png", "Nekromanta": "https://i.ibb.co/NnCwwCbR/Copilot-20260403-033301.png" };
 
     db.ref('characters').on('value', snap => { 
         chars = snap.val() || {}; 
-        if (myId && chars[myId]) updateLobbyUI(); 
-    });
+        if (myId && chars[myId]) {
+            const myChar = chars[myId];
+            
+            // REGENERÁCIÓ ELLENŐRZÉSE
+            const now = Date.now();
+            const lastUpdate = myChar.lastUpdate || now;
+            const elapsed = Math.floor((now - lastUpdate) / 1000);
+            const ticks = Math.floor(elapsed / 60);
 
-    function checkLevelUp(c) {
-        if (Number(c.level || 1) >= 30 || isLeveling) return;
-        const curXp = Number(c.xp || 0);
-        const nextXp = Number(c.nextLvlXp || 100);
-        if (curXp >= nextXp) {
-            isLeveling = true;
-            document.getElementById('lvl-up-overlay').style.display = 'flex';
+            if (ticks >= 1) {
+                const rates = REGEN_SETTINGS[myChar.charClass] || { hp: 5, mp: 5 };
+                let newHp = Math.min(Number(myChar.maxHp), Number(myChar.hp) + (ticks * rates.hp));
+                let newMp = Math.min(100, Number(myChar.mp || 0) + (ticks * rates.mp));
+                
+                db.ref(`characters/${myId}`).update({ 
+                    hp: newHp, 
+                    mp: newMp, 
+                    lastUpdate: now,
+                    status: "online" 
+                });
+            }
+            updateLobbyUI(); 
         }
-    }
-
-    function chooseStat(statField, amount) {
-        const c = chars[myId];
-        if (!c) return;
-        const currentNextLvlXp = Number(c.nextLvlXp || 100);
-        const leftoverXp = Math.max(0, Number(c.xp || 0) - currentNextLvlXp);
-        const newNextLvlXp = Math.floor(currentNextLvlXp * 1.2);
-        
-        let updates = { level: Number(c.level || 1) + 1, xp: leftoverXp, nextLvlXp: newNextLvlXp };
-        updates[statField] = Number(c[statField] || 0) + amount;
-        updates.hp = (statField === 'maxHp') ? updates[statField] : Number(c.maxHp || 100);
-
-        db.ref(`characters/${myId}`).update(updates).then(() => {
-            document.getElementById('lvl-up-overlay').style.display = 'none';
-            isLeveling = false;
-        });
-    }
+    });
 
     function updateLobbyUI() {
         const c = chars[myId]; if(!c) return;
-        checkLevelUp(c);
         const now = Date.now();
         
-        // RESET ELLENŐRZÉS: Ha LVL 1, kényszerítjük az alapértékeket (se több, se kevesebb nem lehet)
-        const base = BASE_STATS[c.charClass] || { atk: 10, def: 5, maxHp: 100 };
-        if (Number(c.level) === 1 && (Number(c.atk) !== base.atk || Number(c.maxHp) !== base.maxHp || Number(c.def) !== base.def)) {
-            db.ref(`characters/${myId}`).update({
-                atk: base.atk, def: base.def, maxHp: base.maxHp, hp: base.maxHp, xp: 0, nextLvlXp: 100
-            });
-            return;
-        }
-
         document.getElementById('lobby-name').innerText = c.name;
         document.getElementById('lobby-lvl').innerText = `LVL ${c.level || 1}`;
         document.getElementById('lobby-gold').innerText = c.gold || 0;
-        
-        // Összesített statok (Alap stat + Leltár bónuszok)
         document.getElementById('lobby-atk').innerText = (Number(c.atk) || 0) + (Number(c.bonusAtk) || 0);
         document.getElementById('lobby-def').innerText = (Number(c.def) || 0) + (Number(c.bonusDef) || 0);
-
         document.getElementById('lobby-class-display').innerText = c.charClass;
         document.getElementById('lobby-hero-img').style.backgroundImage = `url('${HERO_IMAGES[c.charClass]}')`;
         
-        const curHp = Number(c.hp || 0), mHp = Number(c.maxHp || base.maxHp);
+        // HP Megjelenítés
+        const curHp = Number(c.hp || 0), mHp = Number(c.maxHp || 100);
         document.getElementById('lobby-hp-fill').style.width = (curHp / mHp * 100) + "%";
         document.getElementById('lobby-hp-val').innerText = `${Math.ceil(curHp)} / ${mHp} HP`;
+
+        // MANA Megjelenítés
+        const curMp = Number(c.mp || 0), mMp = 100; // Alapértelmezett max mana: 100
+        document.getElementById('lobby-mp-fill').style.width = (curMp / mMp * 100) + "%";
+        document.getElementById('lobby-mp-val').innerText = `${Math.ceil(curMp)} / ${mMp} MP`;
         
+        // XP Megjelenítés
         const curXp = Number(c.xp || 0), goalXp = Number(c.nextLvlXp || 100);
         document.getElementById('lobby-xp-fill').style.width = Math.min(100, (curXp / goalXp * 100)) + "%";
         document.getElementById('xp-text').innerText = `XP: ${curXp} / ${goalXp}`;
         
+        // Online hősök listázása
         const listOnline = document.getElementById('list-online');
         const listArena = document.getElementById('list-arena');
         listOnline.innerHTML = ""; listArena.innerHTML = "";
@@ -309,13 +265,10 @@
         });
     }
 
+    // Folyamatos státusz frissítés (30 másodpercenként)
     setInterval(() => {
-        if (!myId || !chars[myId]) return;
-        const c = chars[myId];
-        if (Number(c.hp) < Number(c.maxHp)) {
-            db.ref(`characters/${myId}`).update({ hp: Math.min(Number(c.maxHp), Number(c.hp) + Math.max(1, Math.floor(Number(c.maxHp) * 0.02))), lastUpdate: Date.now() });
-        } else { db.ref(`characters/${myId}`).update({ lastUpdate: Date.now() }); }
-    }, 10000);
+        if (myId) db.ref(`characters/${myId}`).update({ lastUpdate: Date.now(), status: "online" });
+    }, 30000);
 
     function logout() { db.ref(`characters/${myId}`).update({ status: "offline" }).then(() => { localStorage.removeItem('selectedCharId'); window.location.href = 'login.html'; }); }
     function enterDM() { if(prompt("DM PIN:") === "4469") window.location.href = 'dm.html'; }
