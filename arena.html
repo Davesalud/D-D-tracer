@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Death's Armada - ARENA v4.6 ⚔️</title>
+    <title>Death's Armada - ARENA v4.7 ⚔️</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #c5a059; --accent: #8b0000; --bg: #050507; --glass: rgba(15, 15, 20, 0.95); }
@@ -17,28 +17,22 @@
         
         .battlefield { display: flex; flex: 1; justify-content: space-around; align-items: center; padding: 10px; gap: 15px; }
         .fighter-card { flex: 1; max-width: 320px; padding: 12px; border: 2px solid #333; background: var(--glass); border-radius: 12px; text-align: center; transition: 0.3s; position: relative; }
+        .hero-portrait { width: 100%; height: 360px; border: 1px solid var(--gold); margin: 8px 0; background-size: cover; background-position: center top; border-radius: 6px; box-shadow: inset 0 0 15px black; background-color: #111; }
         
-        /* MEGNÖVELT PORTRÉ */
-        .hero-portrait { width: 100%; height: 360px; border: 1px solid var(--gold); margin: 8px 0; background-size: cover; background-position: center top; border-radius: 6px; box-shadow: inset 0 0 15px black; }
-        
-        .stat-row { display: flex; justify-content: center; gap: 10px; margin: 5px 0 10px 0; }
-        .stat-box { border: 2px solid var(--gold); background: rgba(0,0,0,0.8); padding: 4px 8px; border-radius: 4px; min-width: 70px; }
         .bar-container { width: 100%; height: 18px; background: #000; border: 1px solid #444; margin: 4px 0; overflow: hidden; position: relative; border-radius: 3px; }
         .hp-fill { height: 100%; background: linear-gradient(90deg, #600, #f00); width: 100%; transition: 0.6s; }
         .mp-fill { height: 100%; background: linear-gradient(90deg, #003366, #0088ff); width: 0%; transition: 0.6s; }
         .bar-text { position: absolute; width: 100%; text-align: center; font-size: 10px; top: 1px; font-weight: bold; text-shadow: 1px 1px 2px black; z-index: 5; }
         
         .skill-slot { width: 55px; height: 55px; background: #111; border: 2px solid var(--gold); border-radius: 6px; cursor: pointer; background-size: cover; margin: 0 4px; position: relative; }
+        .dice-box { width: 70px; height: 70px; border: 2px solid var(--gold); font-size: 1.5em; background: #000; color: var(--gold); border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 10px rgba(197, 160, 89, 0.2); }
         .battle-log { width: 100%; max-width: 250px; height: 120px; background: rgba(0,0,0,0.85); border: 1px solid #444; padding: 8px; font-size: 0.8em; overflow-y: auto; color: #ddd; border-radius: 6px; }
-        .dice-box { width: 70px; height: 70px; border: 2px solid var(--gold); font-size: 1.5em; background: #000; color: var(--gold); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+        
         .btn { background: var(--accent); color: white; border: 1px solid var(--gold); padding: 10px; font-family: 'MedievalSharp'; cursor: pointer; width: 100%; border-radius: 4px; font-weight: bold; margin-bottom: 5px; }
         .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-        /* KÉSZ gomb overlay */
         #ready-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); z-index: 1500; display:none; flex-direction:column; align-items:center; justify-content:center; }
-
         #win-screen, #flee-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.98); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; text-align: center; }
-        #flee-screen img { max-width: 80%; border: 3px solid var(--gold); border-radius: 15px; box-shadow: 0 0 20px red; }
     </style>
 </head>
 <body>
@@ -49,7 +43,7 @@
 </div>
 
 <div id="flee-screen">
-    <img src="https://i.ibb.co/JFW7RN1F/Copilot-20260408-151920.png" alt="Nyuszika">
+    <img src="https://i.ibb.co/JFW7RN1F/Copilot-20260408-151920.png" alt="Nyuszika" style="max-width:80%; border-radius:15px; border:3px solid var(--gold);">
     <h2 style="color: var(--gold); margin-top: 15px;">Hová mész te kis nyuszika</h2>
     <p style="color: #ccc;">Büntetés: -5 Arany</p>
     <button class="btn" style="width:250px" onclick="safeExit()">🏰 SZÉGYENSZEMRE TÁVOZOM</button>
@@ -115,13 +109,25 @@
     let myCooldowns = [0, 0, 0], lastTurnOwner = "";
     let turnTimer = null, timeLeft = 15;
 
-    const HERO_IMGS = { "Harcos":"https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png", "Mágus":"https://i.ibb.co/yFz5bcXv/Copilot-20260403-033651.png", "Lovag":"https://i.ibb.co/Fk3n339M/Copilot-20260403-034043.png", "Bérgyilkos":"https://i.ibb.co/b525CsLg/Copilot-20260403-032807.png", "Nekromanta":"https://i.ibb.co/CKhc0K9m/ulti.jpg" };
+    // KÉPEK FIXÁLÁSA (Íjász hozzáadva)
+    const HERO_IMGS = { 
+        "Harcos":"https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png", 
+        "Mágus":"https://i.ibb.co/yFz5bcXv/Copilot-20260403-033651.png", 
+        "Lovag":"https://i.ibb.co/Fk3n339M/Copilot-20260403-034043.png", 
+        "Bérgyilkos":"https://i.ibb.co/b525CsLg/Copilot-20260403-032807.png", 
+        "Nekromanta":"https://i.ibb.co/CKhc0K9m/ulti.jpg",
+        "Íjász":"https://i.ibb.co/9386Z6X/Copilot-20260403-033648.png" // Példa link, ellenőrizd!
+    };
 
     function findMatch() {
         document.getElementById('ready-overlay').style.display = 'flex';
         db.ref('battles').once('value', snap => {
             const rooms = snap.val(); let found = null;
-            if (rooms) for (let id in rooms) if (rooms[id].p2 && rooms[id].p2.id === "waiting") { found = id; break; }
+            if (rooms) {
+                for (let id in rooms) {
+                    if (rooms[id].p2 && rooms[id].p2.id === "waiting") { found = id; break; }
+                }
+            }
             found ? joinBattle(found) : createNewBattle();
         });
     }
@@ -134,7 +140,7 @@
             bRef.set({
                 p1: { id: myId, name: c.name, hp: Number(c.hp), maxHp: Number(c.maxHp || 100), mp: Number(c.mp || 0), maxMp: Number(c.maxMp || 100), class: c.charClass, atk: Number(c.atk || 10), def: Number(c.def || 5), ready: false, roll: 0 },
                 p2: { id: "waiting", ready: false },
-                status: "waiting", turn: "none", log: ["Keresés..."], winner: "none"
+                status: "waiting", turn: "none", log: ["Várakozás ellenfélre..."], winner: "none", lastRoll: "?"
             });
             bRef.onDisconnect().remove(); listen();
         });
@@ -167,20 +173,15 @@
         bRef.on('value', snap => {
             const b = snap.val(); if(!b) return;
             
-            // KÉSZ logika
             if(b.status === "setup" || (b.p1.id && b.p2.id !== "waiting")) {
-                document.getElementById('btn-ready').disabled = (b.p1.id === myId ? b.p1.ready : b.p2.ready);
+                const meReady = (b.p1.id === myId ? b.p1.ready : b.p2.ready);
+                document.getElementById('btn-ready').disabled = meReady;
                 document.getElementById('ready-text').innerText = "Ellenfelet találtunk!";
             }
 
             if(b.p1.ready && b.p2.ready && b.status !== "fighting") {
                 const first = b.p1.roll >= b.p2.roll ? b.p1.id : b.p2.id;
-                const starterName = (first === b.p1.id ? b.p1.name : b.p2.name);
-                bRef.update({ 
-                    status: "fighting", 
-                    turn: first, 
-                    log: [`Kezdő dobások: ${b.p1.name}(${b.p1.roll}), ${b.p2.name}(${b.p2.roll})`, `${starterName} kezd!`] 
-                });
+                bRef.update({ status: "fighting", turn: first, log: [`Dobások: ${b.p1.roll} vs ${b.p2.roll}`, "A harc megkezdődött!"] });
             }
 
             if(b.status === "fighting") {
@@ -209,19 +210,20 @@
         }
         lastTurnOwner = b.turn;
 
-        // UI Frissítés - HP/MP Fix
+        // Saját UI frissítése
         document.getElementById('p-hp-fill').style.width = (me.hp/me.maxHp*100) + "%";
         document.getElementById('p-hp-val').innerText = `${Math.ceil(me.hp)} / ${me.maxHp} HP`;
         document.getElementById('p-mp-fill').style.width = (me.mp/me.maxMp*100) + "%";
         document.getElementById('p-mp-val').innerText = `${Math.ceil(me.mp)} / ${me.maxMp} MP`;
         document.getElementById('p-name').innerText = me.name + (me.isDefending ? " 🛡️" : "");
-        document.getElementById('p-img').style.backgroundImage = `url('${HERO_IMGS[me.class]}')`;
+        document.getElementById('p-img').style.backgroundImage = `url('${HERO_IMGS[me.class] || ''}')`;
 
-        if(isFighting) {
+        // Ellenfelet csak akkor mutatjuk, ha megvan (Fix: kép betöltése)
+        if(opp && opp.id !== "waiting") {
             document.getElementById('e-name').innerText = opp.name + (opp.isDefending ? " 🛡️" : "");
             document.getElementById('e-hp-fill').style.width = (opp.hp/opp.maxHp*100) + "%";
             document.getElementById('e-hp-val').innerText = `${Math.ceil(opp.hp)} / ${opp.maxHp} HP`;
-            document.getElementById('e-img').style.backgroundImage = `url('${HERO_IMGS[opp.class]}')`;
+            document.getElementById('e-img').style.backgroundImage = `url('${HERO_IMGS[opp.class] || ''}')`;
         }
 
         const isTurn = (b.turn === myId && isFighting);
@@ -232,9 +234,11 @@
         if(me.class) {
             SKILLS_DATA[me.class].skills.forEach((s, i) => {
                 const btn = document.getElementById(`sk-${i}`);
-                btn.style.backgroundImage = `url('${s.img}')`;
-                btn.disabled = !isTurn || me.mp < s.cost || myCooldowns[i] > 0;
-                btn.innerHTML = myCooldowns[i] > 0 ? `<div style="background:rgba(0,0,0,0.7);color:red;height:100%;display:flex;align-items:center;justify-content:center;">${myCooldowns[i]}</div>` : "";
+                if(btn) {
+                    btn.style.backgroundImage = `url('${s.img}')`;
+                    btn.disabled = !isTurn || me.mp < s.cost || myCooldowns[i] > 0;
+                    btn.innerHTML = myCooldowns[i] > 0 ? `<div style="background:rgba(0,0,0,0.7);color:red;height:100%;display:flex;align-items:center;justify-content:center;">${myCooldowns[i]}</div>` : "";
+                }
             });
         }
 
@@ -253,7 +257,7 @@
         bRef.once('value', snap => {
             const b = snap.val(); if (!b || b.turn !== myId) return;
             const isP1 = b.p1.id === myId;
-            bRef.update({ turn: isP1 ? b.p2.id : b.p1.id, log: [...(b.log||[]), `${b[isP1?'p1':'p2'].name} kifutott az időből!`].slice(-5) });
+            bRef.update({ turn: isP1 ? b.p2.id : b.p1.id, log: [...(b.log||[]).slice(-4), `${me.name} kifutott az időből!`], lastRoll: "⏳" });
         });
     }
 
@@ -269,7 +273,7 @@
             up[isP1 ? 'p1/mp' : 'p2/mp'] = me.mp - s.cost;
             up['turn'] = isP1 ? b.p2.id : b.p1.id;
             up['lastRoll'] = "✨";
-            up['log'] = [...(b.log||[]), `${me.name}: ${s.name} (${res.damage})`].slice(-5);
+            up['log'] = [...(b.log||[]).slice(-4), `${me.name}: ${s.name} (${res.damage})` ];
             bRef.update(up);
         });
     }
@@ -283,10 +287,12 @@
                 const res = CombatEngine.calculatePhysicalDamage(me, opp);
                 up[isP1 ? 'p2/hp' : 'p1/hp'] = Math.max(0, opp.hp - res.damage);
                 up['lastRoll'] = res.roll;
-                up['log'] = [...(b.log||[]), `${me.name}: Ütés (${res.damage})`].slice(-5);
+                up['log'] = [...(b.log||[]).slice(-4), `${me.name}: Ütés (${res.damage})` ];
+                up[isP1 ? 'p1/isDefending' : 'p2/isDefending'] = false;
             } else {
                 up[isP1 ? 'p1/isDefending' : 'p2/isDefending'] = true;
                 up['lastRoll'] = "🛡️";
+                up['log'] = [...(b.log||[]).slice(-4), `${me.name} védekezik!` ];
             }
             up['turn'] = isP1 ? b.p2.id : b.p1.id;
             bRef.update(up);
