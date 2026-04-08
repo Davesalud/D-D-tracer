@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Death's Armada - ARENA v3.5 ⚔️</title>
+    <title>Death's Armada - ARENA v4.0 ⚔️</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #c5a059; --accent: #8b0000; --bg: #050507; --glass: rgba(15, 15, 20, 0.95); --magic: #0088ff; }
@@ -12,13 +12,22 @@
             background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.9)), url('https://i.ibb.co/JjJy8Qry/Copilot-20260407-160524.png');
             background-size: cover; background-position: center; height: 100vh; overflow: hidden; display: flex; flex-direction: column;
         }
-        .arena-header { padding: 10px; border-bottom: 2px solid var(--gold); text-align: center; background: rgba(0,0,0,0.8); display: flex; justify-content: space-between; align-items: center; }
-        .battlefield { display: flex; flex: 1; justify-content: space-around; align-items: center; padding: 10px; gap: 10px; }
+        .arena-header { padding: 10px; border-bottom: 2px solid var(--gold); text-align: center; background: rgba(0,0,0,0.8); display: flex; justify-content: space-between; align-items: center; position: relative; }
+        
+        /* TIMER STYLING */
+        #timer-box { position: absolute; left: 50%; transform: translateX(-50%); top: 60px; font-size: 2em; color: #ff4444; text-shadow: 0 0 10px black; z-index: 100; border: 2px solid var(--gold); padding: 5px 20px; background: rgba(0,0,0,0.8); border-radius: 10px; }
+
+        .battlefield { display: flex; flex: 1; justify-content: space-around; align-items: center; padding: 10px; gap: 10px; margin-top: 20px; }
         
         .fighter-card { flex: 1; max-width: 320px; padding: 15px; border: 2px solid #333; background: var(--glass); border-radius: 12px; text-align: center; position: relative; transition: 0.3s; }
         .fighter-card.active { border-color: var(--gold); box-shadow: 0 0 20px var(--gold); transform: scale(1.02); }
         .hero-portrait { width: 100%; height: 160px; border: 1px solid var(--gold); margin: 10px 0; background-size: cover; background-position: center 20%; border-radius: 6px; box-shadow: inset 0 0 15px black; }
         
+        /* STAT BOXES */
+        .stat-row { display: flex; justify-content: center; gap: 10px; margin-bottom: 10px; }
+        .stat-box { border: 2px solid var(--gold); background: rgba(0,0,0,0.7); padding: 5px 10px; border-radius: 5px; min-width: 60px; box-shadow: 0 0 5px var(--gold); }
+        .stat-label { font-size: 0.7em; display: block; color: var(--gold); }
+
         .bar-container { width: 100%; height: 20px; background: #000; border: 1px solid #444; margin: 5px 0; overflow: hidden; position: relative; border-radius: 4px; }
         .hp-fill { height: 100%; background: linear-gradient(90deg, #600, #f00); width: 100%; transition: 0.6s; }
         .mp-fill { height: 100%; background: linear-gradient(90deg, #003366, #0088ff); width: 0%; transition: 0.6s; }
@@ -29,8 +38,9 @@
             width: 60px; height: 60px; background: #111; border: 2px solid var(--gold); border-radius: 8px;
             cursor: pointer; position: relative; display: flex; align-items: center; justify-content: center;
             transition: 0.2s; overflow: hidden; font-size: 0.75em; padding: 4px; color: #fff; text-align: center;
+            background-size: cover; background-position: center;
         }
-        .skill-slot:hover:not(:disabled) { background: var(--gold); color: black; transform: translateY(-3px); }
+        .skill-slot:hover:not(:disabled) { border-color: white; transform: translateY(-3px); }
         .skill-slot:disabled { opacity: 0.3; filter: grayscale(1); }
 
         #p-spell-info {
@@ -68,17 +78,23 @@
     <div style="width:100px;"></div>
 </div>
 
+<div id="timer-box" style="display:none;">15</div>
+
 <div class="battlefield">
     <div id="p-card" class="fighter-card">
         <h3 id="p-name" style="color: var(--gold); margin: 5px 0;">Hősöd</h3>
+        <div class="stat-row">
+            <div class="stat-box"><span class="stat-label">Támadás</span><b id="p-atk-val">0</b></div>
+            <div class="stat-box"><span class="stat-label">Védelem</span><b id="p-def-val">0</b></div>
+        </div>
         <div class="bar-container"><div id="p-hp-fill" class="hp-fill"></div><div class="bar-text" id="p-hp-val">0/0 HP</div></div>
         <div class="bar-container" style="height:12px;"><div id="p-mp-fill" class="mp-fill"></div><div class="bar-text" id="p-mp-val" style="font-size:9px; top:0;">0/0 MP</div></div>
         <div id="p-img" class="hero-portrait"></div>
         
         <div class="skills-wrapper" id="p-skills">
-            <button class="skill-slot" id="sk-0" onclick="useSkill(0)" disabled>?</button>
-            <button class="skill-slot" id="sk-1" onclick="useSkill(1)" disabled>?</button>
-            <button class="skill-slot" id="sk-2" onclick="useSkill(2)" disabled>?</button>
+            <button class="skill-slot" id="sk-0" onclick="useSkill(0)" disabled></button>
+            <button class="skill-slot" id="sk-1" onclick="useSkill(1)" disabled></button>
+            <button class="skill-slot" id="sk-2" onclick="useSkill(2)" disabled></button>
         </div>
 
         <div id="p-spell-info"><i>Érintsd meg a képességet!</i></div>
@@ -92,6 +108,10 @@
 
     <div id="e-card" class="fighter-card">
         <h3 id="e-name" style="color: #ff4444; margin: 5px 0;">Ellenfél</h3>
+        <div class="stat-row">
+            <div class="stat-box"><span class="stat-label">Támadás</span><b id="e-atk-val">0</b></div>
+            <div class="stat-box"><span class="stat-label">Védelem</span><b id="e-def-val">0</b></div>
+        </div>
         <div class="bar-container"><div id="e-hp-fill" class="hp-fill"></div><div class="bar-text" id="e-hp-val">HP: ---</div></div>
         <div id="e-img" class="hero-portrait"></div>
         <div id="e-skills-info" style="font-size: 0.8em; color: #aaa; text-align: left; padding: 10px; background: rgba(0,0,0,0.5); border-radius: 5px; min-height: 80px;">
@@ -112,13 +132,46 @@
     
     let currentRoom = null, bRef = null, isFighting = false, rewarded = false;
     let myCooldowns = [0, 0, 0], lastTurnOwner = "";
+    let turnTimer = null, timeLeft = 15;
 
     const HERO_IMGS = { 
         "Harcos":"https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png", 
         "Mágus":"https://i.ibb.co/yFz5bcXv/Copilot-20260403-033651.png", 
-        "Lovag":"https://i.ibb.co/Fk3n339M/Copilot-20260403-034043.png", 
-        "Bérgyilkos":"https://i.ibb.co/b525CsLg/Copilot-20260403-032807.png" 
+        "Lovag":"https://i.ibb.co/cKWxyMbJ/1.jpg", 
+        "Bérgyilkos":"https://i.ibb.co/b525CsLg/Copilot-20260403-032807.png",
+        "Íjász":"https://i.ibb.co/Lhkdcqmb/1.jpg",
+        "Nekromanta":"https://i.ibb.co/CKhc0K9m/ulti.jpg"
     };
+
+    function startTimer() {
+        clearInterval(turnTimer);
+        timeLeft = 15;
+        const timerBox = document.getElementById('timer-box');
+        timerBox.style.display = 'block';
+        timerBox.innerText = timeLeft;
+
+        turnTimer = setInterval(() => {
+            timeLeft--;
+            timerBox.innerText = timeLeft;
+            if (timeLeft <= 0) {
+                clearInterval(turnTimer);
+                skipTurn();
+            }
+        }, 1000);
+    }
+
+    function skipTurn() {
+        bRef.once('value', snap => {
+            const b = snap.val();
+            if (b.turn === myId) {
+                const updates = {};
+                updates['turn'] = (b.p1.id === myId) ? b.p2.id : b.p1.id;
+                let nLog = b.log || []; nLog.push(`${localStorage.getItem('charName') || 'Hős'} kihagyta a kört!`);
+                updates['log'] = nLog.slice(-5);
+                bRef.update(updates);
+            }
+        });
+    }
 
     function findMatch() {
         db.ref('battles').once('value', snap => {
@@ -135,8 +188,7 @@
             const c = s.val();
             const classData = SKILLS_DATA[c.charClass] || SKILLS_DATA["Harcos"];
             bRef.set({
-                // SZINKRON: Saját HP-val indul (c.hp)
-                p1: { id: myId, name: c.name, hp: Number(c.hp), maxHp: Number(c.maxHp), mp: Number(c.mp || 0), maxMp: classData.manaPool, class: c.charClass, atk: (c.atk || 10) + (c.bonusAtk || 0) },
+                p1: { id: myId, name: c.name, hp: Number(c.hp), maxHp: Number(c.maxHp), mp: Number(c.mp || 0), maxMp: classData.manaPool, class: c.charClass, atk: (c.atk || 10) + (c.bonusAtk || 0), def: (c.def || 5) },
                 p2: { id: "waiting", name: "Várakozás...", hp: 0, maxHp: 100 },
                 turn: myId, lastRoll: "?", log: ["Keresés..."], winner: "none"
             });
@@ -150,8 +202,7 @@
             const c = s.val();
             const classData = SKILLS_DATA[c.charClass] || SKILLS_DATA["Harcos"];
             bRef.update({ 
-                // SZINKRON: Saját HP-val indul (c.hp)
-                "p2": { id: myId, name: c.name, hp: Number(c.hp), maxHp: Number(c.maxHp), mp: Number(c.mp || 0), maxMp: classData.manaPool, class: c.charClass, atk: (c.atk || 10) + (c.bonusAtk || 0) }, 
+                "p2": { id: myId, name: c.name, hp: Number(c.hp), maxHp: Number(c.maxHp), mp: Number(c.mp || 0), maxMp: classData.manaPool, class: c.charClass, atk: (c.atk || 10) + (c.bonusAtk || 0), def: (c.def || 5) }, 
                 "log": ["A párbaj megkezdődött!"], "winner": "none" 
             });
             listen();
@@ -161,13 +212,12 @@
     function listen() {
         bRef.on('value', snap => {
             const b = snap.val(); if(!b) return;
-            if (b.winner !== "none" && !rewarded) { rewarded = true; showEndScreen(b.winner === myId); return; }
-            
-            // REGEN STOP: Harc közben frissítjük a lastUpdate-et, hogy ne töltsön vissza a lobby motor
-            if (isFighting && b.turn === myId) {
-                db.ref(`characters/${myId}`).update({ lastUpdate: Date.now() });
+            if (b.winner !== "none" && !rewarded) { 
+                clearInterval(turnTimer);
+                rewarded = true; 
+                showEndScreen(b.winner === myId); 
+                return; 
             }
-            
             updateUI(b);
         });
     }
@@ -176,16 +226,21 @@
         const isP1 = b.p1.id === myId;
         const me = isP1 ? b.p1 : b.p2;
         const opp = isP1 ? b.p2 : b.p1;
-        const myAtk = Number(me.atk) || 10;
 
         if (b.turn === myId && lastTurnOwner !== myId && isFighting) {
             myCooldowns = myCooldowns.map(c => c > 0 ? c - 1 : 0);
+            startTimer();
+        } else if (b.turn !== myId) {
+            clearInterval(turnTimer);
+            document.getElementById('timer-box').style.display = 'none';
         }
         lastTurnOwner = b.turn;
 
         if (opp.id !== "waiting") {
             isFighting = true;
             document.getElementById('e-name').innerText = opp.name;
+            document.getElementById('e-atk-val').innerText = opp.atk;
+            document.getElementById('e-def-val').innerText = opp.def;
             document.getElementById('e-img').style.backgroundImage = `url('${HERO_IMGS[opp.class]}')`;
             document.getElementById('e-hp-fill').style.width = (opp.hp/opp.maxHp*100) + "%";
             document.getElementById('e-hp-val').innerText = `${Math.ceil(opp.hp)} / ${opp.maxHp} HP`;
@@ -193,6 +248,8 @@
         }
 
         document.getElementById('p-name').innerText = me.name;
+        document.getElementById('p-atk-val').innerText = me.atk;
+        document.getElementById('p-def-val').innerText = me.def;
         document.getElementById('p-img').style.backgroundImage = `url('${HERO_IMGS[me.class]}')`;
         document.getElementById('p-hp-fill').style.width = (me.hp/me.maxHp*100) + "%";
         document.getElementById('p-hp-val').innerText = `${Math.ceil(me.hp)} / ${me.maxHp} HP`;
@@ -203,25 +260,14 @@
         document.getElementById('turn-display').innerText = isMyTurn ? "TE KÖVETKEZEL!" : "ELLENFÉLRE VÁRVA...";
         document.getElementById('p-card').classList.toggle('active', isMyTurn);
 
-        const btnAttack = document.getElementById('btn-attack');
-        btnAttack.disabled = !isMyTurn;
-        btnAttack.onmouseover = () => {
-            const min = Math.floor(myAtk * 0.8), max = Math.floor(myAtk * 1.2);
-            const info = document.getElementById('p-spell-info');
-            info.innerHTML = `<b style="color:var(--gold)">Alap Támadás</b><br>⚔️ Várható sebzés: <span style="color:#ff4444">${min}-${max}</span><br>🎯 Kritikus esély: 5% (2.5x sebzés)`;
-            info.classList.add('active');
-        };
-        btnAttack.onmouseout = () => document.getElementById('p-spell-info').classList.remove('active');
-
         const mySkills = SKILLS_DATA[me.class].skills;
         mySkills.forEach((s, i) => {
             const btn = document.getElementById(`sk-${i}`);
-            btn.innerHTML = `<span>${s.name}</span>`;
+            btn.style.backgroundImage = `url('${s.img}')`;
             
             btn.onmouseover = () => {
-                const estDmg = Math.floor(myAtk * s.power);
                 const info = document.getElementById('p-spell-info');
-                info.innerHTML = `<b style="color:var(--gold)">${s.name}</b> (💧${s.cost} MP)<br>⚔️ Várható sebzés: <span style="color:#ff4444">${estDmg}</span><br>⏳ CD: ${s.cd} kör | <i>"${s.txt}"</i>`;
+                info.innerHTML = `<b style="color:var(--gold)">${s.name}</b> (💧${s.cost} MP)<br>⏳ CD: ${s.cd} kör | <i>"${s.txt}"</i>`;
                 info.classList.add('active');
             };
             btn.onmouseout = () => document.getElementById('p-spell-info').classList.remove('active');
@@ -235,45 +281,64 @@
             }
         });
 
+        document.getElementById('btn-attack').disabled = !isMyTurn;
         document.getElementById('dice').innerText = b.lastRoll;
         document.getElementById('log').innerHTML = b.log ? b.log.map(l => `<div>${l}</div>`).reverse().join('') : "";
         if(isFighting && me.hp <= 0 && b.winner === "none") { bRef.update({ winner: opp.id }); }
     }
 
     function useSkill(idx) {
+        clearInterval(turnTimer);
         bRef.once('value', snap => {
             const b = snap.val();
             const isP1 = b.p1.id === myId;
             const me = isP1 ? b.p1 : b.p2;
+            const opp = isP1 ? b.p2 : b.p1;
             const s = SKILLS_DATA[me.class].skills[idx];
+            
             myCooldowns[idx] = s.cd;
-            const dmg = Math.floor((me.atk || 10) * s.power * (0.9 + Math.random() * 0.2));
+            let rawDmg = Math.floor((me.atk || 10) * s.power * (0.9 + Math.random() * 0.2));
+            let reduction = Math.min(0.8, (opp.def || 0) / 100);
+            let finalDmg = Math.max(1, Math.floor(rawDmg * (1 - reduction)));
 
             const updates = {};
-            updates[isP1 ? 'p2/hp' : 'p1/hp'] = Math.max(0, (isP1 ? b.p2.hp : b.p1.hp) - dmg);
+            if (me.class === "Nekromanta" && s.name === "Életelszívás") {
+                updates[isP1 ? 'p1/hp' : 'p2/hp'] = Math.min(me.maxHp, me.hp + Math.floor(finalDmg * 0.8));
+            }
+            if (me.class === "Lovag" && s.name === "Védelmező Aura") {
+                updates[isP1 ? 'p1/def' : 'p2/def'] = (me.def || 0) + 20;
+            }
+
+            updates[isP1 ? 'p2/hp' : 'p1/hp'] = Math.max(0, opp.hp - finalDmg);
             updates[isP1 ? 'p1/mp' : 'p2/mp'] = me.mp - s.cost;
             updates['turn'] = isP1 ? b.p2.id : b.p1.id;
             updates['lastRoll'] = "✨";
-            let nLog = b.log || []; nLog.push(`${me.name} -> ${s.name} (${dmg})`);
+            let nLog = b.log || []; nLog.push(`${me.name} -> ${s.name} (${finalDmg})`);
             updates['log'] = nLog.slice(-5);
             bRef.update(updates);
         });
     }
 
     function performAction(type) {
+        clearInterval(turnTimer);
         bRef.once('value', snap => {
             const b = snap.val();
             const isP1 = b.p1.id === myId;
             const me = isP1 ? b.p1 : b.p2;
+            const opp = isP1 ? b.p2 : b.p1;
+            
             const roll = Math.floor(Math.random() * 20) + 1;
-            let dmg = Math.floor((me.atk || 10) * (0.8 + Math.random() * 0.4));
-            if (roll === 20) dmg = Math.floor(dmg * 2.5);
+            let rawDmg = Math.floor((me.atk || 10) * (0.8 + Math.random() * 0.4));
+            if (roll === 20) rawDmg = Math.floor(rawDmg * 2.5);
+
+            let reduction = Math.min(0.8, (opp.def || 0) / 100);
+            let finalDmg = Math.max(1, Math.floor(rawDmg * (1 - reduction)));
             
             const updates = {};
-            updates[isP1 ? 'p2/hp' : 'p1/hp'] = Math.max(0, (isP1 ? b.p2.hp : b.p1.hp) - dmg);
+            updates[isP1 ? 'p2/hp' : 'p1/hp'] = Math.max(0, opp.hp - finalDmg);
             updates['turn'] = isP1 ? b.p2.id : b.p1.id;
             updates['lastRoll'] = roll;
-            let nLog = b.log || []; nLog.push(`${me.name}: ${roll===20?'KRITIKUS!':'Ütés'} (${dmg})`);
+            let nLog = b.log || []; nLog.push(`${me.name}: ${roll===20?'KRITIKUS!':'Ütés'} (${finalDmg})`);
             updates['log'] = nLog.slice(-5);
             bRef.update(updates);
         });
@@ -285,11 +350,9 @@
         document.getElementById('reward-xp').innerText = win ? "+15 XP" : "+3 XP";
         document.getElementById('reward-gold').innerText = win ? "+10 Arany" : "-2 Arany";
         
-        // SZINKRON: Maradék HP/MP lekérése a harcból és mentése
         bRef.once('value', snap => {
             const b = snap.val();
             const me = (b.p1.id === myId) ? b.p1 : b.p2;
-
             db.ref(`characters/${myId}`).once('value', s => {
                 const c = s.val();
                 db.ref(`characters/${myId}`).update({ 
@@ -297,7 +360,7 @@
                     gold: Math.max(0, (c.gold || 0) + (win ? 10 : -2)),
                     hp: Math.max(0, me.hp),
                     mp: Math.max(0, me.mp),
-                    lastUpdate: Date.now(), // Regen reset
+                    lastUpdate: Date.now(),
                     status: "online" 
                 });
             });
@@ -308,7 +371,6 @@
 
     function safeExit() { 
         if(bRef) {
-            // Kilépéskor is mentünk minden aktuális értéket
             bRef.once('value', snap => {
                 const b = snap.val();
                 if(b) {
@@ -322,13 +384,9 @@
                         bRef.off();
                         window.location.replace('index.html');
                     });
-                } else {
-                    window.location.replace('index.html');
-                }
+                } else { window.location.replace('index.html'); }
             });
-        } else {
-            window.location.replace('index.html');
-        }
+        } else { window.location.replace('index.html'); }
     }
 
     findMatch();
