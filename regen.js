@@ -1,8 +1,4 @@
-/**
- * Death's Armada - Regenerációs Rendszer v1.1
- * Kezeli a HP és MP töltődését kaszt-specifikus rátákkal.
- */
-
+// Karakterosztályok alapértelmezett regenerációs értékei (HP/perc, MP/perc)
 const REGEN_SETTINGS = {
     "Harcos":     { hp: 7,  mp: 2 },
     "Mágus":      { hp: 2,  mp: 10 },
@@ -13,55 +9,44 @@ const REGEN_SETTINGS = {
 };
 
 /**
- * Kiszámolja és frissíti a karakter adatait.
- * Akkor is működik, ha a játékos offline volt.
+ * Kiszámolja a regenerációt az eltelt idő alapján.
+ * @param {Object} char - A karakter adatai a Firebase-ből.
+ * @returns {Object|null} - A frissítendő adatok vagy null.
  */
 function processRegeneration(char) {
     if (!char) return null;
 
     const now = Date.now();
-    // Ha még sosem volt frissítve, a mostani időt vesszük alapul
     const lastUpdate = char.lastUpdate || now;
     const elapsedSeconds = Math.floor((now - lastUpdate) / 1000);
-    
-    // Percenkénti regeneráció (60 másodperces ciklus)
-    const ticks = Math.floor(elapsedSeconds / 60);
+    const ticks = Math.floor(elapsedSeconds / 60); // Hány egész perc telt el
 
-    // Ha kevesebb mint 1 perc telt el, nem módosítunk semmit
-    if (ticks < 1) return null;
-
-    // Kaszt adatok lekérése (biztonsági tartalékkal)
     const rates = REGEN_SETTINGS[char.charClass] || { hp: 5, mp: 5 };
+    const maxHp = Number(char.maxHp) || 100;
+    const maxMp = Number(char.maxMp) || 50;
 
-    const oldHp = Number(char.hp);
-    const oldMp = Number(char.mp);
-    const maxHp = Number(char.maxHp);
-    const maxMp = Number(char.maxMp);
+    let updatedHp = Number(char.hp || 0);
+    let updatedMp = Number(char.mp || 0);
 
-    // Számítás: Jelenlegi érték + (eltelt percek * kaszt ráta)
-    let updatedHp = oldHp + (ticks * rates.hp);
-    let updatedMp = oldMp + (ticks * rates.mp);
-
-    // Maximum korlátok alkalmazása
-    updatedHp = Math.min(updatedHp, maxHp);
-    updatedMp = Math.min(updatedMp, maxMp);
-
-    // Csak akkor küldünk vissza frissítést, ha változtak az értékek
-    if (updatedHp !== oldHp || updatedMp !== oldMp) {
-        return {
-            hp: updatedHp,
-            mp: updatedMp,
-            lastUpdate: now // Fontos: az időt mindig frissítjük a mentéshez!
-        };
+    // Regeneráció csak akkor, ha nem harcol és eltelt legalább 1 perc
+    if (ticks >= 1 && char.status !== "fighting") {
+        updatedHp = Math.min(updatedHp + (ticks * rates.hp), maxHp);
+        updatedMp = Math.min(updatedMp + (ticks * rates.mp), maxMp);
     }
 
-    return null;
+    // Mindig visszaadjuk az objektumot az új időbélyeggel (Szinkron az Arénához)
+    return {
+        hp: updatedHp,
+        mp: updatedMp,
+        lastUpdate: now
+    };
 }
 
 /**
- * Példa függvény a Firebase-szel való integrációhoz
+ * Lekéri a karaktert, kiszámolja a gyógyulást és beküldi a Firebase-be.
  */
 function checkAndApplyRegen(charId) {
+    if (!charId) return;
     const charRef = firebase.database().ref(`characters/${charId}`);
     
     charRef.once('value', snapshot => {
@@ -69,12 +54,8 @@ function checkAndApplyRegen(charId) {
         if (!charData) return;
 
         const updates = processRegeneration(charData);
-        
         if (updates) {
-            charRef.update(updates).then(() => {
-                console.log("Regeneráció alkalmazva:", updates);
-                // Itt hívhatod meg az UI frissítő függvényedet (pl. updateBars())
-            });
+            charRef.update(updates);
         }
     });
 }
