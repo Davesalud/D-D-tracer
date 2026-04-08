@@ -135,7 +135,8 @@
             const c = s.val();
             const classData = SKILLS_DATA[c.charClass] || SKILLS_DATA["Harcos"];
             bRef.set({
-                p1: { id: myId, name: c.name, hp: c.hp, maxHp: c.maxHp, mp: classData.manaPool, maxMp: classData.manaPool, class: c.charClass, atk: (c.atk || 10) + (c.bonusAtk || 0) },
+                // SZINKRON: Saját HP-val indul (c.hp)
+                p1: { id: myId, name: c.name, hp: Number(c.hp), maxHp: Number(c.maxHp), mp: Number(c.mp || 0), maxMp: classData.manaPool, class: c.charClass, atk: (c.atk || 10) + (c.bonusAtk || 0) },
                 p2: { id: "waiting", name: "Várakozás...", hp: 0, maxHp: 100 },
                 turn: myId, lastRoll: "?", log: ["Keresés..."], winner: "none"
             });
@@ -149,7 +150,8 @@
             const c = s.val();
             const classData = SKILLS_DATA[c.charClass] || SKILLS_DATA["Harcos"];
             bRef.update({ 
-                "p2": { id: myId, name: c.name, hp: c.hp, maxHp: c.maxHp, mp: classData.manaPool, maxMp: classData.manaPool, class: c.charClass, atk: (c.atk || 10) + (c.bonusAtk || 0) }, 
+                // SZINKRON: Saját HP-val indul (c.hp)
+                "p2": { id: myId, name: c.name, hp: Number(c.hp), maxHp: Number(c.maxHp), mp: Number(c.mp || 0), maxMp: classData.manaPool, class: c.charClass, atk: (c.atk || 10) + (c.bonusAtk || 0) }, 
                 "log": ["A párbaj megkezdődött!"], "winner": "none" 
             });
             listen();
@@ -160,6 +162,12 @@
         bRef.on('value', snap => {
             const b = snap.val(); if(!b) return;
             if (b.winner !== "none" && !rewarded) { rewarded = true; showEndScreen(b.winner === myId); return; }
+            
+            // REGEN STOP: Harc közben frissítjük a lastUpdate-et, hogy ne töltsön vissza a lobby motor
+            if (isFighting && b.turn === myId) {
+                db.ref(`characters/${myId}`).update({ lastUpdate: Date.now() });
+            }
+            
             updateUI(b);
         });
     }
@@ -195,7 +203,6 @@
         document.getElementById('turn-display').innerText = isMyTurn ? "TE KÖVETKEZEL!" : "ELLENFÉLRE VÁRVA...";
         document.getElementById('p-card').classList.toggle('active', isMyTurn);
 
-        // Alap támadás infó
         const btnAttack = document.getElementById('btn-attack');
         btnAttack.disabled = !isMyTurn;
         btnAttack.onmouseover = () => {
@@ -206,7 +213,6 @@
         };
         btnAttack.onmouseout = () => document.getElementById('p-spell-info').classList.remove('active');
 
-        // Képességek infó
         const mySkills = SKILLS_DATA[me.class].skills;
         mySkills.forEach((s, i) => {
             const btn = document.getElementById(`sk-${i}`);
@@ -278,14 +284,52 @@
         document.getElementById('win-title').innerText = win ? "GYŐZELEM!" : "VERESÉG!";
         document.getElementById('reward-xp').innerText = win ? "+15 XP" : "+3 XP";
         document.getElementById('reward-gold').innerText = win ? "+10 Arany" : "-2 Arany";
-        db.ref(`characters/${myId}`).once('value', s => {
-            const c = s.val();
-            db.ref(`characters/${myId}`).update({ xp: (c.xp || 0) + (win ? 15 : 3), gold: (c.gold || 0) + (win ? 10 : -2), status: "online" });
+        
+        // SZINKRON: Maradék HP/MP lekérése a harcból és mentése
+        bRef.once('value', snap => {
+            const b = snap.val();
+            const me = (b.p1.id === myId) ? b.p1 : b.p2;
+
+            db.ref(`characters/${myId}`).once('value', s => {
+                const c = s.val();
+                db.ref(`characters/${myId}`).update({ 
+                    xp: (c.xp || 0) + (win ? 15 : 3), 
+                    gold: Math.max(0, (c.gold || 0) + (win ? 10 : -2)),
+                    hp: Math.max(0, me.hp),
+                    mp: Math.max(0, me.mp),
+                    lastUpdate: Date.now(), // Regen reset
+                    status: "online" 
+                });
+            });
         });
     }
 
-    function handleExit() { if(!isFighting || confirm("Kilépsz?")) safeExit(); }
-    function safeExit() { if(bRef) bRef.off(); db.ref(`characters/${myId}`).update({ status: "online" }).then(() => { window.location.replace('index.html'); }); }
+    function handleExit() { if(!isFighting || confirm("Kilépsz? A jelenlegi HP-d megmarad!")) safeExit(); }
+
+    function safeExit() { 
+        if(bRef) {
+            // Kilépéskor is mentünk minden aktuális értéket
+            bRef.once('value', snap => {
+                const b = snap.val();
+                if(b) {
+                    const me = (b.p1.id === myId) ? b.p1 : b.p2;
+                    db.ref(`characters/${myId}`).update({
+                        hp: Math.max(0, me.hp),
+                        mp: Math.max(0, me.mp),
+                        lastUpdate: Date.now(),
+                        status: "online"
+                    }).then(() => {
+                        bRef.off();
+                        window.location.replace('index.html');
+                    });
+                } else {
+                    window.location.replace('index.html');
+                }
+            });
+        } else {
+            window.location.replace('index.html');
+        }
+    }
 
     findMatch();
 </script>
