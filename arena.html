@@ -200,14 +200,40 @@
         });
     }
 
+    // --- JAVÍTOTT rollForInitiative ---
+    // Csak P1 felelős a harc elindításáért, megszünteti a versenyhelyzetet
     function rollForInitiative() {
         const roll = Math.floor(Math.random() * 20) + 1;
         bRef.once('value', snap => {
-            const isP1 = snap.val().p1.id === myId;
-            // .update-et használunk, hogy ne töröljük a szobát!
-            bRef.update({ [isP1 ? 'p1/roll' : 'p2/roll']: roll });
-            document.getElementById('btn-roll-start').style.display = 'none';
-            document.getElementById('ready-text').innerText = "Várakozás a másik dobására...";
+            const b = snap.val();
+            const isP1 = b.p1.id === myId;
+            const myRollPath = isP1 ? 'p1/roll' : 'p2/roll';
+
+            bRef.update({ [myRollPath]: roll }).then(() => {
+                document.getElementById('btn-roll-start').style.display = 'none';
+                document.getElementById('ready-text').innerText = "Várakozás a másik dobására...";
+
+                // Csak P1 ellenőrzi, hogy mindketten dobtak-e, és ő indítja el a harcot
+                if (isP1) {
+                    bRef.once('value', snap2 => {
+                        const b2 = snap2.val();
+                        if (b2.p1.roll > 0 && b2.p2.roll > 0 && b2.status !== "fighting") {
+                            const firstId = b2.p1.roll >= b2.p2.roll ? b2.p1.id : b2.p2.id;
+                            const firstName = b2.p1.roll >= b2.p2.roll ? b2.p1.name : b2.p2.name;
+                            bRef.update({
+                                status: "fighting",
+                                turn: firstId,
+                                log: [
+                                    "A harc elkezdődött!",
+                                    `🎲 ${b2.p1.name}: ${b2.p1.roll} | ${b2.p2.name}: ${b2.p2.roll}`,
+                                    `⚔️ ${firstName} kezd!`
+                                ]
+                            });
+                        }
+                        // Ha P2 még nem dobott, a listen() figyeli és P1 elindítja majd onnan
+                    });
+                }
+            });
         });
     }
 
@@ -243,13 +269,18 @@
                 }
             }
 
-            // HARC INDÍTÁSA: Csak ha mindketten dobtak
-            if (b.p1.roll > 0 && b.p2.roll > 0 && b.status !== "fighting") {
+            // --- P1 figyeli: ha P2 dobott, de P1 már dobott korábban, elindítja a harcot ---
+            if (isP1 && b.p1.roll > 0 && b.p2.roll > 0 && b.status !== "fighting") {
                 const firstId = b.p1.roll >= b.p2.roll ? b.p1.id : b.p2.id;
-                bRef.update({ 
-                    status: "fighting", 
-                    turn: firstId, 
-                    log: ["A harc elkezdődött!", `${b.p1.roll >= b.p2.roll ? b.p1.name : b.p2.name} kezd!`] 
+                const firstName = b.p1.roll >= b.p2.roll ? b.p1.name : b.p2.name;
+                bRef.update({
+                    status: "fighting",
+                    turn: firstId,
+                    log: [
+                        "A harc elkezdődött!",
+                        `🎲 ${b.p1.name}: ${b.p1.roll} | ${b.p2.name}: ${b.p2.roll}`,
+                        `⚔️ ${firstName} kezd!`
+                    ]
                 });
             }
 
