@@ -186,6 +186,9 @@
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<script src="regen.js"></script>
+
 <script>
     const firebaseConfig = { apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU", authDomain: "dnd-tracker-4fe05.firebaseapp.com", projectId: "dnd-tracker-4fe05", databaseURL: "https://dnd-tracker-4fe05-default-rtdb.europe-west1.firebasedatabase.app" };
     firebase.initializeApp(firebaseConfig);
@@ -196,37 +199,25 @@
 
     if (!myId) { window.location.href = 'login.html'; }
 
-    const REGEN_RATES = { "Harcos": { hp: 7, mp: 2 }, "Mágus": { hp: 2, mp: 10 }, "Lovag": { hp: 9, mp: 3 }, "Íjász": { hp: 5, mp: 5 }, "Bérgyilkos": { hp: 4, mp: 6 }, "Nekromanta": { hp: 5, mp: 8 } };
     const HERO_IMAGES = { "Harcos": "https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png", "Mágus": "https://i.ibb.co/yFz5bcXv/Copilot-20260403-033651.png", "Lovag": "https://i.ibb.co/Fk3n339M/Copilot-20260403-034043.png", "Íjász": "https://i.ibb.co/whd2jNpB/Copilot-20260403-034402.png", "Bérgyilkos": "https://i.ibb.co/b525CsLg/Copilot-20260403-032807.png", "Nekromanta": "https://i.ibb.co/NnCwwCbR/Copilot-20260403-033301.png" };
 
-    // --- OFFLINE REGEN & LOGIN LOGIC ---
-    db.ref(`characters/${myId}`).once('value', snap => {
-        const c = snap.val();
-        if (!c) return;
-        
-        const now = Date.now();
-        const last = c.lastUpdate || now;
-        const diffMinutes = Math.floor((now - last) / 60000);
-
-        let updateData = { status: "online", lastUpdate: now };
-
-        // Ha eltelt legalább 1 perc, és nem Arénában voltunk legutóbb, gyógyulunk
-        if (diffMinutes > 0 && c.status !== "searching" && c.status !== "fighting") {
-            const rates = REGEN_RATES[c.charClass] || { hp: 5, mp: 5 };
-            updateData.hp = Math.min(Number(c.maxHp || 100), Number(c.hp || 0) + (diffMinutes * rates.hp));
-            updateData.mp = Math.min(Number(c.maxMp || 50), Number(c.mp || 0) + (diffMinutes * rates.mp));
+    // --- KEZDETI REGEN ÉS STÁTUSZ ---
+    checkAndApplyRegen(myId);
+    db.ref(`characters/${myId}/status`).once('value', s => {
+        const currentStatus = s.val();
+        if (currentStatus !== "fighting" && currentStatus !== "searching") {
+            db.ref(`characters/${myId}`).update({ status: "online" });
         }
-
-        db.ref(`characters/${myId}`).update(updateData);
     });
 
+    // Firebase figyelő
     db.ref('characters').on('value', snap => { 
         chars = snap.val() || {}; 
         if (myId && chars[myId]) updateLobbyUI(); 
     });
 
     function enterArena() {
-        db.ref(`characters/${myId}`).update({ status: "searching" }).then(() => {
+        db.ref(`characters/${myId}`).update({ status: "searching", lastUpdate: Date.now() }).then(() => {
             window.location.href = 'arena.html';
         });
     }
@@ -295,26 +286,9 @@
         });
     }
 
-    // ONLINE REGEN CIKLUS
+    // PERCENKÉNTI REGEN CIKLUS
     setInterval(() => {
-        if (!myId || !chars[myId]) return;
-        const c = chars[myId];
-        
-        // Csak akkor gyógyítunk percenként, ha épp a Lobby-ban vagyunk
-        if (c.status === "online") {
-            const rates = REGEN_RATES[c.charClass] || { hp: 5, mp: 5 };
-            const maxHp = Number(c.maxHp) || 100;
-            const maxMp = Number(c.maxMp) || 50;
-            
-            db.ref(`characters/${myId}`).update({ 
-                hp: Math.min(maxHp, Number(c.hp || 0) + rates.hp),
-                mp: Math.min(maxMp, Number(c.mp || 0) + rates.mp),
-                lastUpdate: Date.now() 
-            });
-        } else {
-            // Ha Arénában van, csak az időt frissítjük, hogy ne tűnjön el a listáról
-            db.ref(`characters/${myId}`).update({ lastUpdate: Date.now() });
-        }
+        if (myId) checkAndApplyRegen(myId);
     }, 60000);
 
     function logout() { db.ref(`characters/${myId}`).update({ status: "offline" }).then(() => { localStorage.removeItem('selectedCharId'); window.location.href = 'login.html'; }); }
