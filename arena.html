@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Death's Armada - ARENA v4.7 ⚔️</title>
+    <title>Death's Armada - ARENA v4.8 ⚔️</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #c5a059; --accent: #8b0000; --bg: #050507; --glass: rgba(15, 15, 20, 0.95); }
@@ -154,19 +154,23 @@
             bRef.update({ 
                 "p2": { id: myId, name: c.name, hp: Number(c.hp), maxHp: Number(c.maxHp || 100), mp: Number(c.mp || 0), maxMp: Number(c.maxMp || 100), class: c.charClass, atk: Number(c.atk || 10), def: Number(c.def || 5), ready: false, roll: 0 },
                 "status": "setup"
+            }).then(() => {
+                // Kényszerítsük a gombot aktívra a belépőnél
+                document.getElementById('btn-ready').disabled = false;
             });
-            // Ha a p2 kilép, a szoba p2 adatait alaphelyzetbe állítja
             bRef.child('p2').onDisconnect().set({ id: "waiting", ready: false });
             listen();
         });
     }
 
     function markReady() {
+        const btn = document.getElementById('btn-ready');
+        btn.disabled = true; 
         bRef.once('value', snap => {
             const b = snap.val();
             const isP1 = b.p1.id === myId;
             bRef.update({ [isP1 ? 'p1/ready' : 'p2/ready']: true });
-            document.getElementById('btn-ready').style.display = 'none';
+            btn.style.display = 'none';
             document.getElementById('ready-text').innerText = "Várakozás a másik félre...";
         });
     }
@@ -190,20 +194,24 @@
             const me = isP1 ? b.p1 : b.p2;
             const opp = isP1 ? b.p2 : b.p1;
 
-            // --- MATCHMAKING & READY JAVÍTÁS ---
-            if(b.p1.id && b.p2.id !== "waiting") {
+            // --- JAVÍTOTT MATCHMAKING & READY ---
+            if(b.p1 && b.p2 && b.p2.id !== "waiting") {
                 if(!me.ready) {
-                    document.getElementById('btn-ready').disabled = false;
+                    const rBtn = document.getElementById('btn-ready');
+                    rBtn.disabled = false;
+                    rBtn.style.opacity = "1";
                     document.getElementById('ready-text').innerText = "Ellenfél megtalálva! Kész vagy?";
                 }
                 
                 if(b.p1.ready && b.p2.ready && me.roll === 0) {
+                    document.getElementById('btn-ready').style.display = 'none';
                     document.getElementById('btn-roll-start').style.display = 'block';
+                    document.getElementById('btn-roll-start').disabled = false;
                     document.getElementById('ready-text').innerText = "Dobjátok ki a kezdést!";
                 }
             }
 
-            // --- KEZDÉS ELDÖNTÉSE (DOBÓKOCKA) ---
+            // --- KEZDÉS ELDÖNTÉSE ---
             if(b.p1.roll > 0 && b.p2.roll > 0 && b.status !== "fighting") {
                 const firstId = b.p1.roll >= b.p2.roll ? b.p1.id : b.p2.id;
                 const msg = firstId === myId ? "TE KEZDESZ!" : "ELLENSÉG KEZD!";
@@ -235,7 +243,6 @@
         });
     }
 
-    // A többi függvény (updateUI, Combat engine hívások stb.) marad az eredeti
     function updateUI(b) {
         const isP1 = b.p1.id === myId;
         const me = isP1 ? b.p1 : b.p2;
