@@ -155,6 +155,8 @@
                 "p2": { id: myId, name: c.name, hp: Number(c.hp), maxHp: Number(c.maxHp || 100), mp: Number(c.mp || 0), maxMp: Number(c.maxMp || 100), class: c.charClass, atk: Number(c.atk || 10), def: Number(c.def || 5), ready: false, roll: 0 },
                 "status": "setup"
             });
+            // Ha a p2 kilép, a szoba p2 adatait alaphelyzetbe állítja
+            bRef.child('p2').onDisconnect().set({ id: "waiting", ready: false });
             listen();
         });
     }
@@ -184,17 +186,24 @@
         bRef.on('value', snap => {
             const b = snap.val(); if(!b) return;
             
-            // Ha mindketten bent vannak, jöhet a dobás gomb
+            const isP1 = b.p1.id === myId;
+            const me = isP1 ? b.p1 : b.p2;
+            const opp = isP1 ? b.p2 : b.p1;
+
+            // --- MATCHMAKING & READY JAVÍTÁS ---
             if(b.p1.id && b.p2.id !== "waiting") {
-                const isP1 = b.p1.id === myId;
-                const me = isP1 ? b.p1 : b.p2;
+                if(!me.ready) {
+                    document.getElementById('btn-ready').disabled = false;
+                    document.getElementById('ready-text').innerText = "Ellenfél megtalálva! Kész vagy?";
+                }
+                
                 if(b.p1.ready && b.p2.ready && me.roll === 0) {
                     document.getElementById('btn-roll-start').style.display = 'block';
                     document.getElementById('ready-text').innerText = "Dobjátok ki a kezdést!";
                 }
             }
 
-            // Ha mindketten dobtak, elindul a harc
+            // --- KEZDÉS ELDÖNTÉSE (DOBÓKOCKA) ---
             if(b.p1.roll > 0 && b.p2.roll > 0 && b.status !== "fighting") {
                 const firstId = b.p1.roll >= b.p2.roll ? b.p1.id : b.p2.id;
                 const msg = firstId === myId ? "TE KEZDESZ!" : "ELLENSÉG KEZD!";
@@ -216,10 +225,7 @@
             if (b.winner !== "none" && !rewarded) { 
                 clearInterval(turnTimer); rewarded = true; 
                 if(b.winner === "fled") {
-                    if(!hasFled) { 
-                        // Én maradtam, nem von le tőlem semmit, csak kilépek
-                        safeExit(); 
-                    }
+                    if(!hasFled) safeExit(); 
                 } else {
                     showEndScreen(b.winner === myId); 
                 }
@@ -229,6 +235,7 @@
         });
     }
 
+    // A többi függvény (updateUI, Combat engine hívások stb.) marad az eredeti
     function updateUI(b) {
         const isP1 = b.p1.id === myId;
         const me = isP1 ? b.p1 : b.p2;
@@ -342,7 +349,7 @@
 
     function handleExit() { 
         if(isFighting) {
-            hasFled = true; // Jelöljük, hogy MI futunk el
+            hasFled = true;
             document.getElementById('flee-screen').style.display = 'flex';
             clearInterval(turnTimer);
             db.ref(`characters/${myId}`).once('value', s => {
