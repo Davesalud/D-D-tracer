@@ -40,13 +40,14 @@
 <div id="ready-overlay">
     <h2 id="ready-text" style="color:var(--gold);">Ellenfelet keresünk...</h2>
     <button id="btn-ready" class="btn" style="width:200px; font-size:1.5em;" onclick="markReady()" disabled>KÉSZ</button>
+    <button id="btn-roll-start" class="btn" style="width:200px; font-size:1.5em; display:none; background: #2980b9;" onclick="rollForInitiative()">🎲 KEZDŐ DOBÁS</button>
     <button id="btn-cancel-search" class="btn" style="width:200px; background:#444; margin-top:10px;" onclick="safeExit()">MÉGSEM</button>
 </div>
 
 <div id="flee-screen">
     <img src="https://i.ibb.co/JFW7RN1F/Copilot-20260408-151920.png" alt="Nyuszika" style="max-width:80%; border-radius:15px; border:3px solid var(--gold);">
     <h2 style="color: var(--gold); margin-top: 15px;">Hová mész te kis nyuszika</h2>
-    <p style="color: #ccc;">Büntetés: -5 Arany</p>
+    <p id="flee-msg" style="color: #ccc;">Büntetés: -5 Arany</p>
     <button class="btn" style="width:250px" onclick="safeExit()">🏰 SZÉGYENSZEMRE TÁVOZOM</button>
 </div>
 
@@ -106,7 +107,7 @@
     const db = firebase.database();
     const myId = localStorage.getItem('selectedCharId');
     
-    let currentRoom = null, bRef = null, isFighting = false, rewarded = false;
+    let currentRoom = null, bRef = null, isFighting = false, rewarded = false, hasFled = false;
     let myCooldowns = [0, 0, 0], lastTurnOwner = "";
     let turnTimer = null, timeLeft = 15;
 
@@ -159,14 +160,23 @@
     }
 
     function markReady() {
-        const myRoll = Math.floor(Math.random() * 6) + 1;
         bRef.once('value', snap => {
             const b = snap.val();
             const isP1 = b.p1.id === myId;
-            bRef.update({ [isP1 ? 'p1/ready' : 'p2/ready']: true, [isP1 ? 'p1/roll' : 'p2/roll']: myRoll });
-            document.getElementById('btn-ready').disabled = true;
+            bRef.update({ [isP1 ? 'p1/ready' : 'p2/ready']: true });
+            document.getElementById('btn-ready').style.display = 'none';
             document.getElementById('ready-text').innerText = "Várakozás a másik félre...";
-            document.getElementById('btn-cancel-search').style.display = 'none';
+        });
+    }
+
+    function rollForInitiative() {
+        const roll = Math.floor(Math.random() * 20) + 1;
+        bRef.once('value', snap => {
+            const b = snap.val();
+            const isP1 = b.p1.id === myId;
+            bRef.update({ [isP1 ? 'p1/roll' : 'p2/roll']: roll });
+            document.getElementById('btn-roll-start').disabled = true;
+            document.getElementById('ready-text').innerText = "Dobásod: " + roll + ". Várakozás...";
         });
     }
 
@@ -174,15 +184,25 @@
         bRef.on('value', snap => {
             const b = snap.val(); if(!b) return;
             
-            if(b.status === "setup" || (b.p1.id && b.p2.id !== "waiting")) {
-                const meReady = (b.p1.id === myId ? b.p1.ready : b.p2.ready);
-                document.getElementById('btn-ready').disabled = meReady;
-                document.getElementById('ready-text').innerText = "Ellenfelet találtunk!";
+            // Ha mindketten bent vannak, jöhet a dobás gomb
+            if(b.p1.id && b.p2.id !== "waiting") {
+                const isP1 = b.p1.id === myId;
+                const me = isP1 ? b.p1 : b.p2;
+                if(b.p1.ready && b.p2.ready && me.roll === 0) {
+                    document.getElementById('btn-roll-start').style.display = 'block';
+                    document.getElementById('ready-text').innerText = "Dobjátok ki a kezdést!";
+                }
             }
 
-            if(b.p1.ready && b.p2.ready && b.status !== "fighting") {
-                const first = b.p1.roll >= b.p2.roll ? b.p1.id : b.p2.id;
-                bRef.update({ status: "fighting", turn: first, log: [`Kezdő dobások: ${b.p1.name}(${b.p1.roll}) vs ${b.p2.name}(${b.p2.roll})`, "A harc megkezdődött!"] });
+            // Ha mindketten dobtak, elindul a harc
+            if(b.p1.roll > 0 && b.p2.roll > 0 && b.status !== "fighting") {
+                const firstId = b.p1.roll >= b.p2.roll ? b.p1.id : b.p2.id;
+                const msg = firstId === myId ? "TE KEZDESZ!" : "ELLENSÉG KEZD!";
+                bRef.update({ 
+                    status: "fighting", 
+                    turn: firstId, 
+                    log: [`Dobások: ${b.p1.name}(${b.p1.roll}) vs ${b.p2.name}(${b.p2.roll})`, msg] 
+                });
             }
 
             if(b.status === "fighting") {
@@ -195,10 +215,11 @@
 
             if (b.winner !== "none" && !rewarded) { 
                 clearInterval(turnTimer); rewarded = true; 
-                // Ha valaki elfutott, csak az kapjon levonást
                 if(b.winner === "fled") {
-                    // Ha nem én futottam el, akkor simán kilépek, nem kapok levonást
-                    safeExit();
+                    if(!hasFled) { 
+                        // Én maradtam, nem von le tőlem semmit, csak kilépek
+                        safeExit(); 
+                    }
                 } else {
                     showEndScreen(b.winner === myId); 
                 }
@@ -266,8 +287,7 @@
         bRef.once('value', snap => {
             const b = snap.val(); if (!b || b.turn !== myId) return;
             const isP1 = b.p1.id === myId;
-            const meName = isP1 ? b.p1.name : b.p2.name;
-            bRef.update({ turn: isP1 ? b.p2.id : b.p1.id, log: [...(b.log||[]).slice(-4), `${meName} kifutott az időből!`], lastRoll: "⏳" });
+            bRef.update({ turn: isP1 ? b.p2.id : b.p1.id, log: [...(b.log||[]).slice(-4), `${b[isP1?'p1':'p2'].name} kifutott az időből!`], lastRoll: "⏳" });
         });
     }
 
@@ -322,11 +342,12 @@
 
     function handleExit() { 
         if(isFighting) {
+            hasFled = true; // Jelöljük, hogy MI futunk el
             document.getElementById('flee-screen').style.display = 'flex';
             clearInterval(turnTimer);
             db.ref(`characters/${myId}`).once('value', s => {
-                // Csak az veszítsen, aki kilépett
-                db.ref(`characters/${myId}`).update({ gold: Math.max(0, (s.val().gold || 0) - 5) });
+                const currentGold = s.val().gold || 0;
+                db.ref(`characters/${myId}`).update({ gold: Math.max(0, currentGold - 5) });
                 if(bRef) bRef.update({ winner: "fled" }); 
             });
         } else { safeExit(); }
