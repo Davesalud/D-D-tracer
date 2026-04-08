@@ -216,7 +216,6 @@
             const me = isP1 ? b.p1 : b.p2;
             const opp = isP1 ? b.p2 : b.p1;
 
-            // HA AZ ELLENFÉL KILÉPETT CSATLAKOZÁS KÖZBEN
             if (opp.id === "waiting" && b.status !== "fighting") {
                 document.getElementById('ready-text').innerText = "Ellenfelet keresünk...";
                 document.getElementById('btn-ready').style.display = 'none';
@@ -225,7 +224,6 @@
                     bRef.update({ status: "waiting", "p1/ready": false, "p1/roll": 0 });
                 }
             } 
-            // HA VAN ELLENFÉL
             else if (opp.id !== "waiting" && b.status !== "fighting") {
                 if (!me.ready) {
                     document.getElementById('ready-text').innerText = "Ellenfél: " + opp.name;
