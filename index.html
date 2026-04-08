@@ -38,7 +38,6 @@
             margin: 60px auto;
         }
 
-        /* Bal és jobb gompcsoport konténerek */
         .side-group {
             display: flex;
             flex-direction: row;
@@ -124,12 +123,16 @@
 
         .side-group-left  { margin-right: 8px; }
         .side-group-right { margin-left: 8px; }
+
+        /* MOBIL NÉZET JAVÍTÁSA */
+        @media (max-width: 900px) {
             .lobby-wrapper { flex-direction: column; }
             .side-group { width: 95vw; justify-content: center; margin: 5px 0 !important; }
             .side-action-btn { width: 48%; height: 80px; flex-direction: row; align-items: center; }
             .side-action-btn span { border-top: none; border-left: 1px solid var(--gold); width: auto; height: 100%; display: flex; align-items: center; padding: 0 10px; font-size: 0.7em; }
             .card { width: 95vw; margin: 10px 0; }
         }
+
         /* CHAT */
         #chat-widget { position: fixed; bottom: 20px; right: 70px; width: 300px; z-index: 500; font-family: 'MedievalSharp'; }
         #chat-toggle { width: 100%; background: rgba(0,0,0,0.9); border: 1px solid var(--gold); color: var(--gold); padding: 8px 12px; cursor: pointer; text-align: left; font-family: 'MedievalSharp'; font-size: 0.85em; border-radius: 6px 6px 0 0; display: flex; justify-content: space-between; align-items: center; }
@@ -145,7 +148,7 @@
         #chat-input { flex: 1; background: rgba(0,0,0,0.8); border: none; color: #eee; padding: 8px; font-family: 'MedievalSharp'; font-size: 0.8em; outline: none; }
         #chat-send { background: var(--accent); color: white; border: none; border-left: 1px solid var(--gold); padding: 8px 12px; cursor: pointer; font-family: 'MedievalSharp'; font-size: 0.8em; }
         #chat-send:hover { background: #b00; }
-    
+    </style>
 </head>
 <body>
 <div class="master-bg"></div>
@@ -163,7 +166,6 @@
 <div class="logout-corner"><button class="btn-logout" onclick="logout()">Kilépés</button></div>
 
 <div class="lobby-wrapper">
-    <!-- BAL OLDAL: Solo Kampány + Csapat Kampány -->
     <div class="side-group side-group-left">
         <a href="campaign.html" id="btn-side-kampany" class="side-action-btn"><span>📜 Solo Kampány</span></a>
         <a href="teamcampaign.html" id="btn-side-teamkampany" class="side-action-btn"><span>⚔️ Csapat Kampány</span></a>
@@ -210,14 +212,12 @@
         </div>
     </div>
 
-    <!-- JOBB OLDAL: Aréna + Ranglista -->
     <div class="side-group side-group-right">
         <a href="javascript:void(0)" onclick="enterArena()" id="btn-side-arena" class="side-action-btn"><span>⚔️ Aréna</span></a>
         <a href="ranklist.html" id="btn-side-ranklist" class="side-action-btn"><span>🏆 Ranglista</span></a>
     </div>
 </div>
 
-<!-- CHAT WIDGET -->
 <div id="chat-widget">
     <button id="chat-toggle" onclick="toggleChat()">
         💬 Birodalom csevegő
@@ -248,7 +248,6 @@
 
     if (!myId) { window.location.href = 'login.html'; }
 
-    // Frissítéses szökés büntetés üzenete
     if (localStorage.getItem('fled_penalty') === '1') {
         localStorage.removeItem('fled_penalty');
         setTimeout(() => alert("⚠️ Megszöktel a csatából frissítéssel!\nBüntetés: -15 Arany levonva."), 500);
@@ -343,7 +342,6 @@
         if (myId) checkAndApplyRegen(myId);
     }, 60000);
 
-    // ---- CHAT ----
     let chatOpen = false;
 
     function toggleChat() {
@@ -363,7 +361,6 @@
         return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
     }
 
-    // Firebase chat figyelő — max 15 üzenet
     db.ref('chat').limitToLast(15).on('child_added', snap => {
         const msg = snap.val();
         if (!msg) return;
@@ -372,7 +369,6 @@
         div.className = 'chat-msg';
         div.innerHTML = `<span class="msg-name">${msg.name}</span><span class="msg-time">${formatTime(msg.ts)}</span><br>${msg.text}`;
         box.appendChild(div);
-        // Max 15 üzenet a DOM-ban
         while (box.children.length > 15) box.removeChild(box.firstChild);
         if (chatOpen) scrollChatDown();
     });
