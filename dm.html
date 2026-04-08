@@ -5,7 +5,7 @@
     <title>DM Master Control - Death's Armada</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
     <style>
-        :root { --gold: #c5a059; --accent: #8b0000; --bg: #050507; --card: rgba(20, 20, 25, 0.9); --blue: #0088ff; }
+        :root { --gold: #c5a059; --accent: #8b0000; --bg: #050507; --card: rgba(20, 20, 25, 0.9); --blue: #0088ff; --hp: #e74c3c; --mp: #3498db; }
         body { background: var(--bg); color: var(--gold); font-family: 'Segoe UI', sans-serif; padding: 20px; margin: 0; padding-bottom: 80px; }
         
         .header-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent); padding: 10px 20px; margin-bottom: 20px; }
@@ -38,6 +38,12 @@
         
         .full-delete-btn { background: #440000; color: #ff4444; border: 1px solid #ff4444; font-size: 0.7em; padding: 4px; margin-bottom: 10px; }
         
+        /* HP és MP csíkok */
+        .dm-stat-bar { height: 6px; width: 100%; background: #000; border-radius: 3px; margin: 4px 0; overflow: hidden; }
+        .dm-hp-fill { height: 100%; background: var(--hp); transition: 0.3s; }
+        .dm-mp-fill { height: 100%; background: var(--mp); transition: 0.3s; }
+        .dm-stat-text { font-size: 0.7em; display: flex; justify-content: space-between; font-family: 'MedievalSharp'; }
+
         .dm-inventory-list { background: rgba(0,0,0,0.3); border: 1px solid #333; padding: 8px; margin-top: 10px; border-radius: 4px; font-size: 0.85em; max-height: 120px; overflow-y: auto; }
         .inv-item { display: flex; justify-content: space-between; align-items: center; background: #222; border: 1px solid #444; padding: 4px 8px; margin-bottom: 4px; border-radius: 3px; color: #ccc; }
         .del-btn { color: #ff4444; cursor: pointer; font-weight: bold; padding: 0 8px; border-left: 1px solid #444; margin-left: 10px; }
@@ -88,7 +94,6 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // Patch Notes betöltése
         db.ref('settings/patchNotes').on('value', snap => {
             if(snap.val()) document.getElementById('patch-input').value = snap.val();
         });
@@ -98,23 +103,16 @@
             db.ref('settings/patchNotes').set(text).then(() => alert("Krónikák frissítve!"));
         }
 
-        // ARÉNA SZOBÁK FIGYELÉSE
         db.ref('battles').on('value', snap => {
             const rooms = snap.val();
             const container = document.getElementById('room-list');
             container.innerHTML = '';
-
-            if (!rooms) {
-                container.innerHTML = '<div style="color: #444; font-style: italic; font-size: 0.8em;">Nincsenek aktív szobák az adatbázisban.</div>';
-                return;
-            }
-
+            if (!rooms) { container.innerHTML = '<div style="color: #444; font-style: italic; font-size: 0.8em;">Nincsenek aktív szobák az adatbázisban.</div>'; return; }
             for (let id in rooms) {
                 const r = rooms[id];
                 const statusClass = "status-" + r.status;
                 const p1Name = r.p1 ? r.p1.name : "Ismeretlen";
                 const p2Name = (r.p2 && r.p2.id !== "waiting") ? r.p2.name : "Várakozás...";
-                
                 const roomDiv = document.createElement('div');
                 roomDiv.className = 'room-card';
                 roomDiv.innerHTML = `
@@ -133,15 +131,9 @@
             }
         });
 
-        function deleteRoom(id) {
-            if(confirm("Törlöd ezt a szobát? A harc azonnal megszakad!")) db.ref(`battles/${id}`).remove();
-        }
+        function deleteRoom(id) { if(confirm("Törlöd ezt a szobát?")) db.ref(`battles/${id}`).remove(); }
+        function clearAllRooms() { if(confirm("Biztosan kiüríted az összes Aréna szobát?")) db.ref('battles').remove(); }
 
-        function clearAllRooms() {
-            if(confirm("Biztosan kiüríted az összes Aréna szobát?")) db.ref('battles').remove();
-        }
-
-        // KARAKTEREK FIGYELÉSE
         function timeSince(date) {
             if (!date) return "Soha nem volt aktív";
             const seconds = Math.floor((new Date() - date) / 1000);
@@ -162,6 +154,9 @@
                 const isOnline = c.lastUpdate && (Date.now() - c.lastUpdate) < 300000;
                 const statusText = isOnline ? "● Online" : "Utoljára látva: " + timeSince(c.lastUpdate);
                 const statusClass = isOnline ? "status-active" : "status-offline";
+                
+                const hpPerc = (c.hp / c.maxHp) * 100;
+                const mpPerc = (c.mp / c.maxMp) * 100;
 
                 const equipment = [
                     { label: '🛡️ Sisak', field: 'equip_sisak', id: c.equip_sisak },
@@ -196,7 +191,14 @@
                     <button class="full-delete-btn" onclick="deleteCharacter('${id}', '${c.name}')">❌ KARAKTER TÖRLÉSE</button>
                     <div class="stat-line"><span>${c.name}</span><span style="color:#888;">LVL ${c.level || 1}</span></div>
                     <span class="online-status ${statusClass}">${statusText}</span>
-                    <div style="display:flex; justify-content: space-around; background:rgba(0,0,0,0.5); padding:6px; border-radius:4px; margin-bottom:10px;">
+
+                    <div class="dm-stat-text"><span>HP</span><span>${Math.ceil(c.hp)} / ${c.maxHp}</span></div>
+                    <div class="dm-stat-bar"><div class="dm-hp-fill" style="width: ${hpPerc}%"></div></div>
+                    
+                    <div class="dm-stat-text"><span>MP</span><span>${Math.ceil(c.mp)} / ${c.maxMp}</span></div>
+                    <div class="dm-stat-bar"><div class="dm-mp-fill" style="width: ${mpPerc}%"></div></div>
+
+                    <div style="display:flex; justify-content: space-around; background:rgba(0,0,0,0.5); padding:6px; border-radius:4px; margin: 10px 0;">
                         <span>💰 ${c.gold || 0}</span><span>✨ ${c.xp || 0} XP</span>
                     </div>
                     <div class="equip-box"><span class="label" style="margin-top:0; color:var(--gold); margin-bottom:5px;">Felszerelés:</span>${equipHTML || '<span style="font-size:0.8em; color:#444">Üres</span>'}</div>
@@ -227,7 +229,7 @@
         function removeItem(cid, key) { if(confirm("Törlöd?")) db.ref(`characters/${cid}/inventory/${key}`).remove(); }
 
         function resetAllStats() {
-            if(confirm("FIGYELEM: Mindenki LVL 1, 0 XP és 100 NextXP lesz! Biztos?")) {
+            if(confirm("FIGYELEM: Mindenki LVL 1, 0 XP! Biztos?")) {
                 db.ref('characters').once('value', snap => {
                     const updates = {};
                     snap.forEach(child => {
