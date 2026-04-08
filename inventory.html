@@ -1,3 +1,74 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Death's Armada - Inventory</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,600;1,700&family=MedievalSharp&display=swap" rel="stylesheet">
+    <style>
+        :root { --gold: #c5a059; --bg: #050507; --card: rgba(15, 15, 18, 0.95); --accent: #8b0000; --text: #e0e0e0; }
+        * { box-sizing: border-box; -webkit-user-select: none; user-select: none; }
+        body { font-family: 'Crimson Text', serif; background-color: var(--bg); color: var(--text); margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        
+        .master-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.9)), url('https://i.pinimg.com/originals/26/2b/dd/262bdd02564bf6dabbe89df4f93e8e26.jpg'); background-size: cover; z-index: -1; }
+
+        .card { background: var(--card); border: 2px solid var(--gold); padding: 20px; border-radius: 4px; width: 95%; max-width: 500px; margin: 20px 0; box-shadow: 0 0 30px black; position: relative; }
+        
+        /* FELSZERELÉS SLOTOK */
+        .equipment-view { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin: 20px 0; }
+        .slot { width: 80px; height: 80px; border: 1px solid var(--gold); background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; font-size: 0.6em; color: var(--gold); cursor: pointer; border-radius: 4px; overflow: hidden; }
+        .slot img { width: 100%; height: 100%; object-fit: cover; }
+        #hero-preview { grid-column: 2; grid-row: 1 / span 3; border: 2px solid var(--gold); width: 100%; height: 260px; background-size: cover; background-position: center; border-radius: 4px; }
+
+        /* INVENTORY GRID */
+        .inventory-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 20px; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 4px; }
+        .inv-slot { width: 100%; aspect-ratio: 1/1; border: 1px solid #444; background: rgba(255,255,255,0.02); display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 2px; }
+        .inv-slot img { width: 90%; height: 90%; }
+
+        /* STATOK */
+        .stats-row { display: flex; justify-content: space-around; background: rgba(0,0,0,0.6); padding: 10px; border: 1px solid var(--gold); border-radius: 4px; margin-bottom: 15px; font-family: 'MedievalSharp'; }
+        .bar-container { height: 15px; background: #000; border: 1px solid #333; margin-top: 5px; border-radius: 10px; overflow: hidden; }
+        .hp-fill { height: 100%; background: linear-gradient(90deg, #600, #b00); width: 0%; transition: 0.3s; }
+        .mp-fill { height: 100%; background: linear-gradient(90deg, #004cff, #00d4ff); width: 0%; transition: 0.3s; }
+
+        .btn-back { position: absolute; top: -50px; left: 0; background: var(--gold); color: black; border: none; padding: 8px 20px; font-family: 'MedievalSharp'; cursor: pointer; border-radius: 4px; text-decoration: none; display: inline-block; }
+    </style>
+</head>
+<body>
+<div class="master-bg"></div>
+
+<div class="card">
+    <a href="index.html" class="btn-back">← VISSZA A LOBBY-BA</a>
+    
+    <h2 id="char-name" style="font-family:'MedievalSharp'; color:var(--gold); text-align:center; margin: 0 0 15px 0;">...</h2>
+
+    <div class="stats-row">
+        <span>⚔️ <b id="stat-atk">0</b></span>
+        <span>🛡️ <b id="stat-def">0</b></span>
+        <span>💰 <b id="stat-gold">0</b></span>
+    </div>
+
+    <div class="bar-container"><div id="hp-fill" class="hp-fill"></div></div>
+    <div style="text-align:center; font-size:12px; margin-bottom:5px;" id="hp-text">0 / 0 HP</div>
+
+    <div class="bar-container"><div id="mp-fill" class="mp-fill"></div></div>
+    <div style="text-align:center; font-size:12px;" id="mp-text">0 / 0 MP</div>
+
+    <div class="equipment-view">
+        <div class="slot" data-slot="sisak" onclick="handleSlotClick('sisak')">SISAK</div>
+        <div id="hero-preview"></div>
+        <div class="slot" data-slot="fegyver" onclick="handleSlotClick('fegyver')">FEGYVER</div>
+        
+        <div class="slot" data-slot="páncél" onclick="handleSlotClick('páncél')">PÁNCÉL</div>
+        <div class="slot" data-slot="pajzs" onclick="handleSlotClick('pajzs')">PAJZS</div>
+        
+        <div class="slot" data-slot="lábvért" onclick="handleSlotClick('lábvért')">LÁBVÉRT</div>
+        <div class="slot" data-slot="cipő" onclick="handleSlotClick('cipő')">CIPŐ</div>
+    </div>
+
+    <div class="inventory-grid" id="inventory-grid"></div>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="items.js"></script>
@@ -8,196 +79,125 @@
     const db = firebase.database();
     const myId = localStorage.getItem('selectedCharId');
 
-    let isProcessing = false;
     let currentCharData = null;
+    let isProcessing = false;
 
-    // REGENERÁCIÓS MOTOR KONFIGURÁCIÓ
-    const REGEN_SETTINGS = {
-        "Harcos":     { hp: 7,  mp: 2 },
-        "Mágus":      { hp: 2,  mp: 10 },
-        "Lovag":      { hp: 9,  mp: 3 },
-        "Íjász":      { hp: 5,  mp: 5 },
-        "Bérgyilkos": { hp: 4,  mp: 6 },
-        "Nekromanta": { hp: 5,  mp: 8 }
-    };
-
-    const HERO_IMAGES = { 
-        "Harcos": "https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png", 
-        "Mágus": "https://i.ibb.co/yFz5bcXv/Copilot-20260403-033651.png", 
-        "Lovag": "https://i.ibb.co/Fk3n339M/Copilot-20260403-034043.png", 
-        "Íjász": "https://i.ibb.co/whd2jNpB/Copilot-20260403-034402.png", 
-        "Bérgyilkos": "https://i.ibb.co/b525CsLg/Copilot-20260403-032807.png", 
-        "Nekromanta": "https://i.ibb.co/NnCwwCbR/Copilot-20260403-033301.png" 
-    };
-
-    // REGENERÁCIÓS SZÁMÍTÁS (OFFLINE IS MŰKÖDIK)
-    function processRegeneration(char) {
-        if (!char) return null;
-        const now = Date.now();
-        const lastUpdate = char.lastUpdate || now;
-        const elapsedSeconds = Math.floor((now - lastUpdate) / 1000);
-        const ticks = Math.floor(elapsedSeconds / 60); // Percenkénti tick
-
-        if (ticks < 1) return null;
-
-        const rates = REGEN_SETTINGS[char.charClass] || { hp: 5, mp: 5 };
-        let updatedHp = Number(char.hp) + (ticks * rates.hp);
-        let updatedMp = Number(char.mp || 0) + (ticks * rates.mp);
-
-        updatedHp = Math.min(updatedHp, Number(char.maxHp));
-        updatedMp = Math.min(updatedMp, Number(char.maxMp || 100));
-
-        if (updatedHp !== Number(char.hp) || updatedMp !== Number(char.mp)) {
-            return { hp: updatedHp, mp: updatedMp, lastUpdate: now };
-        }
-        return null;
-    }
+    const HERO_IMAGES = { "Harcos": "https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png", "Mágus": "https://i.ibb.co/yFz5bcXv/Copilot-20260403-033651.png", "Lovag": "https://i.ibb.co/Fk3n339M/Copilot-20260403-034043.png", "Íjász": "https://i.ibb.co/whd2jNpB/Copilot-20260403-034402.png", "Bérgyilkos": "https://i.ibb.co/b525CsLg/Copilot-20260403-032807.png", "Nekromanta": "https://i.ibb.co/NnCwwCbR/Copilot-20260403-033301.png" };
 
     if (!myId) window.location.href = 'login.html';
 
     // ADATBÁZIS FIGYELŐ
     db.ref(`characters/${myId}`).on('value', snap => {
-        const data = snap.val();
-        if(!data) return;
-
-        // Regeneráció ellenőrzése betöltéskor
-        const regenUpdates = processRegeneration(data);
-        if (regenUpdates && !isProcessing) {
-            db.ref(`characters/${myId}`).update(regenUpdates);
-            return; // Az .on('value') újra le fog futni az új adatokkal
-        }
-
-        currentCharData = data;
-        updateUI();
+        currentCharData = snap.val();
+        if (currentCharData) updateUI();
     });
 
     function updateUI() {
         const c = currentCharData;
-        document.getElementById('char-name').innerText = `${c.name} - LVL ${c.level || 1}`;
+        document.getElementById('char-name').innerText = `${c.name} (LVL ${c.level || 1})`;
         document.getElementById('stat-gold').innerText = c.gold || 0;
-        document.getElementById('hero-img').src = HERO_IMAGES[c.charClass] || "";
+        document.getElementById('stat-atk').innerText = (Number(c.atk) || 0) + (Number(c.bonusAtk) || 0);
+        document.getElementById('stat-def').innerText = (Number(c.def) || 0) + (Number(c.bonusDef) || 0);
+        document.getElementById('hero-preview').style.backgroundImage = `url('${HERO_IMAGES[c.charClass]}')`;
 
-        const hp = parseInt(c.hp || 0);
-        const maxHp = c.maxHp || 100;
-        document.getElementById('hp-fill').style.width = (hp / maxHp * 100) + "%";
-        document.getElementById('hp-text').innerText = `${hp} / ${maxHp}`;
+        // HP & MP
+        const hpPerc = (Number(c.hp)/Number(c.maxHp)*100);
+        document.getElementById('hp-fill').style.width = hpPerc + "%";
+        document.getElementById('hp-text').innerText = `${Math.ceil(c.hp)} / ${c.maxHp} HP`;
 
-        const totalAtk = (Number(c.atk) || 10) + (Number(c.bonusAtk) || 0);
-        const totalDef = (Number(c.def) || 5) + (Number(c.bonusDef) || 0);
-        
-        document.getElementById('stat-atk').innerText = totalAtk;
-        document.getElementById('stat-def').innerText = totalDef;
+        const mpPerc = (Number(c.mp || 0));
+        document.getElementById('mp-fill').style.width = mpPerc + "%";
+        document.getElementById('mp-text').innerText = `${Math.ceil(c.mp || 0)} / 100 MP`;
 
-        ["sisak", "fegyver", "páncél", "pajzs", "lábvért", "cipő"].forEach(st => {
-            const slotEl = document.querySelector(`.slot[data-slot="${st}"]`);
-            const itemId = c[`equip_${st}`];
-            if(itemId && ITEMS[itemId]) {
-                slotEl.innerHTML = `<img src="${ITEMS[itemId].img}">`;
-            } else { 
-                slotEl.innerHTML = st.toUpperCase(); 
+        // Slotok frissítése
+        ["sisak", "fegyver", "páncél", "pajzs", "lábvért", "cipő"].forEach(slot => {
+            const el = document.querySelector(`[data-slot="${slot}"]`);
+            const itemId = c[`equip_${slot}`];
+            if (itemId && ITEMS[itemId]) {
+                el.innerHTML = `<img src="${ITEMS[itemId].img}">`;
+            } else {
+                el.innerText = slot.toUpperCase();
             }
         });
-        
+
+        // Inventory Grid
         const grid = document.getElementById('inventory-grid');
         grid.innerHTML = '';
         const inv = c.inventory || {};
+        
         Object.keys(inv).forEach(key => {
             const itemId = inv[key];
-            if(ITEMS[itemId]) {
+            if (ITEMS[itemId]) {
                 const div = document.createElement('div');
                 div.className = 'inv-slot';
-                div.onclick = () => handleInventoryClick(itemId, key);
-                div.innerHTML = `<img src="${ITEMS[itemId].img}" class="item-icon">`;
+                div.onclick = () => handleItemClick(itemId, key);
+                div.innerHTML = `<img src="${ITEMS[itemId].img}">`;
                 grid.appendChild(div);
             }
         });
-        for(let i = Object.keys(inv).length; i < 16; i++) {
-            const div = document.createElement('div'); div.className = 'inv-slot'; grid.appendChild(div);
-        }
     }
 
-    function handleInventoryClick(itemId, fbKey) {
+    function handleItemClick(itemId, fbKey) {
         if (isProcessing) return;
         const item = ITEMS[itemId];
-        if (!item) return;
-
-        const msg = item.type === "consumable" ? `Megiszod: ${item.name}? (+${item.heal} HP)` : `Felveszed: ${item.name}?`;
+        const action = item.type === 'consumable' ? 'Megiszod' : 'Felveszed';
         
-        if (confirm(msg)) {
-            if (item.type === "consumable") {
-                useConsumable(itemId, fbKey);
+        if (confirm(`${action}: ${item.name}?`)) {
+            isProcessing = true;
+            if (item.type === 'consumable') {
+                useItem(item, fbKey);
             } else {
-                equipItem(itemId, fbKey, item.type);
+                equipItem(item, fbKey);
             }
         }
     }
 
-    function handleSlotClick(slotType) {
-        if (isProcessing) return;
-        const itemId = currentCharData[`equip_${slotType}`];
-        if (itemId && confirm(`Leveszed: ${ITEMS[itemId].name}?`)) {
-            unequipItem(slotType, itemId);
+    function equipItem(item, fbKey) {
+        const slot = item.type;
+        if (currentCharData[`equip_${slot}`]) {
+            alert("Már van itt valami!");
+            isProcessing = false;
+            return;
+        }
+
+        const updates = {};
+        updates[`equip_${slot}`] = item.id;
+        updates.bonusAtk = (Number(currentCharData.bonusAtk) || 0) + (Number(item.atk) || 0);
+        updates.bonusDef = (Number(currentCharData.bonusDef) || 0) + (Number(item.def) || 0);
+        
+        db.ref(`characters/${myId}`).update(updates).then(() => {
+            db.ref(`characters/${myId}/inventory/${fbKey}`).remove();
+        }).finally(() => isProcessing = false);
+    }
+
+    function handleSlotClick(slot) {
+        const itemId = currentCharData[`equip_${slot}`];
+        if (!itemId || isProcessing) return;
+
+        if (confirm("Leveszed a tárgyat?")) {
+            isProcessing = true;
+            const item = ITEMS[itemId];
+            const newKey = db.ref(`characters/${myId}/inventory`).push().key;
+            
+            const updates = {};
+            updates[`equip_${slot}`] = null;
+            updates.bonusAtk = Math.max(0, (Number(currentCharData.bonusAtk) || 0) - (Number(item.atk) || 0));
+            updates.bonusDef = Math.max(0, (Number(currentCharData.bonusDef) || 0) - (Number(item.def) || 0));
+            updates[`inventory/${newKey}`] = itemId;
+
+            db.ref(`characters/${myId}`).update(updates).finally(() => isProcessing = false);
         }
     }
 
-    function equipItem(itemId, fbKey, slotType) {
-        if (currentCharData[`equip_${slotType}`]) {
-            return alert("Ebben a slotban már van valami! Előbb vedd le.");
-        }
-
-        isProcessing = true;
-        const item = ITEMS[itemId];
-        const newBonusAtk = (Number(currentCharData.bonusAtk) || 0) + (Number(item.atk) || 0);
-        const newBonusDef = (Number(currentCharData.bonusDef) || 0) + (Number(item.def) || 0);
-
+    function useItem(item, fbKey) {
         const updates = {};
-        updates[`equip_${slotType}`] = itemId;
-        updates[`bonusAtk`] = newBonusAtk;
-        updates[`bonusDef`] = newBonusDef;
-        updates[`lastUpdate`] = Date.now(); // Frissítjük a regenerációs időt is
+        if (item.heal) updates.hp = Math.min(currentCharData.maxHp, (Number(currentCharData.hp) || 0) + item.heal);
+        if (item.mana) updates.mp = Math.min(100, (Number(currentCharData.mp) || 0) + item.mana);
 
         db.ref(`characters/${myId}`).update(updates).then(() => {
-            return db.ref(`characters/${myId}/inventory/${fbKey}`).remove();
-        }).catch(err => {
-            console.error("Felszerelési hiba:", err);
-        }).finally(() => isProcessing = false);
-    }
-
-    function unequipItem(slotType, itemId) {
-        isProcessing = true;
-        const item = ITEMS[itemId];
-        const newBonusAtk = Math.max(0, (Number(currentCharData.bonusAtk) || 0) - (Number(item.atk) || 0));
-        const newBonusDef = Math.max(0, (Number(currentCharData.bonusDef) || 0) - (Number(item.def) || 0));
-
-        const newKey = db.ref(`characters/${myId}/inventory`).push().key;
-        const updates = {};
-        updates[`equip_${slotType}`] = null;
-        updates[`bonusAtk`] = newBonusAtk;
-        updates[`bonusDef`] = newBonusDef;
-        updates[`inventory/${newKey}`] = itemId;
-        updates[`lastUpdate`] = Date.now();
-
-        db.ref(`characters/${myId}`).update(updates).catch(err => {
-            console.error("Levételi hiba:", err);
-        }).finally(() => isProcessing = false);
-    }
-
-    function useConsumable(itemId, fbKey) {
-        const hp = Number(currentCharData.hp) || 0;
-        const maxHp = Number(currentCharData.maxHp) || 100;
-        
-        if (hp >= maxHp) return alert("Az életerőd már maximumon van!");
-        
-        isProcessing = true;
-        const healAmount = Number(ITEMS[itemId].heal) || 0;
-        const newHP = Math.min(maxHp, hp + healAmount);
-        
-        // Mentésnél frissítjük a lastUpdate-et, hogy a regen tiszta lappal induljon
-        db.ref(`characters/${myId}`).update({ 
-            hp: newHP,
-            lastUpdate: Date.now() 
-        }).then(() => {
-            return db.ref(`characters/${myId}/inventory/${fbKey}`).remove();
+            db.ref(`characters/${myId}/inventory/${fbKey}`).remove();
         }).finally(() => isProcessing = false);
     }
 </script>
+</body>
+</html>
