@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Death's Armada - ARENA v4.5 ⚔️</title>
+    <title>Death's Armada - ARENA v4.6 ⚔️</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #c5a059; --accent: #8b0000; --bg: #050507; --glass: rgba(15, 15, 20, 0.95); }
@@ -17,47 +17,36 @@
         
         .battlefield { display: flex; flex: 1; justify-content: space-around; align-items: center; padding: 10px; gap: 15px; }
         .fighter-card { flex: 1; max-width: 320px; padding: 12px; border: 2px solid #333; background: var(--glass); border-radius: 12px; text-align: center; transition: 0.3s; position: relative; }
-        .fighter-card.active { border-color: var(--gold); box-shadow: 0 0 20px var(--gold); }
         
-        /* Képesség Tooltip */
-        .skill-container { position: relative; display: inline-block; }
-        .skill-tooltip { 
-            visibility: hidden; width: 160px; background-color: rgba(0,0,0,0.95); color: #fff; text-align: center; 
-            border: 1px solid var(--gold); border-radius: 6px; padding: 8px; position: absolute; z-index: 1001; 
-            bottom: 125%; left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 0.3s; font-size: 0.8em;
-            pointer-events: none; box-shadow: 0 0 15px rgba(0,0,0,0.5);
-        }
-        .skill-container:hover .skill-tooltip { visibility: visible; opacity: 1; }
-
-        .hero-portrait { width: 100%; height: 180px; border: 1px solid var(--gold); margin: 8px 0; background-size: cover; background-position: center top; border-radius: 6px; box-shadow: inset 0 0 15px black; }
+        /* MEGNÖVELT PORTRÉ */
+        .hero-portrait { width: 100%; height: 360px; border: 1px solid var(--gold); margin: 8px 0; background-size: cover; background-position: center top; border-radius: 6px; box-shadow: inset 0 0 15px black; }
+        
         .stat-row { display: flex; justify-content: center; gap: 10px; margin: 5px 0 10px 0; }
         .stat-box { border: 2px solid var(--gold); background: rgba(0,0,0,0.8); padding: 4px 8px; border-radius: 4px; min-width: 70px; }
-        .stat-label { font-size: 0.65em; display: block; color: var(--gold); text-transform: uppercase; }
-        .stat-val { font-size: 1.1em; font-weight: bold; }
-        
         .bar-container { width: 100%; height: 18px; background: #000; border: 1px solid #444; margin: 4px 0; overflow: hidden; position: relative; border-radius: 3px; }
         .hp-fill { height: 100%; background: linear-gradient(90deg, #600, #f00); width: 100%; transition: 0.6s; }
         .mp-fill { height: 100%; background: linear-gradient(90deg, #003366, #0088ff); width: 0%; transition: 0.6s; }
         .bar-text { position: absolute; width: 100%; text-align: center; font-size: 10px; top: 1px; font-weight: bold; text-shadow: 1px 1px 2px black; z-index: 5; }
         
-        .skill-slot { width: 55px; height: 55px; background: #111; border: 2px solid var(--gold); border-radius: 6px; cursor: pointer; background-size: cover; background-position: center; margin: 0 4px; position: relative; }
-        .cd-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); display:flex; align-items:center; justify-content:center; color:#ff4444; font-size: 1.5em; font-weight: bold; border-radius: 4px; }
-        
-        .dice-box { width: 70px; height: 70px; border: 2px solid var(--gold); font-size: 1.5em; background: #000; color: var(--gold); border-radius: 10px; display: flex; align-items: center; justify-content: center; text-align: center; }
+        .skill-slot { width: 55px; height: 55px; background: #111; border: 2px solid var(--gold); border-radius: 6px; cursor: pointer; background-size: cover; margin: 0 4px; position: relative; }
         .battle-log { width: 100%; max-width: 250px; height: 120px; background: rgba(0,0,0,0.85); border: 1px solid #444; padding: 8px; font-size: 0.8em; overflow-y: auto; color: #ddd; border-radius: 6px; }
+        .dice-box { width: 70px; height: 70px; border: 2px solid var(--gold); font-size: 1.5em; background: #000; color: var(--gold); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
         .btn { background: var(--accent); color: white; border: 1px solid var(--gold); padding: 10px; font-family: 'MedievalSharp'; cursor: pointer; width: 100%; border-radius: 4px; font-weight: bold; margin-bottom: 5px; }
         .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-        /* Speciális Képernyők */
-        #win-screen, #flee-screen { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.98); display: none; flex-direction: column; 
-            align-items: center; justify-content: center; z-index: 2000; text-align: center;
-        }
+        /* KÉSZ gomb overlay */
+        #ready-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); z-index: 1500; display:none; flex-direction:column; align-items:center; justify-content:center; }
+
+        #win-screen, #flee-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.98); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; text-align: center; }
         #flee-screen img { max-width: 80%; border: 3px solid var(--gold); border-radius: 15px; box-shadow: 0 0 20px red; }
     </style>
 </head>
 <body>
+
+<div id="ready-overlay">
+    <h2 id="ready-text" style="color:var(--gold);">Ellenfelet keresünk...</h2>
+    <button id="btn-ready" class="btn" style="width:200px; font-size:1.5em;" onclick="markReady()" disabled>KÉSZ</button>
+</div>
 
 <div id="flee-screen">
     <img src="https://i.ibb.co/JFW7RN1F/Copilot-20260408-151920.png" alt="Nyuszika">
@@ -87,29 +76,13 @@
     <div id="p-card" class="fighter-card">
         <h3 id="p-name" style="color: var(--gold); margin: 0;">Hősöd</h3>
         <div id="p-img" class="hero-portrait"></div>
-        <div class="stat-row">
-            <div class="stat-box"><span class="stat-label">Támadás</span><span class="stat-val" id="p-atk-val">0</span></div>
-            <div class="stat-box"><span class="stat-label">Védelem</span><span class="stat-val" id="p-def-val">0</span></div>
-        </div>
         <div class="bar-container"><div id="p-hp-fill" class="hp-fill"></div><div class="bar-text" id="p-hp-val">0/0 HP</div></div>
         <div class="bar-container" style="height:12px;"><div id="p-mp-fill" class="mp-fill"></div><div class="bar-text" id="p-mp-val">0/0 MP</div></div>
-        
-        <div style="color: var(--gold); font-size: 0.8em; margin: 10px 0 5px 0; border-bottom: 1px solid #333;">KÉPESSÉGEK</div>
-        <div style="display: flex; justify-content: center; margin-bottom: 10px;">
-            <div class="skill-container">
-                <button class="skill-slot" id="sk-0" onclick="useSkill(0)" disabled></button>
-                <div id="sk-0-tip" class="skill-tooltip">Képesség adatai...</div>
-            </div>
-            <div class="skill-container">
-                <button class="skill-slot" id="sk-1" onclick="useSkill(1)" disabled></button>
-                <div id="sk-1-tip" class="skill-tooltip">Képesség adatai...</div>
-            </div>
-            <div class="skill-container">
-                <button class="skill-slot" id="sk-2" onclick="useSkill(2)" disabled></button>
-                <div id="sk-2-tip" class="skill-tooltip">Képesség adatai...</div>
-            </div>
+        <div style="display: flex; justify-content: center; margin: 10px 0;">
+            <button class="skill-slot" id="sk-0" onclick="useSkill(0)" disabled></button>
+            <button class="skill-slot" id="sk-1" onclick="useSkill(1)" disabled></button>
+            <button class="skill-slot" id="sk-2" onclick="useSkill(2)" disabled></button>
         </div>
-        
         <button id="btn-attack" class="btn" onclick="performAction('attack')" disabled>⚔️ TÁMADÁS</button>
         <button id="btn-defend" class="btn" style="background:#2c3e50" onclick="performAction('defend')" disabled>🛡️ VÉDEKEZÉS</button>
     </div>
@@ -122,10 +95,6 @@
     <div id="e-card" class="fighter-card">
         <h3 id="e-name" style="color: #ff4444; margin: 0;">Ellenfél</h3>
         <div id="e-img" class="hero-portrait"></div>
-        <div class="stat-row">
-            <div class="stat-box"><span class="stat-label">Támadás</span><span class="stat-val" id="e-atk-val">0</span></div>
-            <div class="stat-box"><span class="stat-label">Védelem</span><span class="stat-val" id="e-def-val">0</span></div>
-        </div>
         <div class="bar-container"><div id="e-hp-fill" class="hp-fill"></div><div class="bar-text" id="e-hp-val">HP: ---</div></div>
         <div id="e-skills-info" style="font-size: 0.8em; color: #aaa; text-align: left; padding: 8px; background: rgba(0,0,0,0.5); border-radius: 4px; min-height: 80px; margin-top: 10px;">Várakozás...</div>
     </div>
@@ -148,25 +117,11 @@
 
     const HERO_IMGS = { "Harcos":"https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png", "Mágus":"https://i.ibb.co/yFz5bcXv/Copilot-20260403-033651.png", "Lovag":"https://i.ibb.co/Fk3n339M/Copilot-20260403-034043.png", "Bérgyilkos":"https://i.ibb.co/b525CsLg/Copilot-20260403-032807.png", "Nekromanta":"https://i.ibb.co/CKhc0K9m/ulti.jpg" };
 
-    function startTimer() {
-        clearInterval(turnTimer); timeLeft = 15;
-        const tb = document.getElementById('timer-box'); tb.style.display = 'block'; tb.innerText = timeLeft;
-        turnTimer = setInterval(() => { timeLeft--; tb.innerText = timeLeft; if (timeLeft <= 0) skipTurn(); }, 1000);
-    }
-
-    function skipTurn() {
-        bRef.once('value', snap => {
-            const b = snap.val(); if (!b || b.turn !== myId) return;
-            const isP1 = b.p1.id === myId;
-            let nLog = b.log || []; nLog.push(`${b[isP1?'p1':'p2'].name} kifutott az időből!`);
-            bRef.update({ turn: isP1 ? b.p2.id : b.p1.id, log: nLog.slice(-5) });
-        });
-    }
-
     function findMatch() {
+        document.getElementById('ready-overlay').style.display = 'flex';
         db.ref('battles').once('value', snap => {
             const rooms = snap.val(); let found = null;
-            if (rooms) for (let id in rooms) if (rooms[id].p2 && rooms[id].p2.id === "waiting" && rooms[id].p1.id !== myId) { found = id; break; }
+            if (rooms) for (let id in rooms) if (rooms[id].p2 && rooms[id].p2.id === "waiting") { found = id; break; }
             found ? joinBattle(found) : createNewBattle();
         });
     }
@@ -177,9 +132,9 @@
         db.ref(`characters/${myId}`).once('value', s => {
             const c = s.val();
             bRef.set({
-                p1: { id: myId, name: c.name, hp: Number(c.hp), maxHp: Number(c.maxHp || 100), mp: Number(c.mp || 0), maxMp: Number(c.maxMp || 100), class: c.charClass, atk: Number(c.atk || 10), def: Number(c.def || 5), isDefending: false },
-                p2: { id: "waiting", name: "Várakozás...", hp: 0 },
-                turn: myId, lastRoll: "?", log: ["Keresés..."], winner: "none"
+                p1: { id: myId, name: c.name, hp: Number(c.hp), maxHp: Number(c.maxHp || 100), mp: Number(c.mp || 0), maxMp: Number(c.maxMp || 100), class: c.charClass, atk: Number(c.atk || 10), def: Number(c.def || 5), ready: false, roll: 0 },
+                p2: { id: "waiting", ready: false },
+                status: "waiting", turn: "none", log: ["Keresés..."], winner: "none"
             });
             bRef.onDisconnect().remove(); listen();
         });
@@ -190,16 +145,49 @@
         db.ref(`characters/${myId}`).once('value', s => {
             const c = s.val();
             bRef.update({ 
-                "p2": { id: myId, name: c.name, hp: Number(c.hp), maxHp: Number(c.maxHp || 100), mp: Number(c.mp || 0), maxMp: Number(c.maxMp || 100), class: c.charClass, atk: Number(c.atk || 10), def: Number(c.def || 5), isDefending: false }, 
-                "log": ["A párbaj megkezdődött!"], "winner": "none" 
+                "p2": { id: myId, name: c.name, hp: Number(c.hp), maxHp: Number(c.maxHp || 100), mp: Number(c.mp || 0), maxMp: Number(c.maxMp || 100), class: c.charClass, atk: Number(c.atk || 10), def: Number(c.def || 5), ready: false, roll: 0 },
+                "status": "setup"
             });
             listen();
+        });
+    }
+
+    function markReady() {
+        const myRoll = Math.floor(Math.random() * 6) + 1;
+        bRef.once('value', snap => {
+            const b = snap.val();
+            const isP1 = b.p1.id === myId;
+            bRef.update({ [isP1 ? 'p1/ready' : 'p2/ready']: true, [isP1 ? 'p1/roll' : 'p2/roll']: myRoll });
+            document.getElementById('btn-ready').disabled = true;
+            document.getElementById('ready-text').innerText = "Várakozás a másik félre...";
         });
     }
 
     function listen() {
         bRef.on('value', snap => {
             const b = snap.val(); if(!b) return;
+            
+            // KÉSZ logika
+            if(b.status === "setup" || (b.p1.id && b.p2.id !== "waiting")) {
+                document.getElementById('btn-ready').disabled = (b.p1.id === myId ? b.p1.ready : b.p2.ready);
+                document.getElementById('ready-text').innerText = "Ellenfelet találtunk!";
+            }
+
+            if(b.p1.ready && b.p2.ready && b.status !== "fighting") {
+                const first = b.p1.roll >= b.p2.roll ? b.p1.id : b.p2.id;
+                const starterName = (first === b.p1.id ? b.p1.name : b.p2.name);
+                bRef.update({ 
+                    status: "fighting", 
+                    turn: first, 
+                    log: [`Kezdő dobások: ${b.p1.name}(${b.p1.roll}), ${b.p2.name}(${b.p2.roll})`, `${starterName} kezd!`] 
+                });
+            }
+
+            if(b.status === "fighting") {
+                document.getElementById('ready-overlay').style.display = 'none';
+                isFighting = true;
+            }
+
             if (b.winner !== "none" && !rewarded) { 
                 clearInterval(turnTimer); rewarded = true; 
                 showEndScreen(b.winner === myId); return; 
@@ -212,7 +200,6 @@
         const isP1 = b.p1.id === myId;
         const me = isP1 ? b.p1 : b.p2;
         const opp = isP1 ? b.p2 : b.p1;
-        if (opp.id !== "waiting") isFighting = true;
 
         if (b.turn === myId && lastTurnOwner !== myId && isFighting) {
             myCooldowns = myCooldowns.map(c => c > 0 ? c - 1 : 0);
@@ -222,21 +209,18 @@
         }
         lastTurnOwner = b.turn;
 
-        // UI Frissítés (HP, MP, Képek...)
+        // UI Frissítés - HP/MP Fix
         document.getElementById('p-hp-fill').style.width = (me.hp/me.maxHp*100) + "%";
         document.getElementById('p-hp-val').innerText = `${Math.ceil(me.hp)} / ${me.maxHp} HP`;
         document.getElementById('p-mp-fill').style.width = (me.mp/me.maxMp*100) + "%";
+        document.getElementById('p-mp-val').innerText = `${Math.ceil(me.mp)} / ${me.maxMp} MP`;
         document.getElementById('p-name').innerText = me.name + (me.isDefending ? " 🛡️" : "");
-        document.getElementById('p-atk-val').innerText = me.atk;
-        document.getElementById('p-def-val').innerText = me.isDefending ? me.def*2 : me.def;
         document.getElementById('p-img').style.backgroundImage = `url('${HERO_IMGS[me.class]}')`;
 
         if(isFighting) {
             document.getElementById('e-name').innerText = opp.name + (opp.isDefending ? " 🛡️" : "");
             document.getElementById('e-hp-fill').style.width = (opp.hp/opp.maxHp*100) + "%";
             document.getElementById('e-hp-val').innerText = `${Math.ceil(opp.hp)} / ${opp.maxHp} HP`;
-            document.getElementById('e-atk-val').innerText = opp.atk;
-            document.getElementById('e-def-val').innerText = opp.isDefending ? opp.def*2 : opp.def;
             document.getElementById('e-img').style.backgroundImage = `url('${HERO_IMGS[opp.class]}')`;
         }
 
@@ -245,78 +229,67 @@
         document.getElementById('btn-defend').disabled = !isTurn;
         document.getElementById('turn-display').innerText = isTurn ? "TE KÖVETKEZEL!" : (isFighting ? "ELLENFÉL JÖN..." : "KERESÉS...");
         
-        // Képességek és Tooltipek frissítése
-        const skills = SKILLS_DATA[me.class].skills;
-        skills.forEach((s, i) => {
-            const btn = document.getElementById(`sk-${i}`);
-            const tip = document.getElementById(`sk-${i}-tip`);
-            btn.style.backgroundImage = `url('${s.img}')`;
-            
-            // Tooltip tartalom
-            const estDmg = Math.floor(me.atk * (s.mult || s.power || 1));
-            tip.innerHTML = `<strong>${s.name}</strong><br>Sebzés: ~${estDmg}<br>Költség: ${s.cost} MP<br>CD: ${s.cd} kör`;
+        if(me.class) {
+            SKILLS_DATA[me.class].skills.forEach((s, i) => {
+                const btn = document.getElementById(`sk-${i}`);
+                btn.style.backgroundImage = `url('${s.img}')`;
+                btn.disabled = !isTurn || me.mp < s.cost || myCooldowns[i] > 0;
+                btn.innerHTML = myCooldowns[i] > 0 ? `<div style="background:rgba(0,0,0,0.7);color:red;height:100%;display:flex;align-items:center;justify-content:center;">${myCooldowns[i]}</div>` : "";
+            });
+        }
 
-            let cdOverlay = btn.querySelector('.cd-overlay');
-            if (myCooldowns[i] > 0) {
-                if(!cdOverlay) { cdOverlay = document.createElement('div'); cdOverlay.className='cd-overlay'; btn.appendChild(cdOverlay); }
-                cdOverlay.innerText = myCooldowns[i]; btn.disabled = true;
-            } else {
-                if(cdOverlay) cdOverlay.remove(); btn.disabled = !isTurn || me.mp < s.cost;
-            }
-        });
-
-        document.getElementById('dice').innerText = b.lastRoll;
+        document.getElementById('dice').innerText = b.lastRoll || "?";
         document.getElementById('log').innerHTML = b.log ? b.log.map(l => `<div>${l}</div>`).reverse().join('') : "";
         if(isFighting && me.hp <= 0 && b.winner === "none") bRef.update({ winner: opp.id });
     }
 
+    function startTimer() {
+        clearInterval(turnTimer); timeLeft = 15;
+        const tb = document.getElementById('timer-box'); tb.style.display = 'block'; tb.innerText = timeLeft;
+        turnTimer = setInterval(() => { timeLeft--; tb.innerText = timeLeft; if (timeLeft <= 0) skipTurn(); }, 1000);
+    }
+
+    function skipTurn() {
+        bRef.once('value', snap => {
+            const b = snap.val(); if (!b || b.turn !== myId) return;
+            const isP1 = b.p1.id === myId;
+            bRef.update({ turn: isP1 ? b.p2.id : b.p1.id, log: [...(b.log||[]), `${b[isP1?'p1':'p2'].name} kifutott az időből!`].slice(-5) });
+        });
+    }
+
     function useSkill(idx) {
-        clearInterval(turnTimer);
         bRef.once('value', snap => {
             const b = snap.val(); const isP1 = b.p1.id === myId;
             const me = isP1 ? b.p1 : b.p2; const opp = isP1 ? b.p2 : b.p1;
             const s = SKILLS_DATA[me.class].skills[idx];
-            
             myCooldowns[idx] = s.cd;
             const res = CombatEngine.calculateSkillEffect(me, opp, s);
-            const updates = {};
-            
-            updates[isP1 ? 'p2/hp' : 'p1/hp'] = Math.max(0, opp.hp - res.damage);
-            updates[isP1 ? 'p1/mp' : 'p2/mp'] = me.mp - s.cost;
-            if(res.healing) updates[isP1 ? 'p1/hp' : 'p2/hp'] = Math.min(me.maxHp, me.hp + res.healing);
-            if(res.buff) updates[isP1 ? 'p1/'+res.buff.stat : 'p2/'+res.buff.stat] = (me[res.buff.stat]||0) + res.buff.value;
-
-            updates[isP1 ? 'p1/isDefending' : 'p2/isDefending'] = false;
-            updates['turn'] = isP1 ? b.p2.id : b.p1.id;
-            updates['lastRoll'] = "✨";
-            let nLog = b.log || []; nLog.push(`${me.name}: ${s.name} (${res.damage})`);
-            updates['log'] = nLog.slice(-5);
-            bRef.update(updates);
+            const up = {};
+            up[isP1 ? 'p2/hp' : 'p1/hp'] = Math.max(0, opp.hp - res.damage);
+            up[isP1 ? 'p1/mp' : 'p2/mp'] = me.mp - s.cost;
+            up['turn'] = isP1 ? b.p2.id : b.p1.id;
+            up['lastRoll'] = "✨";
+            up['log'] = [...(b.log||[]), `${me.name}: ${s.name} (${res.damage})`].slice(-5);
+            bRef.update(up);
         });
     }
 
     function performAction(type) {
-        clearInterval(turnTimer);
         bRef.once('value', snap => {
             const b = snap.val(); const isP1 = b.p1.id === myId;
             const me = isP1 ? b.p1 : b.p2; const opp = isP1 ? b.p2 : b.p1;
-            const updates = {}; let nLog = b.log || [];
-
+            const up = {};
             if (type === 'attack') {
                 const res = CombatEngine.calculatePhysicalDamage(me, opp);
-                updates[isP1 ? 'p2/hp' : 'p1/hp'] = Math.max(0, opp.hp - res.damage);
-                updates['lastRoll'] = res.roll;
-                nLog.push(`${me.name}: Ütés (${res.damage})`);
-                updates[isP1 ? 'p1/isDefending' : 'p2/isDefending'] = false;
-            } else if (type === 'defend') {
-                updates[isP1 ? 'p1/isDefending' : 'p2/isDefending'] = true;
-                updates['lastRoll'] = "🛡️";
-                nLog.push(`${me.name} védekezik!`);
+                up[isP1 ? 'p2/hp' : 'p1/hp'] = Math.max(0, opp.hp - res.damage);
+                up['lastRoll'] = res.roll;
+                up['log'] = [...(b.log||[]), `${me.name}: Ütés (${res.damage})`].slice(-5);
+            } else {
+                up[isP1 ? 'p1/isDefending' : 'p2/isDefending'] = true;
+                up['lastRoll'] = "🛡️";
             }
-
-            updates['turn'] = isP1 ? b.p2.id : b.p1.id;
-            updates['log'] = nLog.slice(-5);
-            bRef.update(updates);
+            up['turn'] = isP1 ? b.p2.id : b.p1.id;
+            bRef.update(up);
         });
     }
 
@@ -327,31 +300,19 @@
         document.getElementById('reward-gold').innerText = win ? "+10 Arany" : "-2 Arany";
         db.ref(`characters/${myId}`).once('value', s => {
             const c = s.val();
-            db.ref(`characters/${myId}`).update({ 
-                xp: (c.xp || 0) + (win ? 15 : 3), 
-                gold: Math.max(0, (c.gold || 0) + (win ? 10 : -2))
-            });
+            db.ref(`characters/${myId}`).update({ xp: (c.xp || 0) + (win ? 15 : 3), gold: Math.max(0, (c.gold || 0) + (win ? 10 : -2)) });
         });
     }
 
     function handleExit() { 
         if(isFighting) {
-            // Nem confirm() jön fel, hanem a nyuszis képernyő
             document.getElementById('flee-screen').style.display = 'flex';
-            clearInterval(turnTimer); // Megállítjuk az órát, amíg a szégyent nézi
-            
-            // Büntetés az adatbázisban
+            clearInterval(turnTimer);
             db.ref(`characters/${myId}`).once('value', s => {
-                const c = s.val();
-                db.ref(`characters/${myId}`).update({ 
-                    gold: Math.max(0, (c.gold || 0) - 5), // Büntetés: -5 Arany
-                });
-                // Beállítjuk az ellenfelet győztesnek
+                db.ref(`characters/${myId}`).update({ gold: Math.max(0, (s.val().gold || 0) - 5) });
                 if(bRef) bRef.update({ winner: "fled" }); 
             });
-        } else {
-            safeExit();
-        }
+        } else { safeExit(); }
     }
 
     function safeExit() { window.location.replace('index.html'); }
