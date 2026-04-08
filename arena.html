@@ -109,14 +109,14 @@
     let myCooldowns = [0, 0, 0], lastTurnOwner = "";
     let turnTimer = null, timeLeft = 15;
 
-    // KÉPEK FIXÁLÁSA (Íjász hozzáadva)
+    // KÉPEK FIXÁLÁSA - COPILOT VERZIÓK
     const HERO_IMGS = { 
         "Harcos":"https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png", 
         "Mágus":"https://i.ibb.co/yFz5bcXv/Copilot-20260403-033651.png", 
         "Lovag":"https://i.ibb.co/Fk3n339M/Copilot-20260403-034043.png", 
         "Bérgyilkos":"https://i.ibb.co/b525CsLg/Copilot-20260403-032807.png", 
-        "Nekromanta":"https://i.ibb.co/CKhc0K9m/ulti.jpg",
-        "Íjász":"https://i.ibb.co/9386Z6X/Copilot-20260403-033648.png" // Példa link, ellenőrizd!
+        "Nekromanta":"https://i.ibb.co/NnCwwCbR/Copilot-20260403-033301.png",
+        "Íjász":"https://i.ibb.co/whd2jNpB/Copilot-20260403-034402.png"
     };
 
     function findMatch() {
@@ -210,7 +210,7 @@
         }
         lastTurnOwner = b.turn;
 
-        // Saját UI frissítése
+        // Saját UI
         document.getElementById('p-hp-fill').style.width = (me.hp/me.maxHp*100) + "%";
         document.getElementById('p-hp-val').innerText = `${Math.ceil(me.hp)} / ${me.maxHp} HP`;
         document.getElementById('p-mp-fill').style.width = (me.mp/me.maxMp*100) + "%";
@@ -218,7 +218,7 @@
         document.getElementById('p-name').innerText = me.name + (me.isDefending ? " 🛡️" : "");
         document.getElementById('p-img').style.backgroundImage = `url('${HERO_IMGS[me.class] || ''}')`;
 
-        // Ellenfelet csak akkor mutatjuk, ha megvan (Fix: kép betöltése)
+        // Ellenfél UI
         if(opp && opp.id !== "waiting") {
             document.getElementById('e-name').innerText = opp.name + (opp.isDefending ? " 🛡️" : "");
             document.getElementById('e-hp-fill').style.width = (opp.hp/opp.maxHp*100) + "%";
@@ -257,7 +257,8 @@
         bRef.once('value', snap => {
             const b = snap.val(); if (!b || b.turn !== myId) return;
             const isP1 = b.p1.id === myId;
-            bRef.update({ turn: isP1 ? b.p2.id : b.p1.id, log: [...(b.log||[]).slice(-4), `${me.name} kifutott az időből!`], lastRoll: "⏳" });
+            const meName = isP1 ? b.p1.name : b.p2.name;
+            bRef.update({ turn: isP1 ? b.p2.id : b.p1.id, log: [...(b.log||[]).slice(-4), `${meName} kifutott az időből!`], lastRoll: "⏳" });
         });
     }
 
