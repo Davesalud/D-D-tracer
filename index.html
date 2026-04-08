@@ -179,7 +179,7 @@
         </div>
     </div>
 
-    <a href="arena.html" id="btn-side-arena" class="side-action-btn"><span>⚔️ ARÉNA</span></a>
+    <a href="javascript:void(0)" onclick="enterArena()" id="btn-side-arena" class="side-action-btn"><span>⚔️ ARÉNA</span></a>
 </div>
 
 <div class="dm-key-btn" onclick="enterDM()">🔑</div>
@@ -199,12 +199,37 @@
     const REGEN_RATES = { "Harcos": { hp: 7, mp: 2 }, "Mágus": { hp: 2, mp: 10 }, "Lovag": { hp: 9, mp: 3 }, "Íjász": { hp: 5, mp: 5 }, "Bérgyilkos": { hp: 4, mp: 6 }, "Nekromanta": { hp: 5, mp: 8 } };
     const HERO_IMAGES = { "Harcos": "https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png", "Mágus": "https://i.ibb.co/yFz5bcXv/Copilot-20260403-033651.png", "Lovag": "https://i.ibb.co/Fk3n339M/Copilot-20260403-034043.png", "Íjász": "https://i.ibb.co/whd2jNpB/Copilot-20260403-034402.png", "Bérgyilkos": "https://i.ibb.co/b525CsLg/Copilot-20260403-032807.png", "Nekromanta": "https://i.ibb.co/NnCwwCbR/Copilot-20260403-033301.png" };
 
-    db.ref(`characters/${myId}`).update({ status: "online", lastUpdate: Date.now() });
+    // --- OFFLINE REGEN & LOGIN LOGIC ---
+    db.ref(`characters/${myId}`).once('value', snap => {
+        const c = snap.val();
+        if (!c) return;
+        
+        const now = Date.now();
+        const last = c.lastUpdate || now;
+        const diffMinutes = Math.floor((now - last) / 60000);
+
+        let updateData = { status: "online", lastUpdate: now };
+
+        // Ha eltelt legalább 1 perc, és nem Arénában voltunk legutóbb, gyógyulunk
+        if (diffMinutes > 0 && c.status !== "searching" && c.status !== "fighting") {
+            const rates = REGEN_RATES[c.charClass] || { hp: 5, mp: 5 };
+            updateData.hp = Math.min(Number(c.maxHp || 100), Number(c.hp || 0) + (diffMinutes * rates.hp));
+            updateData.mp = Math.min(Number(c.maxMp || 50), Number(c.mp || 0) + (diffMinutes * rates.mp));
+        }
+
+        db.ref(`characters/${myId}`).update(updateData);
+    });
 
     db.ref('characters').on('value', snap => { 
         chars = snap.val() || {}; 
         if (myId && chars[myId]) updateLobbyUI(); 
     });
+
+    function enterArena() {
+        db.ref(`characters/${myId}`).update({ status: "searching" }).then(() => {
+            window.location.href = 'arena.html';
+        });
+    }
 
     function checkLevelUp(c) {
         if (Number(c.level || 1) >= 30 || isLeveling) return;
@@ -244,7 +269,6 @@
         document.getElementById('lobby-class-display').innerText = c.charClass;
         document.getElementById('lobby-hero-img').style.backgroundImage = `url('${HERO_IMAGES[c.charClass]}')`;
         
-        // --- JAVÍTOTT HP/MP KIJELZÉS ---
         const maxHp = Number(c.maxHp) || 100;
         const hpPercent = (Number(c.hp || 0) / maxHp) * 100;
         document.getElementById('lobby-hp-fill').style.width = Math.min(100, Math.max(0, hpPercent)) + "%";
@@ -254,7 +278,6 @@
         const mpPercent = (Number(c.mp || 0) / maxMp) * 100;
         document.getElementById('lobby-mp-fill').style.width = Math.min(100, Math.max(0, mpPercent)) + "%";
         document.getElementById('lobby-mp-val').innerText = `${Math.ceil(c.mp || 0)} / ${maxMp} MP`;
-        // ------------------------------
         
         document.getElementById('lobby-xp-fill').style.width = (Number(c.xp)/Number(c.nextLvlXp)*100) + "%";
         document.getElementById('xp-text').innerText = `XP: ${c.xp} / ${c.nextLvlXp}`;
@@ -266,24 +289,32 @@
             const p = chars[id];
             if ((now - (p.lastUpdate || 0) < 300000) && p.name && id !== myId) {
                 const item = `<div class="player-mini-card"><span>${p.name}</span></div>`;
-                if (p.status === "searching") listArena.innerHTML += item;
-                else listOnline.innerHTML += item;
+                if (p.status === "searching" || p.status === "fighting") listArena.innerHTML += item;
+                else if (p.status === "online") listOnline.innerHTML += item;
             }
         });
     }
 
+    // ONLINE REGEN CIKLUS
     setInterval(() => {
         if (!myId || !chars[myId]) return;
         const c = chars[myId];
-        const rates = REGEN_RATES[c.charClass] || { hp: 5, mp: 5 };
-        const maxHp = Number(c.maxHp) || 100;
-        const maxMp = Number(c.maxMp) || 50;
         
-        db.ref(`characters/${myId}`).update({ 
-            hp: Math.min(maxHp, Number(c.hp || 0) + rates.hp),
-            mp: Math.min(maxMp, Number(c.mp || 0) + rates.mp),
-            lastUpdate: Date.now() 
-        });
+        // Csak akkor gyógyítunk percenként, ha épp a Lobby-ban vagyunk
+        if (c.status === "online") {
+            const rates = REGEN_RATES[c.charClass] || { hp: 5, mp: 5 };
+            const maxHp = Number(c.maxHp) || 100;
+            const maxMp = Number(c.maxMp) || 50;
+            
+            db.ref(`characters/${myId}`).update({ 
+                hp: Math.min(maxHp, Number(c.hp || 0) + rates.hp),
+                mp: Math.min(maxMp, Number(c.mp || 0) + rates.mp),
+                lastUpdate: Date.now() 
+            });
+        } else {
+            // Ha Arénában van, csak az időt frissítjük, hogy ne tűnjön el a listáról
+            db.ref(`characters/${myId}`).update({ lastUpdate: Date.now() });
+        }
     }, 60000);
 
     function logout() { db.ref(`characters/${myId}`).update({ status: "offline" }).then(() => { localStorage.removeItem('selectedCharId'); window.location.href = 'login.html'; }); }
