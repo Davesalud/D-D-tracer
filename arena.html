@@ -40,6 +40,7 @@
 <div id="ready-overlay">
     <h2 id="ready-text" style="color:var(--gold);">Ellenfelet keresünk...</h2>
     <button id="btn-ready" class="btn" style="width:200px; font-size:1.5em;" onclick="markReady()" disabled>KÉSZ</button>
+    <button id="btn-cancel-search" class="btn" style="width:200px; background:#444; margin-top:10px;" onclick="safeExit()">MÉGSEM</button>
 </div>
 
 <div id="flee-screen">
@@ -59,7 +60,7 @@
 </div>
 
 <div class="arena-header">
-    <button class="btn" style="width:auto; padding: 5px 15px; background: #444;" onclick="handleExit()">🏰 KILÉPÉS</button>
+    <button id="header-exit-btn" class="btn" style="width:auto; padding: 5px 15px; background: #444;" onclick="handleExit()">🏰 KILÉPÉS</button>
     <h2 id="turn-display">KERESÉS...</h2>
     <div style="width:100px;"></div>
 </div>
@@ -109,7 +110,6 @@
     let myCooldowns = [0, 0, 0], lastTurnOwner = "";
     let turnTimer = null, timeLeft = 15;
 
-    // KÉPEK FIXÁLÁSA - COPILOT VERZIÓK
     const HERO_IMGS = { 
         "Harcos":"https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png", 
         "Mágus":"https://i.ibb.co/yFz5bcXv/Copilot-20260403-033651.png", 
@@ -166,6 +166,7 @@
             bRef.update({ [isP1 ? 'p1/ready' : 'p2/ready']: true, [isP1 ? 'p1/roll' : 'p2/roll']: myRoll });
             document.getElementById('btn-ready').disabled = true;
             document.getElementById('ready-text').innerText = "Várakozás a másik félre...";
+            document.getElementById('btn-cancel-search').style.display = 'none';
         });
     }
 
@@ -181,17 +182,27 @@
 
             if(b.p1.ready && b.p2.ready && b.status !== "fighting") {
                 const first = b.p1.roll >= b.p2.roll ? b.p1.id : b.p2.id;
-                bRef.update({ status: "fighting", turn: first, log: [`Dobások: ${b.p1.roll} vs ${b.p2.roll}`, "A harc megkezdődött!"] });
+                bRef.update({ status: "fighting", turn: first, log: [`Kezdő dobások: ${b.p1.name}(${b.p1.roll}) vs ${b.p2.name}(${b.p2.roll})`, "A harc megkezdődött!"] });
             }
 
             if(b.status === "fighting") {
                 document.getElementById('ready-overlay').style.display = 'none';
+                const exitBtn = document.getElementById('header-exit-btn');
+                exitBtn.innerText = "🏃 MEGFUTAMODÁS";
+                exitBtn.style.background = "var(--accent)";
                 isFighting = true;
             }
 
             if (b.winner !== "none" && !rewarded) { 
                 clearInterval(turnTimer); rewarded = true; 
-                showEndScreen(b.winner === myId); return; 
+                // Ha valaki elfutott, csak az kapjon levonást
+                if(b.winner === "fled") {
+                    // Ha nem én futottam el, akkor simán kilépek, nem kapok levonást
+                    safeExit();
+                } else {
+                    showEndScreen(b.winner === myId); 
+                }
+                return; 
             }
             updateUI(b);
         });
@@ -210,7 +221,6 @@
         }
         lastTurnOwner = b.turn;
 
-        // Saját UI
         document.getElementById('p-hp-fill').style.width = (me.hp/me.maxHp*100) + "%";
         document.getElementById('p-hp-val').innerText = `${Math.ceil(me.hp)} / ${me.maxHp} HP`;
         document.getElementById('p-mp-fill').style.width = (me.mp/me.maxMp*100) + "%";
@@ -218,7 +228,6 @@
         document.getElementById('p-name').innerText = me.name + (me.isDefending ? " 🛡️" : "");
         document.getElementById('p-img').style.backgroundImage = `url('${HERO_IMGS[me.class] || ''}')`;
 
-        // Ellenfél UI
         if(opp && opp.id !== "waiting") {
             document.getElementById('e-name').innerText = opp.name + (opp.isDefending ? " 🛡️" : "");
             document.getElementById('e-hp-fill').style.width = (opp.hp/opp.maxHp*100) + "%";
@@ -316,6 +325,7 @@
             document.getElementById('flee-screen').style.display = 'flex';
             clearInterval(turnTimer);
             db.ref(`characters/${myId}`).once('value', s => {
+                // Csak az veszítsen, aki kilépett
                 db.ref(`characters/${myId}`).update({ gold: Math.max(0, (s.val().gold || 0) - 5) });
                 if(bRef) bRef.update({ winner: "fled" }); 
             });
