@@ -38,11 +38,23 @@
             margin: 60px auto;
         }
 
-        .side-action-btn { 
+        /* Bal és jobb gompcsoport konténerek */
+        .side-group {
             position: absolute;
             bottom: 0;
+            display: flex;
+            flex-direction: row;
+            gap: 8px;
+            z-index: 10;
+        }
+        .side-group-left  { right: calc(100% + 8px); }
+        .side-group-right { left: calc(100% + 8px); }
+
+        .side-action-btn { 
+            position: relative;
+            bottom: auto;
             transform: none;
-            width: 140px;
+            width: 130px;
             height: 300px;
             border: 2px solid var(--gold); 
             border-radius: 8px;
@@ -54,7 +66,6 @@
             justify-content: flex-end; 
             text-decoration: none;
             overflow: hidden;
-            z-index: 10;
             transition: 0.4s ease;
         }
 
@@ -63,16 +74,18 @@
             color: var(--gold); 
             font-family: 'MedievalSharp';
             text-align: center;
-            padding: 10px 0; 
+            padding: 8px 4px; 
             width: 100%;
             text-transform: uppercase;
             border-top: 1px solid var(--gold); 
-            font-size: 0.9em;
+            font-size: 0.75em;
             letter-spacing: 1px;
         }
 
-        #btn-side-kampany { left: -150px; background-image: url('https://i.ibb.co/S4VL891M/Copilot-20260405-021905.png'); }
-        #btn-side-arena { right: -150px; background-image: url('https://i.ibb.co/p66KV1Vb/Copilot-20260405-021201.png'); }
+        #btn-side-kampany    { background-image: url('https://i.ibb.co/m56pWvRf/Copilot-20260409-010412.png'); }
+        #btn-side-teamkampany{ background-image: url('https://i.ibb.co/r214x8tQ/Copilot-20260409-005409.png'); }
+        #btn-side-arena      { background-image: url('https://i.ibb.co/p66KV1Vb/Copilot-20260405-021201.png'); }
+        #btn-side-ranklist   { background-image: url('https://i.ibb.co/8gD9gBxM/Copilot-20260409-005600.png'); }
 
         .side-action-btn:hover {
             box-shadow: 0 0 20px var(--gold);
@@ -114,8 +127,9 @@
 
         @media (max-width: 800px) {
             .lobby-wrapper { flex-direction: column; }
-            .side-action-btn { position: relative; top: 0; transform: none !important; width: 100%; height: 80px; left: 0 !important; right: 0 !important; margin: 5px 0; flex-direction: row; align-items: center; }
-            .side-action-btn span { border-top: none; border-left: 1px solid var(--gold); width: auto; height: 100%; display: flex; align-items: center; padding: 0 20px; }
+            .side-group { position: relative; bottom: auto; left: auto !important; right: auto !important; width: 95vw; justify-content: center; margin: 5px 0; }
+            .side-action-btn { width: 48%; height: 80px; flex-direction: row; align-items: center; }
+            .side-action-btn span { border-top: none; border-left: 1px solid var(--gold); width: auto; height: 100%; display: flex; align-items: center; padding: 0 10px; font-size: 0.7em; }
             .card { width: 95vw; margin: 10px 0; }
         }
     </style>
@@ -136,7 +150,11 @@
 <div class="logout-corner"><button class="btn-logout" onclick="logout()">Kilépés</button></div>
 
 <div class="lobby-wrapper">
-    <a href="campaign.html" id="btn-side-kampany" class="side-action-btn"><span>📜 KAMPÁNY</span></a>
+    <!-- BAL OLDAL: Solo Kampány + Csapat Kampány -->
+    <div class="side-group side-group-left">
+        <a href="campaign.html" id="btn-side-kampany" class="side-action-btn"><span>📜 Solo Kampány</span></a>
+        <a href="teamcampaign.html" id="btn-side-teamkampany" class="side-action-btn"><span>⚔️ Csapat Kampány</span></a>
+    </div>
 
     <div class="card">
         <div style="display:flex; justify-content: space-between; align-items: center;">
@@ -179,7 +197,11 @@
         </div>
     </div>
 
-    <a href="javascript:void(0)" onclick="enterArena()" id="btn-side-arena" class="side-action-btn"><span>⚔️ ARÉNA</span></a>
+    <!-- JOBB OLDAL: Aréna + Ranglista -->
+    <div class="side-group side-group-right">
+        <a href="javascript:void(0)" onclick="enterArena()" id="btn-side-arena" class="side-action-btn"><span>⚔️ Aréna</span></a>
+        <a href="ranklist.html" id="btn-side-ranklist" class="side-action-btn"><span>🏆 Ranglista</span></a>
+    </div>
 </div>
 
 <div class="dm-key-btn" onclick="enterDM()">🔑</div>
