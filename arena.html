@@ -110,11 +110,13 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <script>
+    // --- FIREBASE KONFIGURÁCIÓ ---
     const firebaseConfig = { apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU", authDomain: "dnd-tracker-4fe05.firebaseapp.com", projectId: "dnd-tracker-4fe05", databaseURL: "https://dnd-tracker-4fe05-default-rtdb.europe-west1.firebasedatabase.app" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const myId = localStorage.getItem('selectedCharId');
     
+    // --- GLOBÁLIS VÁLTOZÓK ---
     let currentRoom = null, bRef = null, isFighting = false, rewarded = false, hasFled = false;
     let myCooldowns = [0, 0, 0], lastTurnOwner = "";
     let turnTimer = null, timeLeft = 15;
@@ -129,14 +131,27 @@
         "Íjász":"https://i.ibb.co/whd2jNpB/Copilot-20260403-034402.png"
     };
 
+    // --- ÚJ VÉDELMI FUNKCIÓK ---
+    window.onbeforeunload = function() {
+        if (isFighting && !rewarded && !hasFled) {
+            return "A harc folyamatban van! Ha most frissítesz, elbukod a meccset!";
+        }
+    };
+
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    document.onkeydown = function(e) {
+        if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74 || e.keyCode == 67))) return false;
+    };
+
+    // --- SKILL INFO KEZELŐK ---
     function showSkillInfo(idx) {
         if(!myClassData) return;
         const s = myClassData.skills[idx];
         document.getElementById('skill-desc').innerHTML = `<strong>${s.name}</strong>: ${s.desc} <br><span style="color:#ff4444">Sebzés: ~${s.power}</span> | <span style="color:#0088ff">MP: ${s.cost}</span>`;
     }
-
     function clearSkillInfo() { document.getElementById('skill-desc').innerText = "Hop-up: Vigye fölé az egeret!"; }
 
+    // --- ARENA LOGIKA ---
     function initArena() {
         if(!myId) return safeExit();
         document.getElementById('ready-overlay').style.display = 'flex';
@@ -178,7 +193,10 @@
             p1: { id: myId, name: myHero.name, hp: Number(myHero.hp), maxHp: Number(myHero.maxHp), mp: Number(myHero.mp || 0), maxMp: Number(myHero.maxMp || 100), class: myHero.charClass, atk: Number(myHero.atk), def: Number(myHero.def), ready: false, roll: 0 },
             p2: { id: "waiting", ready: false, roll: 0 },
             status: "waiting", turn: "none", log: ["Várakozás ellenfélre..."], winner: "none", lastRoll: "?"
-        }).then(() => { bRef.onDisconnect().remove(); listen(); });
+        }).then(() => { 
+            bRef.onDisconnect().remove(); 
+            listen(); 
+        });
     }
 
     function joinBattle(id) {
@@ -188,6 +206,7 @@
             "status": "setup"
         }).then(() => {
             bRef.child('p2').onDisconnect().set({ id: "waiting", ready: false, roll: 0 });
+            bRef.child('status').onDisconnect().set("waiting");
             listen();
         });
     }
@@ -200,20 +219,14 @@
         });
     }
 
-    // --- JAVÍTOTT rollForInitiative ---
-    // Csak P1 felelős a harc elindításáért, megszünteti a versenyhelyzetet
     function rollForInitiative() {
         const roll = Math.floor(Math.random() * 20) + 1;
         bRef.once('value', snap => {
             const b = snap.val();
             const isP1 = b.p1.id === myId;
-            const myRollPath = isP1 ? 'p1/roll' : 'p2/roll';
-
-            bRef.update({ [myRollPath]: roll }).then(() => {
+            bRef.update({ [isP1 ? 'p1/roll' : 'p2/roll']: roll }).then(() => {
                 document.getElementById('btn-roll-start').style.display = 'none';
                 document.getElementById('ready-text').innerText = "Várakozás a másik dobására...";
-
-                // Csak P1 ellenőrzi, hogy mindketten dobtak-e, és ő indítja el a harcot
                 if (isP1) {
                     bRef.once('value', snap2 => {
                         const b2 = snap2.val();
@@ -221,16 +234,10 @@
                             const firstId = b2.p1.roll >= b2.p2.roll ? b2.p1.id : b2.p2.id;
                             const firstName = b2.p1.roll >= b2.p2.roll ? b2.p1.name : b2.p2.name;
                             bRef.update({
-                                status: "fighting",
-                                turn: firstId,
-                                log: [
-                                    "A harc elkezdődött!",
-                                    `🎲 ${b2.p1.name}: ${b2.p1.roll} | ${b2.p2.name}: ${b2.p2.roll}`,
-                                    `⚔️ ${firstName} kezd!`
-                                ]
+                                status: "fighting", turn: firstId,
+                                log: ["A harc elkezdődött!", `🎲 ${b2.p1.name}: ${b2.p1.roll} | ${b2.p2.name}: ${b2.p2.roll}`, `⚔️ ${firstName} kezd!`]
                             });
                         }
-                        // Ha P2 még nem dobott, a listen() figyeli és P1 elindítja majd onnan
                     });
                 }
             });
@@ -248,55 +255,39 @@
                 document.getElementById('ready-text').innerText = "Ellenfelet keresünk...";
                 document.getElementById('btn-ready').style.display = 'none';
                 document.getElementById('btn-roll-start').style.display = 'none';
-                if (isP1 && b.status === "setup") {
-                    bRef.update({ status: "waiting", "p1/ready": false, "p1/roll": 0 });
-                }
+                if (isP1 && b.status === "setup") bRef.update({ status: "waiting", "p1/ready": false, "p1/roll": 0 });
             } 
             else if (opp.id !== "waiting" && b.status !== "fighting") {
                 if (!me.ready) {
                     document.getElementById('ready-text').innerText = "Ellenfél: " + opp.name;
                     document.getElementById('btn-ready').style.display = 'block';
-                    document.getElementById('btn-roll-start').style.display = 'none';
                 } else if (!opp.ready) {
                     document.getElementById('ready-text').innerText = "Várakozás az ellenfélre...";
                     document.getElementById('btn-ready').style.display = 'none';
                 }
-                
                 if (b.p1.ready && b.p2.ready && me.roll === 0) {
-                    document.getElementById('ready-text').innerText = "Mindenki kész!";
-                    document.getElementById('btn-ready').style.display = 'none';
                     document.getElementById('btn-roll-start').style.display = 'block';
                 }
             }
 
-            // --- P1 figyeli: ha P2 dobott, de P1 már dobott korábban, elindítja a harcot ---
             if (isP1 && b.p1.roll > 0 && b.p2.roll > 0 && b.status !== "fighting") {
-                const firstId = b.p1.roll >= b.p2.roll ? b.p1.id : b.p2.id;
-                const firstName = b.p1.roll >= b.p2.roll ? b.p1.name : b.p2.name;
-                bRef.update({
-                    status: "fighting",
-                    turn: firstId,
-                    log: [
-                        "A harc elkezdődött!",
-                        `🎲 ${b.p1.name}: ${b.p1.roll} | ${b.p2.name}: ${b.p2.roll}`,
-                        `⚔️ ${firstName} kezd!`
-                    ]
-                });
+                 const firstId = b.p1.roll >= b.p2.roll ? b.p1.id : b.p2.id;
+                 bRef.update({ status: "fighting", turn: firstId });
             }
 
             if (b.status === "fighting") {
                 document.getElementById('ready-overlay').style.display = 'none';
-                isFighting = true;  // ← előbb állítjuk be, hogy updateUI már helyesen lássa
+                isFighting = true;
             }
 
             if (b.winner !== "none" && !rewarded) {
                 rewarded = true;
+                if(bRef) bRef.onDisconnect().cancel();
                 if(b.winner === "fled") { if(!hasFled) safeExit(); } 
                 else { showEndScreen(b.winner === myId, me.hp); }
                 return;
             }
-
-            updateUI(b, me, opp);  // ← már tudja hogy isFighting = true
+            updateUI(b, me, opp);
         });
     }
 
@@ -313,8 +304,6 @@
             document.getElementById('e-hp-val').innerText = `${Math.ceil(opp.hp)} / ${opp.maxHp} HP`;
             document.getElementById('e-img').style.backgroundImage = `url('${HERO_IMGS[opp.class]}')`;
             document.getElementById('e-skills-info').innerHTML = `<strong>Osztály:</strong> ${opp.class} <br> <strong>ATK:</strong> ${opp.atk} | <strong>DEF:</strong> ${opp.def}`;
-        } else {
-            document.getElementById('e-skills-info').innerText = "Várakozás ellenfélre...";
         }
 
         const myTurn = String(b.turn) === String(myId) && isFighting;
@@ -394,6 +383,7 @@
     }
 
     function showEndScreen(win, finalHp) {
+        if(bRef) bRef.onDisconnect().cancel();
         document.getElementById('win-screen').style.display = 'flex';
         document.getElementById('win-title').innerText = win ? "GYŐZELEM!" : "VERESÉG!";
         document.getElementById('win-title').style.color = win ? "#c5a059" : "#ff4444";
@@ -409,14 +399,21 @@
 
     function handleExit() { 
         if(isFighting) {
-            hasFled = true; document.getElementById('flee-screen').style.display = 'flex';
-            clearInterval(turnTimer);
-            db.ref(`characters/${myId}`).update({ gold: Math.max(0, (myHero.gold || 0) - 5) });
-            if(bRef) bRef.update({ winner: "fled" }); 
+            if(confirm("Harcolsz! Ha most megfutamsz, 5 arany levonást kapsz. Biztosan kilépsz?")) {
+                hasFled = true; document.getElementById('flee-screen').style.display = 'flex';
+                clearInterval(turnTimer);
+                if(bRef) bRef.onDisconnect().cancel();
+                db.ref(`characters/${myId}`).update({ gold: Math.max(0, (myHero.gold || 0) - 5) });
+                if(bRef) bRef.update({ winner: "fled" }); 
+            }
         } else { safeExit(); }
     }
 
-    function safeExit() { window.location.replace('index.html'); }
+    function safeExit() { 
+        if(bRef) bRef.onDisconnect().cancel();
+        window.location.replace('index.html'); 
+    }
+    
     initArena();
 </script>
 </body>
