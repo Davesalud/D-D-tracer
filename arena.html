@@ -176,7 +176,7 @@
         bRef = db.ref('battles/' + currentRoom);
         bRef.set({
             p1: { id: myId, name: myHero.name, hp: Number(myHero.hp), maxHp: Number(myHero.maxHp), mp: Number(myHero.mp || 0), maxMp: Number(myHero.maxMp || 100), class: myHero.charClass, atk: Number(myHero.atk), def: Number(myHero.def), ready: false, roll: 0 },
-            p2: { id: "waiting", ready: false },
+            p2: { id: "waiting", ready: false, roll: 0 },
             status: "waiting", turn: "none", log: ["Várakozás ellenfélre..."], winner: "none", lastRoll: "?"
         }).then(() => { bRef.onDisconnect().remove(); listen(); });
     }
@@ -187,7 +187,7 @@
             "p2": { id: myId, name: myHero.name, hp: Number(myHero.hp), maxHp: Number(myHero.maxHp), mp: Number(myHero.mp || 0), maxMp: Number(myHero.maxMp || 100), class: myHero.charClass, atk: Number(myHero.atk), def: Number(myHero.def), ready: false, roll: 0 },
             "status": "setup"
         }).then(() => {
-            bRef.child('p2').onDisconnect().set({ id: "waiting", ready: false });
+            bRef.child('p2').onDisconnect().set({ id: "waiting", ready: false, roll: 0 });
             listen();
         });
     }
@@ -204,8 +204,10 @@
         const roll = Math.floor(Math.random() * 20) + 1;
         bRef.once('value', snap => {
             const isP1 = snap.val().p1.id === myId;
+            // .update-et használunk, hogy ne töröljük a szobát!
             bRef.update({ [isP1 ? 'p1/roll' : 'p2/roll']: roll });
             document.getElementById('btn-roll-start').style.display = 'none';
+            document.getElementById('ready-text').innerText = "Várakozás a másik dobására...";
         });
     }
 
@@ -241,9 +243,14 @@
                 }
             }
 
+            // HARC INDÍTÁSA: Csak ha mindketten dobtak
             if (b.p1.roll > 0 && b.p2.roll > 0 && b.status !== "fighting") {
                 const firstId = b.p1.roll >= b.p2.roll ? b.p1.id : b.p2.id;
-                bRef.update({ status: "fighting", turn: firstId, log: ["A harc elkezdődött!"] });
+                bRef.update({ 
+                    status: "fighting", 
+                    turn: firstId, 
+                    log: ["A harc elkezdődött!", `${b.p1.roll >= b.p2.roll ? b.p1.name : b.p2.name} kezd!`] 
+                });
             }
 
             if (b.status === "fighting") {
