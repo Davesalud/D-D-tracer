@@ -100,7 +100,7 @@
         <h3 id="e-name" style="color: #ff4444; margin: 0;">Ellenfél</h3>
         <div id="e-img" class="hero-portrait"></div>
         <div class="bar-container"><div id="e-hp-fill" class="hp-fill"></div><div class="bar-text" id="e-hp-val">HP: ---</div></div>
-        <div id="e-skills-info" style="font-size: 0.8em; color: #aaa; text-align: left; padding: 8px; background: rgba(0,0,0,0.5); border-radius: 4px; min-height: 80px; margin-top: 10px;">Várakozás...</div>
+        <div id="e-skills-info" style="font-size: 0.9em; color: #ddd; text-align: center; padding: 8px; background: rgba(0,0,0,0.5); border-radius: 4px; min-height: 50px; margin-top: 10px;">Várakozás ellenfélre...</div>
     </div>
 </div>
 
@@ -146,6 +146,7 @@
             const minHp = myHero.maxHp * 0.2;
             if (myHero.hp < minHp) {
                 document.getElementById('ready-text').innerHTML = `<span style="color:#ff4444;">NINCS ELÉG HP!</span><br><small>Legalább ${Math.ceil(minHp)} HP kell.</small>`;
+                document.getElementById('btn-cancel-search').innerText = "VISSZA A VÁROSBA";
                 return;
             }
             document.getElementById('p-name').innerText = myHero.name;
@@ -159,10 +160,11 @@
     function findMatch() {
         document.getElementById('ready-text').innerText = "Ellenfelet keresünk...";
         db.ref('battles').once('value', snap => {
-            const rooms = snap.val(); let found = null;
+            const rooms = snap.val(); 
+            let found = null;
             if (rooms) {
                 for (let id in rooms) {
-                    if (rooms[id].p2 && rooms[id].p2.id === "waiting" && rooms[id].p1.id !== myId) { found = id; break; }
+                    if (rooms[id].status === "waiting" && rooms[id].p1.id !== myId) { found = id; break; }
                 }
             }
             found ? joinBattle(found) : createNewBattle();
@@ -203,7 +205,7 @@
         bRef.once('value', snap => {
             const isP1 = snap.val().p1.id === myId;
             bRef.update({ [isP1 ? 'p1/roll' : 'p2/roll']: roll });
-            document.getElementById('btn-roll-start').disabled = true;
+            document.getElementById('btn-roll-start').style.display = 'none';
         });
     }
 
@@ -214,15 +216,30 @@
             const me = isP1 ? b.p1 : b.p2;
             const opp = isP1 ? b.p2 : b.p1;
 
-            if (opp.id !== "waiting" && b.status !== "fighting") {
-                document.getElementById('ready-text').innerText = "Ellenfél: " + opp.name;
-                if (!me.ready) document.getElementById('btn-ready').style.display = 'block';
-                else if (!opp.ready) document.getElementById('ready-text').innerText = "Várakozás ellenfélre...";
+            // HA AZ ELLENFÉL KILÉPETT CSATLAKOZÁS KÖZBEN
+            if (opp.id === "waiting" && b.status !== "fighting") {
+                document.getElementById('ready-text').innerText = "Ellenfelet keresünk...";
+                document.getElementById('btn-ready').style.display = 'none';
+                document.getElementById('btn-roll-start').style.display = 'none';
+                if (isP1 && b.status === "setup") {
+                    bRef.update({ status: "waiting", "p1/ready": false, "p1/roll": 0 });
+                }
+            } 
+            // HA VAN ELLENFÉL
+            else if (opp.id !== "waiting" && b.status !== "fighting") {
+                if (!me.ready) {
+                    document.getElementById('ready-text').innerText = "Ellenfél: " + opp.name;
+                    document.getElementById('btn-ready').style.display = 'block';
+                    document.getElementById('btn-roll-start').style.display = 'none';
+                } else if (!opp.ready) {
+                    document.getElementById('ready-text').innerText = "Várakozás az ellenfélre...";
+                    document.getElementById('btn-ready').style.display = 'none';
+                }
                 
                 if (b.p1.ready && b.p2.ready && me.roll === 0) {
+                    document.getElementById('ready-text').innerText = "Mindenki kész!";
                     document.getElementById('btn-ready').style.display = 'none';
                     document.getElementById('btn-roll-start').style.display = 'block';
-                    document.getElementById('ready-text').innerText = "Dobjatok a kezdésért!";
                 }
             }
 
@@ -258,6 +275,9 @@
             document.getElementById('e-hp-fill').style.width = (opp.hp/opp.maxHp*100) + "%";
             document.getElementById('e-hp-val').innerText = `${Math.ceil(opp.hp)} / ${opp.maxHp} HP`;
             document.getElementById('e-img').style.backgroundImage = `url('${HERO_IMGS[opp.class]}')`;
+            document.getElementById('e-skills-info').innerHTML = `<strong>Osztály:</strong> ${opp.class} <br> <strong>ATK:</strong> ${opp.atk} | <strong>DEF:</strong> ${opp.def}`;
+        } else {
+            document.getElementById('e-skills-info').innerText = "Várakozás ellenfélre...";
         }
 
         const myTurn = b.turn === myId && isFighting;
