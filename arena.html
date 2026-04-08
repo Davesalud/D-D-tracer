@@ -25,8 +25,6 @@
         .bar-text { position: absolute; width: 100%; text-align: center; font-size: 10px; top: 1px; font-weight: bold; text-shadow: 1px 1px 2px black; z-index: 5; }
         
         .skill-slot { width: 55px; height: 55px; background: #111; border: 2px solid var(--gold); border-radius: 6px; cursor: pointer; background-size: cover; margin: 0 4px; position: relative; }
-        
-        /* HOVER / HOP-UP INFORMÁCIÓ */
         .skill-info-box { height: 50px; margin-top: 10px; border: 1px solid #444; background: rgba(0,0,0,0.5); border-radius: 5px; font-size: 0.85em; padding: 5px; color: #ccc; }
 
         .dice-box { width: 70px; height: 70px; border: 2px solid var(--gold); font-size: 1.5em; background: #000; color: var(--gold); border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 10px rgba(197, 160, 89, 0.2); }
@@ -35,7 +33,6 @@
         .btn { background: var(--accent); color: white; border: 1px solid var(--gold); padding: 10px; font-family: 'MedievalSharp'; cursor: pointer; width: 100%; border-radius: 4px; font-weight: bold; margin-bottom: 5px; position: relative; }
         .btn:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none !important; }
 
-        /* VIZUÁLIS KIEMELÉSEK */
         .glow-attack:not(:disabled) { box-shadow: 0 0 15px #ffcc00, inset 0 0 10px #ffcc00; border-color: #ffcc00; }
         .glow-defend:not(:disabled) { box-shadow: 0 0 15px #00e5ff, inset 0 0 10px #00e5ff; border-color: #00e5ff; }
 
@@ -145,48 +142,63 @@
         document.getElementById('skill-desc').innerText = "Hop-up: Vigye fölé az egeret!";
     }
 
+    // --- KERESÉS ÉS HP ELLENŐRZÉS ---
     function findMatch() {
         document.getElementById('ready-overlay').style.display = 'flex';
-        db.ref('battles').once('value', snap => {
-            const rooms = snap.val(); let found = null;
-            if (rooms) {
-                for (let id in rooms) {
-                    if (rooms[id].p2 && rooms[id].p2.id === "waiting") { found = id; break; }
-                }
+        document.getElementById('ready-text').innerText = "Hősöd állapotának ellenőrzése...";
+
+        db.ref(`characters/${myId}`).once('value', s => {
+            const c = s.val();
+            if(!c) return safeExit();
+            
+            myClassData = SKILLS_DATA[c.charClass];
+            const minHp = c.maxHp * 0.2;
+
+            // HP LIMIT: 20% alatt nincs harc
+            if (c.hp < minHp) {
+                document.getElementById('ready-text').innerHTML = `
+                    <span style="color:#ff4444; font-size:1.2em;">NINCS ELÉG HP A HARCRA!</span><br>
+                    <small style="color:#aaa;">Legalább ${Math.ceil(minHp)} HP szükséges. (Jelenleg: ${Math.ceil(c.hp)})</small>
+                `;
+                document.getElementById('btn-ready').style.display = 'none';
+                return;
             }
-            found ? joinBattle(found) : createNewBattle();
+
+            // Ha van elég HP, keresünk szobát
+            document.getElementById('ready-text').innerText = "Ellenfelet keresünk...";
+            db.ref('battles').once('value', snap => {
+                const rooms = snap.val(); let found = null;
+                if (rooms) {
+                    for (let id in rooms) {
+                        if (rooms[id].p2 && rooms[id].p2.id === "waiting") { found = id; break; }
+                    }
+                }
+                found ? joinBattle(found, c) : createNewBattle(c);
+            });
         });
     }
 
-    function createNewBattle() {
+    function createNewBattle(c) {
         currentRoom = "room_" + Math.random().toString(36).substr(2, 6);
         bRef = db.ref('battles/' + currentRoom);
-        db.ref(`characters/${myId}`).once('value', s => {
-            const c = s.val();
-            myClassData = SKILLS_DATA[c.charClass];
-            bRef.set({
-                p1: { id: myId, name: c.name, hp: Number(c.hp), maxHp: Number(c.maxHp || 100), mp: Number(c.mp || 0), maxMp: Number(c.maxMp || 100), class: c.charClass, atk: Number(c.atk || 10), def: Number(c.def || 5), ready: false, roll: 0 },
-                p2: { id: "waiting", ready: false },
-                status: "waiting", turn: "none", log: ["Várakozás ellenfélre..."], winner: "none", lastRoll: "?"
-            });
-            bRef.onDisconnect().remove(); listen();
+        bRef.set({
+            p1: { id: myId, name: c.name, hp: Number(c.hp), maxHp: Number(c.maxHp || 100), mp: Number(c.mp || 0), maxMp: Number(c.maxMp || 100), class: c.charClass, atk: Number(c.atk || 10), def: Number(c.def || 5), ready: false, roll: 0 },
+            p2: { id: "waiting", ready: false },
+            status: "waiting", turn: "none", log: ["Várakozás ellenfélre..."], winner: "none", lastRoll: "?"
         });
+        bRef.onDisconnect().remove(); listen();
     }
 
-    function joinBattle(id) {
+    function joinBattle(id, c) {
         currentRoom = id; bRef = db.ref('battles/' + currentRoom);
-        db.ref(`characters/${myId}`).once('value', s => {
-            const c = s.val();
-            myClassData = SKILLS_DATA[c.charClass];
-            bRef.update({ 
-                "p2": { id: myId, name: c.name, hp: Number(c.hp), maxHp: Number(c.maxHp || 100), mp: Number(c.mp || 0), maxMp: Number(c.maxMp || 100), class: c.charClass, atk: Number(c.atk || 10), def: Number(c.def || 5), ready: false, roll: 0 },
-                "status": "setup"
-            }).then(() => {
-                document.getElementById('btn-ready').disabled = false;
-            });
-            bRef.child('p2').onDisconnect().set({ id: "waiting", ready: false });
-            listen();
+        bRef.update({ 
+            "p2": { id: myId, name: c.name, hp: Number(c.hp), maxHp: Number(c.maxHp || 100), mp: Number(c.mp || 0), maxMp: Number(c.maxMp || 100), class: c.charClass, atk: Number(c.atk || 10), def: Number(c.def || 5), ready: false, roll: 0 },
+            "status": "setup"
+        }).then(() => {
+            document.getElementById('btn-ready').disabled = false;
         });
+        bRef.child('p2').onDisconnect().set({ id: "waiting", ready: false });
+        listen();
     }
 
     function markReady() {
@@ -225,6 +237,7 @@
                     const rBtn = document.getElementById('btn-ready');
                     rBtn.disabled = false;
                     rBtn.style.opacity = "1";
+                    rBtn.style.display = "block";
                     document.getElementById('ready-text').innerText = "Ellenfél megtalálva! Kész vagy?";
                 }
                 
@@ -377,9 +390,8 @@
         document.getElementById('reward-xp').innerText = win ? "+15 XP" : "+3 XP";
         document.getElementById('reward-gold').innerText = win ? "+10 Arany" : "-2 Arany";
         
-        // Mentés és HP kezelés
         let savedHp = Math.ceil(finalHp);
-        if(savedHp <= 0) savedHp = 1; // Ha meghalt, 1 HP-val tér vissza
+        if(savedHp <= 0) savedHp = 1; 
 
         document.getElementById('reward-hp').innerText = `Maradék életerő: ${savedHp} HP`;
 
@@ -407,6 +419,8 @@
     }
 
     function safeExit() { window.location.replace('index.html'); }
+    
+    // Elindítjuk a folyamatot
     findMatch();
 </script>
 </body>
