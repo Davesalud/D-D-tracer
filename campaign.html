@@ -526,6 +526,7 @@ function endBattle(win) {
         gold: Math.max(0, (myHero.gold || 0) + gold),
         hp: finalHp,
         mp: finalMp
+        lastUpdate: Date.now()
     });
 }
 </script>
