@@ -81,7 +81,8 @@
         #btn-side-kampany    { background-image: url('https://i.ibb.co/GfFbXvNH/Copilot-20260409-011839.png'); }
         #btn-side-teamkampany{ background-image: url('https://i.ibb.co/ycxQ6jyC/Copilot-20260409-014707.png'); }
         #btn-side-arena      { background-image: url('https://i.ibb.co/p66KV1Vb/Copilot-20260405-021201.png'); }
-        #btn-side-ranklist   { background-image: url('https://i.ibb.co/8gD9gBxM/Copilot-20260409-005600.png'); }
+        /* FRISSÍTETT RANGLISTA KÉP */
+        #btn-side-ranklist   { background-image: url('https://i.ibb.co/S40wz7Zt/Copilot-20260409-195601.png'); }
 
         .side-action-btn:hover {
             box-shadow: 0 0 20px var(--gold);
@@ -265,11 +266,6 @@
 
     if (!myId) { window.location.href = 'login.html'; }
 
-    if (localStorage.getItem('fled_penalty') === '1') {
-        localStorage.removeItem('fled_penalty');
-        setTimeout(() => alert("⚠️ Megszöktel a csatából frissítéssel!\nBüntetés: -15 Arany levonva."), 500);
-    }
-
     const HERO_IMAGES = { "Harcos": "https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png", "Mágus": "https://i.ibb.co/yFz5bcXv/Copilot-20260403-033651.png", "Lovag": "https://i.ibb.co/Fk3n339M/Copilot-20260403-034043.png", "Íjász": "https://i.ibb.co/whd2jNpB/Copilot-20260403-034402.png", "Bérgyilkos": "https://i.ibb.co/b525CsLg/Copilot-20260403-032807.png", "Nekromanta": "https://i.ibb.co/NnCwwCbR/Copilot-20260403-033301.png" };
 
     checkAndApplyRegen(myId);
@@ -334,7 +330,6 @@
         document.getElementById('lobby-hp-fill').style.width = Math.min(100, Math.max(0, hpPercent)) + "%";
         document.getElementById('lobby-hp-val').innerText = `${Math.ceil(c.hp || 0)} / ${maxHp} HP`;
         
-        // MANA JAVÍTÁS
         const maxMp = Number(c.maxMp) || 50; 
         const currentMp = Number(c.mp || 0);
         const mpPercent = (currentMp / maxMp) * 100;
