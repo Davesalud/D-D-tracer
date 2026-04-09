@@ -2,43 +2,290 @@
 <html lang="hu">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kampány Mód</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Death's Armada - KAMPÁNY ⚔️</title>
+    <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
     <style>
-        /* Kis alap stílus, hogy ne essen szét */
-        body { background-color: #1a1a1a; color: white; font-family: sans-serif; text-align: center; }
-        .btn { padding: 15px 30px; margin: 10px; font-size: 18px; cursor: pointer; background: #444; color: #fff; border: 2px solid #666; border-radius: 5px; }
-        .btn:hover { background: #666; }
-        #combat-arena { display: none; margin-top: 50px; }
-        .monster-card { border: 2px solid #880000; padding: 20px; display: inline-block; background: #222; }
-        #campaign-menu img { max-width: 100%; height: auto; border: 2px solid #444; border-radius: 8px; margin-bottom: 20px; }
+        :root { --gold: #c5a059; --accent: #8b0000; --bg: #050507; --glass: rgba(15, 15, 20, 0.95); }
+        body { 
+            background: var(--bg); color: white; font-family: 'MedievalSharp', cursive; margin: 0;
+            background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.9)), url('https://i.ibb.co/qFhK4jhF/Copilot-20260409-020526.png');
+            background-size: cover; background-position: center; height: 100vh; overflow: hidden; display: flex; flex-direction: column;
+        }
+        .arena-header { padding: 10px; border-bottom: 2px solid var(--gold); text-align: center; background: rgba(0,0,0,0.8); display: flex; justify-content: space-between; align-items: center; }
+        .battlefield { display: none; flex: 1; justify-content: space-around; align-items: center; padding: 10px; gap: 15px; }
+        
+        /* Menü stílus */
+        #campaign-menu { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 20px; }
+        #menu-image { max-width: 600px; border: 3px solid var(--gold); border-radius: 15px; box-shadow: 0 0 20px rgba(197, 160, 89, 0.5); }
+        
+        .fighter-card { flex: 1; max-width: 320px; padding: 12px; border: 2px solid #333; background: var(--glass); border-radius: 12px; text-align: center; position: relative; }
+        .hero-portrait { width: 100%; height: 320px; border: 1px solid var(--gold); margin: 8px 0; background-size: cover; background-position: center top; border-radius: 6px; background-color: #111; }
+        .bar-container { width: 100%; height: 18px; background: #000; border: 1px solid #444; margin: 4px 0; overflow: hidden; position: relative; border-radius: 3px; }
+        .hp-fill { height: 100%; background: linear-gradient(90deg, #600, #f00); width: 100%; transition: 0.6s; }
+        .mp-fill { height: 100%; background: linear-gradient(90deg, #003366, #0088ff); width: 100%; transition: 0.6s; }
+        .bar-text { position: absolute; width: 100%; text-align: center; font-size: 10px; top: 1px; font-weight: bold; text-shadow: 1px 1px 2px black; z-index: 5; }
+        
+        .skill-slot { width: 55px; height: 55px; background: #111; border: 2px solid var(--gold); border-radius: 6px; cursor: pointer; background-size: cover; margin: 0 4px; position: relative; }
+        .dice-box { width: 70px; height: 70px; border: 2px solid var(--gold); font-size: 1.5em; background: #000; color: var(--gold); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+        .battle-log { width: 100%; max-width: 250px; height: 150px; background: rgba(0,0,0,0.85); border: 1px solid #444; padding: 8px; font-size: 0.8em; overflow-y: auto; color: #ddd; border-radius: 6px; }
+        
+        .btn { background: var(--accent); color: white; border: 1px solid var(--gold); padding: 12px; font-family: 'MedievalSharp'; cursor: pointer; border-radius: 4px; font-weight: bold; transition: 0.2s; }
+        .btn:hover { background: #b30000; }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        
+        #win-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; text-align: center; }
     </style>
 </head>
 <body>
 
-    <div id="campaign-menu">
-        <a href="https://ibb.co/sJcnDRcJ" target="_blank">
-            <img src="https://i.ibb.co/qFhK4jhF/Copilot-20260409-020526.png" alt="Copilot-20260409-020526">
-        </a>
-        <h1>Válaszd ki a nehézséget!</h1>
-        <button class="btn" onclick="startCampaign('easy')">Könnyű</button>
-        <button class="btn" onclick="startCampaign('medium')">Közepes</button>
-        <button class="btn" onclick="startCampaign('hard')">Nehéz</button>
+<div id="campaign-menu">
+    <img id="menu-image" src="https://i.ibb.co/qFhK4jhF/Copilot-20260409-020526.png" alt="Campaign Banner">
+    <h1 style="color:var(--gold); text-shadow: 2px 2px 5px black;">Válassz nehézséget!</h1>
+    <div style="display:flex; gap:20px;">
+        <button class="btn" style="width:150px; background: #27ae60;" onclick="startCampaign('easy')">KÖNNYŰ</button>
+        <button class="btn" style="width:150px; background: #2980b9;" onclick="startCampaign('medium')">KÖZEPES</button>
+        <button class="btn" style="width:150px; background: #c0392b;" onclick="startCampaign('hard')">NEHÉZ</button>
+    </div>
+    <button class="btn" style="background:#444; margin-top:20px;" onclick="location.href='index.html'">VISSZA A VÁROSBA</button>
+</div>
+
+<div class="arena-header" id="arena-header" style="display:none;">
+    <button class="btn" style="padding: 5px 15px; background: #444;" onclick="location.reload()">🏳️ MENEKÜLÉS</button>
+    <h2 id="turn-display">TE KÖVETKEZEL!</h2>
+    <div style="width:100px;"></div>
+</div>
+
+<div class="battlefield" id="battlefield">
+    <div id="p-card" class="fighter-card">
+        <h3 id="p-name" style="color: var(--gold); margin: 0;">Hősöm</h3>
+        <div id="p-img" class="hero-portrait"></div>
+        <div class="bar-container"><div id="p-hp-fill" class="hp-fill"></div><div class="bar-text" id="p-hp-val">100 / 100 HP</div></div>
+        <div class="bar-container" style="height:12px;"><div id="p-mp-fill" class="mp-fill"></div><div class="bar-text" id="p-mp-val">50 / 50 MP</div></div>
+        
+        <div style="display: flex; justify-content: center; margin: 10px 0;">
+            <button class="skill-slot" id="sk-0" onclick="playerSkill(0)" disabled></button>
+            <button class="skill-slot" id="sk-1" onclick="playerSkill(1)" disabled></button>
+            <button class="skill-slot" id="sk-2" onclick="playerSkill(2)" disabled></button>
+        </div>
+        
+        <button id="btn-attack" class="btn" style="width:100%; margin-bottom:5px;" onclick="playerAction('attack')">⚔️ TÁMADÁS</button>
+        <button id="btn-defend" class="btn" style="width:100%; background:#2c3e50" onclick="playerAction('defend')">🛡️ VÉDEKEZÉS</button>
     </div>
 
-    <div id="combat-arena">
-        <h2>Harc indul!</h2>
+    <div style="display:flex; flex-direction:column; align-items:center; gap:15px;">
+        <div id="dice" class="dice-box">🎲</div>
+        <div id="log" class="battle-log"></div>
+    </div>
+
+    <div id="e-card" class="fighter-card">
+        <h3 id="e-name" style="color: #ff4444; margin: 0;">Ellenfél</h3>
+        <div id="e-img" class="hero-portrait"></div>
+        <div class="bar-container"><div id="e-hp-fill" class="hp-fill"></div><div class="bar-text" id="e-hp-val">HP: ---</div></div>
+        <div id="e-skills-info" style="font-size: 0.9em; color: #ddd; text-align: center; padding: 8px; background: rgba(0,0,0,0.5); border-radius: 4px; min-height: 80px; margin-top: 10px;">
+            <strong>Passzív:</strong><br><span id="monster-passive">...</span>
+        </div>
+    </div>
+</div>
+
+<div id="win-screen">
+    <h1 id="win-title" style="color: var(--gold); font-size: 3em;">GYŐZELEM!</h1>
+    <div id="rewards" style="padding: 20px; border: 1px solid var(--gold); width: 250px; margin: 20px 0; background: rgba(255,255,255,0.05);">
+        <p id="reward-xp" style="font-size: 1.4em;"></p>
+        <p id="reward-gold" style="font-size: 1.4em; color: gold;"></p>
+    </div>
+    <button class="btn" style="width:250px" onclick="location.href='index.html'">🏰 VISSZA A VÁROSBA</button>
+</div>
+
+<script src="skills.js"></script>
+<script src="monsters.js"></script>
+<script src="combat.js"></script> <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<script>
+    const firebaseConfig = { apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU", authDomain: "dnd-tracker-4fe05.firebaseapp.com", projectId: "dnd-tracker-4fe05", databaseURL: "https://dnd-tracker-4fe05-default-rtdb.europe-west1.firebasedatabase.app" };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    
+    const myId = localStorage.getItem('selectedCharId');
+    let myHero = null, enemy = null, isMyTurn = true;
+    let myCooldowns = [0, 0, 0];
+
+    const HERO_IMGS = { 
+        "Harcos":"https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png", 
+        "Mágus":"https://i.ibb.co/yFz5bcXv/Copilot-20260403-033651.png", 
+        "Lovag":"https://i.ibb.co/Fk3n339M/Copilot-20260403-034043.png", 
+        "Bérgyilkos":"https://i.ibb.co/b525CsLg/Copilot-20260403-032807.png", 
+        "Nekromanta":"https://i.ibb.co/NnCwwCbR/Copilot-20260403-033301.png",
+        "Íjász":"https://i.ibb.co/whd2jNpB/Copilot-20260403-034402.png"
+    };
+
+    // 1. KAMPÁNY INDÍTÁSA
+    async function startCampaign(difficulty) {
+        if(!myId) return alert("Hiba: Nincs karakter kiválasztva!");
         
-        <div class="monster-card">
-            <img id="monster-img" src="" alt="Szörny Képe" style="max-width: 200px; display: block; margin: 0 auto 10px;">
-            <h3 id="monster-name">Szörny Neve</h3>
-            <p>HP: <strong id="monster-hp">0</strong> / <span id="monster-maxhp">0</span></p>
-            <p><strong>Passzív:</strong> <span id="monster-passive"></span></p>
-        </div>
+        // Játékos betöltése
+        const snap = await db.ref(`characters/${myId}`).once('value');
+        myHero = snap.val();
+        myHero.maxMp = myHero.maxMp || 100;
+        myHero.mp = myHero.maxMp;
+        myHero.isDefending = false;
 
-        </div>
+        // Szörny sorsolása (az általad kért esélyekkel)
+        enemy = rollMonsterWithChances(difficulty);
+        enemy.isDefending = false;
 
-    <script src="monsters.js"></script>
-    <script src="campaign.js"></script>
+        // UI Váltás
+        document.getElementById('campaign-menu').style.display = 'none';
+        document.getElementById('arena-header').style.display = 'flex';
+        document.getElementById('battlefield').style.display = 'flex';
+
+        initUI();
+        addLog(`Egy vad ${enemy.name} támadt rád!`);
+    }
+
+    function rollMonsterWithChances(diff) {
+        let roll = Math.random();
+        if (diff === 'easy') return getRandomMonster(roll < 0.05 ? 'medium' : 'easy');
+        if (diff === 'medium') return getRandomMonster(roll < 0.08 ? 'hard' : 'medium');
+        if (diff === 'hard') {
+            if (roll < 0.02) return getRandomMonster('boss');
+            const pool = MONSTERS.medium.concat(MONSTERS.hard);
+            return {...pool[Math.floor(Math.random() * pool.length)]};
+        }
+    }
+
+    function initUI() {
+        // Játékos
+        document.getElementById('p-name').innerText = myHero.name;
+        document.getElementById('p-img').style.backgroundImage = `url('${HERO_IMGS[myHero.charClass]}')`;
+        
+        // Szörny
+        document.getElementById('e-name').innerText = enemy.name;
+        document.getElementById('monster-passive').innerText = `${enemy.passiveName}: ${enemy.passiveDesc}`;
+        const eImg = enemy.image === "placeholder_link" ? "https://via.placeholder.com/300x300/800000/FFFFFF?text=" + enemy.name : enemy.image;
+        document.getElementById('e-img').style.backgroundImage = `url('${eImg}')`;
+
+        // Skill gombok
+        const classSkills = SKILLS_DATA[myHero.charClass].skills;
+        classSkills.forEach((s, i) => {
+            const btn = document.getElementById(`sk-${i}`);
+            btn.style.backgroundImage = `url('${s.img}')`;
+            btn.disabled = false;
+        });
+
+        updateBars();
+    }
+
+    function updateBars() {
+        document.getElementById('p-hp-fill').style.width = (myHero.hp / myHero.maxHp * 100) + "%";
+        document.getElementById('p-hp-val').innerText = `${Math.ceil(myHero.hp)} / ${myHero.maxHp} HP`;
+        document.getElementById('p-mp-fill').style.width = (myHero.mp / myHero.maxMp * 100) + "%";
+        document.getElementById('p-mp-val').innerText = `${Math.ceil(myHero.mp)} / ${myHero.maxMp} MP`;
+
+        document.getElementById('e-hp-fill').style.width = (enemy.hp / enemy.maxHp * 100) + "%";
+        document.getElementById('e-hp-val').innerText = `${Math.ceil(enemy.hp)} / ${enemy.maxHp} HP`;
+    }
+
+    function addLog(msg) {
+        const log = document.getElementById('log');
+        log.innerHTML = `<div>${msg}</div>` + log.innerHTML;
+    }
+
+    // JÁTÉKOS LÉPÉSE
+    function playerAction(type) {
+        if(!isMyTurn) return;
+        myHero.isDefending = false;
+
+        if(type === 'attack') {
+            const roll = Math.floor(Math.random() * 20) + 1;
+            document.getElementById('dice').innerText = roll;
+            let dmg = Math.max(1, (myHero.atk + Math.floor(roll/2)) - (enemy.isDefending ? enemy.def * 2 : enemy.def));
+            enemy.hp -= dmg;
+            addLog(`⚔️ ${myHero.name} megütötte: ${enemy.name} (-${dmg})`);
+        } else {
+            myHero.isDefending = true;
+            addLog(`🛡️ ${myHero.name} védekező állást vett fel!`);
+        }
+
+        checkDeath();
+    }
+
+    function playerSkill(idx) {
+        if(!isMyTurn) return;
+        const s = SKILLS_DATA[myHero.charClass].skills[idx];
+        if(myHero.mp < s.cost) return addLog("Nincs elég manád!");
+
+        myHero.mp -= s.cost;
+        let dmg = s.power + Math.floor(myHero.atk/2);
+        enemy.hp -= dmg;
+        addLog(`✨ ${s.name} használva! (-${dmg})`);
+        
+        checkDeath();
+    }
+
+    function checkDeath() {
+        updateBars();
+        if(enemy.hp <= 0) {
+            endBattle(true);
+        } else {
+            isMyTurn = false;
+            toggleButtons(true);
+            document.getElementById('turn-display').innerText = "SZÖRNY KÖRE...";
+            setTimeout(enemyTurn, 1200);
+        }
+    }
+
+    // SZÖRNY LÉPÉSE (AI)
+    function enemyTurn() {
+        enemy.isDefending = false;
+        const roll = Math.floor(Math.random() * 20) + 1;
+        document.getElementById('dice').innerText = roll;
+
+        // Egyszerű AI: 80% támad, 20% védekezik
+        if(Math.random() > 0.2) {
+            let dmg = Math.max(1, (enemy.atk + Math.floor(roll/2)) - (myHero.isDefending ? myHero.def * 2 : myHero.def));
+            myHero.hp -= dmg;
+            addLog(`👹 ${enemy.name} visszatámad! (-${dmg})`);
+        } else {
+            enemy.isDefending = true;
+            addLog(`🛡️ ${enemy.name} védekezik!`);
+        }
+
+        updateBars();
+        if(myHero.hp <= 0) {
+            endBattle(false);
+        } else {
+            isMyTurn = true;
+            toggleButtons(false);
+            document.getElementById('turn-display').innerText = "TE KÖVETKEZEL!";
+        }
+    }
+
+    function toggleButtons(disabled) {
+        document.getElementById('btn-attack').disabled = disabled;
+        document.getElementById('btn-defend').disabled = disabled;
+        for(let i=0; i<3; i++) document.getElementById(`sk-${i}`).disabled = disabled;
+    }
+
+    function endBattle(win) {
+        document.getElementById('win-screen').style.display = 'flex';
+        document.getElementById('win-title').innerText = win ? "GYŐZELEM!" : "VERESÉG!";
+        document.getElementById('win-title').style.color = win ? "var(--gold)" : "red";
+        
+        const xpGain = win ? enemy.xp : Math.floor(enemy.xp / 4);
+        const goldGain = win ? enemy.gold : 0;
+
+        document.getElementById('reward-xp').innerText = `+${xpGain} XP`;
+        document.getElementById('reward-gold').innerText = `+${goldGain} Arany`;
+
+        // Mentés Firebase-be
+        db.ref(`characters/${myId}`).update({
+            xp: (myHero.xp || 0) + xpGain,
+            gold: (myHero.gold || 0) + goldGain,
+            hp: Math.max(1, myHero.hp)
+        });
+    }
+</script>
 </body>
 </html>
