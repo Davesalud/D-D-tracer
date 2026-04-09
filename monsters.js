@@ -1,15 +1,15 @@
 const MONSTERS = {
     easy: [
-        { id: "veszett_kutya", name: "Veszett Kutya", hp: 85, maxHp: 85, atk: 14, def: 5, gold: 5, xp: 15, image: "placeholder_link", passiveName: "Veszett düh", passiveDesc: "20% HP alatt sebzés +2", passiveLogic: "enrage_20" },
+        { id: "veszett_kutya", name: "Veszett Kutya", hp: 85, maxHp: 85, atk: 14, def: 4, gold: 5, xp: 15, image: "placeholder_link", passiveName: "Veszett düh", passiveDesc: "20% HP alatt sebzés +2", passiveLogic: "enrage_20" },
         { id: "patkanyraj", name: "Patkányraj", hp: 66, maxHp: 66, atk: 10, def: 3, gold: 4, xp: 12, image: "placeholder_link", passiveName: "Sereghatás", passiveDesc: "Körönként kétszer sebez", passiveLogic: "double_attack" },
-        { id: "csontvaz", name: "Csontváz", hp: 94, maxHp: 94, atk: 17, def: 8, gold: 6, xp: 20, image: "placeholder_link", passiveName: "Csontvázszerkezet", passiveDesc: "Távolsági sebzés -20%", passiveLogic: "arrow_resist" },
-        { id: "goblin", name: "Goblin", hp: 75, maxHp: 75, atk: 19, def: 5, gold: 8, xp: 18, image: "placeholder_link", passiveName: "Gyávaság", passiveDesc: "Balszerencse esetén nem támad", passiveLogic: "cowardice" },
-        { id: "bandita", name: "Bandita", hp: 112, maxHp: 112, atk: 22, def: 11, gold: 12, xp: 25, image: "placeholder_link", passiveName: "Zsebmetszés", passiveDesc: "Ellop 1 aranyat minden ütésnél", passiveLogic: "steal_gold" },
+        { id: "csontvaz", name: "Csontváz", hp: 94, maxHp: 94, atk: 17, def: 7, gold: 6, xp: 20, image: "placeholder_link", passiveName: "Csontvázszerkezet", passiveDesc: "Távolsági sebzés -20%", passiveLogic: "arrow_resist" },
+        { id: "goblin", name: "Goblin", hp: 75, maxHp: 75, atk: 19, def: 4, gold: 8, xp: 18, image: "placeholder_link", passiveName: "Gyávaság", passiveDesc: "Balszerencse esetén nem támad", passiveLogic: "cowardice" },
+        { id: "bandita", name: "Bandita", hp: 112, maxHp: 112, atk: 22, def: 9, gold: 12, xp: 25, image: "placeholder_link", passiveName: "Zsebmetszés", passiveDesc: "Ellop 1 aranyat minden ütésnél", passiveLogic: "steal_gold" },
         { id: "zombi", name: "Zombi", hp: 141, maxHp: 141, atk: 14, def: 3, gold: 5, xp: 22, image: "placeholder_link", passiveName: "Holtak nyugalma", passiveDesc: "Immunis a kábításra", passiveLogic: "stun_immune" },
-        { id: "oriaspok", name: "Óriáspók", hp: 104, maxHp: 104, atk: 19, def: 8, gold: 7, xp: 24, image: "placeholder_link", passiveName: "Hálócsapda", passiveDesc: "10% esély körkihagyásra", passiveLogic: "web_trap" },
-        { id: "mocsari_iszap", name: "Mocsári Iszap", hp: 131, maxHp: 131, atk: 12, def: 5, gold: 6, xp: 20, image: "placeholder_link", passiveName: "Amorf test", passiveDesc: "Kritikus ütés ellen védett", passiveLogic: "crit_immune" },
+        { id: "oriaspok", name: "Óriáspók", hp: 104, maxHp: 104, atk: 19, def: 7, gold: 7, xp: 24, image: "placeholder_link", passiveName: "Hálócsapda", passiveDesc: "10% esély körkihagyásra", passiveLogic: "web_trap" },
+        { id: "mocsari_iszap", name: "Mocsári Iszap", hp: 131, maxHp: 131, atk: 12, def: 4, gold: 6, xp: 20, image: "placeholder_link", passiveName: "Amorf test", passiveDesc: "Kritikus ütés ellen védett", passiveLogic: "crit_immune" },
         { id: "denever", name: "Denevér", hp: 56, maxHp: 56, atk: 12, def: 3, gold: 3, xp: 10, image: "placeholder_link", passiveName: "Szonár", passiveDesc: "30% kitérés", passiveLogic: "dodge_30" },
-        { id: "fiatal_farkas", name: "Fiatal Farkas", hp: 94, maxHp: 94, atk: 17, def: 8, gold: 5, xp: 18, image: "placeholder_link", passiveName: "Falkaösztön", passiveDesc: "+1 védelem a játékos körében", passiveLogic: "pack_defense" }
+        { id: "fiatal_farkas", name: "Fiatal Farkas", hp: 94, maxHp: 94, atk: 17, def: 7, gold: 5, xp: 18, image: "placeholder_link", passiveName: "Falkaösztön", passiveDesc: "+1 védelem a játékos körében", passiveLogic: "pack_defense" }
     ],
     medium: [
         { id: "pancelos_lovag", name: "Páncélos Lovag", hp: 165, maxHp: 165, atk: 22, def: 13, gold: 30, xp: 60, image: "placeholder_link", passiveName: "Acélfal", passiveDesc: "Fix -3 sebzés csökkentés", passiveLogic: "flat_reduction_3" },
@@ -20,7 +20,7 @@ const MONSTERS = {
         { id: "harpia", name: "Hárpia", hp: 132, maxHp: 132, atk: 23, def: 7, gold: 30, xp: 70, image: "placeholder_link", passiveName: "Sikoly", passiveDesc: "3. körönként elnémít", passiveLogic: "silence_3" },
         { id: "verfarkas", name: "Vérfarkas", hp: 176, maxHp: 176, atk: 25, def: 8, gold: 40, xp: 85, image: "placeholder_link", passiveName: "Holdkóros", passiveDesc: "50% HP alatt d12 sebzés", passiveLogic: "d12_enrage" },
         { id: "gorgo", name: "Gorgó", hp: 154, maxHp: 154, atk: 27, def: 9, gold: 45, xp: 95, image: "placeholder_link", passiveName: "Kővé dermesztés", passiveDesc: "D20 dobás utáni lefagyás", passiveLogic: "stun_on_d20" },
-        { id: "mumia", name: "Múmia", hp: 187, maxHp: 187, atk: 20, def: 12, gold: 35, xp: 80, image: "placeholder_link", passiveName: "A fáraó átka", passiveDesc: "A következő sebzés feleződik", passiveLogic: "half_dmg_curse" },
+        { id: "mumia", name: "Múmia", hp: 187, maxHp: 187, atk: 20, def: 12, gold: 35, xp: 80, image: "placeholder_link", passiveName: "A fáraó átka", passiveDesc: "A következő sebzés felezőodik", passiveLogic: "half_dmg_curse" },
         { id: "liderc", name: "Lidérc", hp: 110, maxHp: 110, atk: 36, def: 3, gold: 50, xp: 110, image: "placeholder_link", passiveName: "Testetlenség", passiveDesc: "Csak a Mana alapú sebek érnek 100%-ot", passiveLogic: "mana_only_dmg" }
     ],
     hard: [
