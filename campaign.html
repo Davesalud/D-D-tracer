@@ -520,12 +520,12 @@ function endBattle(win) {
     document.getElementById('reward-gold').innerText = `+${gold} Arany`;
     document.getElementById('reward-hp').innerText = `Maradék HP: ${finalHp}`;
 
-    // FIREBASE FRISSÍTÉS: Minden érték mentésre kerül
+    // FIREBASE FRISSÍTÉS: Minden érték mentésre kerül (Hozzáadva a vessző a finalMp után)
     db.ref(`characters/${myId}`).update({
         xp: (myHero.xp || 0) + xp,
         gold: Math.max(0, (myHero.gold || 0) + gold),
         hp: finalHp,
-        mp: finalMp
+        mp: finalMp,
         lastUpdate: Date.now()
     });
 }
