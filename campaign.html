@@ -14,26 +14,20 @@
         }
         .arena-header { padding: 10px; border-bottom: 2px solid var(--gold); text-align: center; background: rgba(0,0,0,0.8); display: flex; justify-content: space-between; align-items: center; }
         .battlefield { display: none; flex: 1; justify-content: space-around; align-items: center; padding: 10px; gap: 15px; }
-        
-        /* Menü stílus */
         #campaign-menu { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 20px; }
         #menu-image { max-width: 600px; border: 3px solid var(--gold); border-radius: 15px; box-shadow: 0 0 20px rgba(197, 160, 89, 0.5); }
-        
         .fighter-card { flex: 1; max-width: 320px; padding: 12px; border: 2px solid #333; background: var(--glass); border-radius: 12px; text-align: center; position: relative; }
         .hero-portrait { width: 100%; height: 320px; border: 1px solid var(--gold); margin: 8px 0; background-size: cover; background-position: center top; border-radius: 6px; background-color: #111; }
         .bar-container { width: 100%; height: 18px; background: #000; border: 1px solid #444; margin: 4px 0; overflow: hidden; position: relative; border-radius: 3px; }
         .hp-fill { height: 100%; background: linear-gradient(90deg, #600, #f00); width: 100%; transition: 0.6s; }
         .mp-fill { height: 100%; background: linear-gradient(90deg, #003366, #0088ff); width: 100%; transition: 0.6s; }
         .bar-text { position: absolute; width: 100%; text-align: center; font-size: 10px; top: 1px; font-weight: bold; text-shadow: 1px 1px 2px black; z-index: 5; }
-        
         .skill-slot { width: 55px; height: 55px; background: #111; border: 2px solid var(--gold); border-radius: 6px; cursor: pointer; background-size: cover; margin: 0 4px; position: relative; }
         .dice-box { width: 70px; height: 70px; border: 2px solid var(--gold); font-size: 1.5em; background: #000; color: var(--gold); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
         .battle-log { width: 100%; max-width: 250px; height: 150px; background: rgba(0,0,0,0.85); border: 1px solid #444; padding: 8px; font-size: 0.8em; overflow-y: auto; color: #ddd; border-radius: 6px; }
-        
         .btn { background: var(--accent); color: white; border: 1px solid var(--gold); padding: 12px; font-family: 'MedievalSharp'; cursor: pointer; border-radius: 4px; font-weight: bold; transition: 0.2s; }
         .btn:hover { background: #b30000; }
         .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-        
         #win-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; text-align: center; }
     </style>
 </head>
@@ -99,7 +93,7 @@
 
 <script src="skills.js"></script>
 <script src="monsters.js"></script>
-<script src="combat.js"></script> <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <script>
@@ -109,7 +103,6 @@
     
     const myId = localStorage.getItem('selectedCharId');
     let myHero = null, enemy = null, isMyTurn = true;
-    let myCooldowns = [0, 0, 0];
 
     const HERO_IMGS = { 
         "Harcos":"https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png", 
@@ -120,70 +113,86 @@
         "Íjász":"https://i.ibb.co/whd2jNpB/Copilot-20260403-034402.png"
     };
 
-    // 1. KAMPÁNY INDÍTÁSA
+    // Szörny választó segédfüggvény (ha a monsters.js-ben nincs benne)
+    function pickFromMonsters(tier) {
+        if (typeof MONSTERS !== 'undefined' && MONSTERS[tier]) {
+            const pool = MONSTERS[tier];
+            return JSON.parse(JSON.stringify(pool[Math.floor(Math.random() * pool.length)]));
+        } else {
+            // Tartalék szörny, ha nem tölt be a külső fájl
+            return { name: "Csontváz", hp: 50, maxHp: 50, atk: 10, def: 5, xp: 20, gold: 10, passiveName: "Csont", passiveDesc: "Nincs húsa.", image: "https://via.placeholder.com/300" };
+        }
+    }
+
     async function startCampaign(difficulty) {
         if(!myId) return alert("Hiba: Nincs karakter kiválasztva!");
         
-        // Játékos betöltése
-        const snap = await db.ref(`characters/${myId}`).once('value');
-        myHero = snap.val();
-        myHero.maxMp = myHero.maxMp || 100;
-        myHero.mp = myHero.maxMp;
-        myHero.isDefending = false;
+        try {
+            const snap = await db.ref(`characters/${myId}`).once('value');
+            myHero = snap.val();
+            if (!myHero) return alert("Karakter nem található!");
 
-        // Szörny sorsolása (az általad kért esélyekkel)
-        enemy = rollMonsterWithChances(difficulty);
-        enemy.isDefending = false;
+            myHero.maxMp = myHero.maxMp || 100;
+            myHero.mp = myHero.maxMp;
+            myHero.isDefending = false;
 
-        // UI Váltás
-        document.getElementById('campaign-menu').style.display = 'none';
-        document.getElementById('arena-header').style.display = 'flex';
-        document.getElementById('battlefield').style.display = 'flex';
+            // Sorsolás
+            let roll = Math.random();
+            if (difficulty === 'easy') enemy = pickFromMonsters(roll < 0.05 ? 'medium' : 'easy');
+            else if (difficulty === 'medium') enemy = pickFromMonsters(roll < 0.08 ? 'hard' : 'medium');
+            else {
+                if (roll < 0.02) enemy = pickFromMonsters('boss');
+                else enemy = pickFromMonsters(Math.random() > 0.5 ? 'hard' : 'medium');
+            }
+            
+            enemy.isDefending = false;
 
-        initUI();
-        addLog(`Egy vad ${enemy.name} támadt rád!`);
-    }
+            // UI Megjelenítés
+            document.getElementById('campaign-menu').style.display = 'none';
+            document.getElementById('arena-header').style.display = 'flex';
+            document.getElementById('battlefield').style.display = 'flex';
 
-    function rollMonsterWithChances(diff) {
-        let roll = Math.random();
-        if (diff === 'easy') return getRandomMonster(roll < 0.05 ? 'medium' : 'easy');
-        if (diff === 'medium') return getRandomMonster(roll < 0.08 ? 'hard' : 'medium');
-        if (diff === 'hard') {
-            if (roll < 0.02) return getRandomMonster('boss');
-            const pool = MONSTERS.medium.concat(MONSTERS.hard);
-            return {...pool[Math.floor(Math.random() * pool.length)]};
+            initUI();
+            addLog(`Egy vad ${enemy.name} utadba állt!`);
+        } catch (e) {
+            console.error(e);
+            alert("Hiba történt a betöltéskor.");
         }
     }
 
     function initUI() {
-        // Játékos
         document.getElementById('p-name').innerText = myHero.name;
-        document.getElementById('p-img').style.backgroundImage = `url('${HERO_IMGS[myHero.charClass]}')`;
-        
-        // Szörny
+        document.getElementById('p-img').style.backgroundImage = `url('${HERO_IMGS[myHero.charClass] || ""}')`;
         document.getElementById('e-name').innerText = enemy.name;
         document.getElementById('monster-passive').innerText = `${enemy.passiveName}: ${enemy.passiveDesc}`;
-        const eImg = enemy.image === "placeholder_link" ? "https://via.placeholder.com/300x300/800000/FFFFFF?text=" + enemy.name : enemy.image;
+        
+        const eImg = enemy.image && enemy.image !== "placeholder_link" ? enemy.image : "https://via.placeholder.com/300?text=" + enemy.name;
         document.getElementById('e-img').style.backgroundImage = `url('${eImg}')`;
 
-        // Skill gombok
-        const classSkills = SKILLS_DATA[myHero.charClass].skills;
-        classSkills.forEach((s, i) => {
-            const btn = document.getElementById(`sk-${i}`);
-            btn.style.backgroundImage = `url('${s.img}')`;
-            btn.disabled = false;
-        });
+        // Gombok feloldása
+        toggleButtons(false);
 
+        // Skillek ikonjai
+        if (typeof SKILLS_DATA !== 'undefined' && SKILLS_DATA[myHero.charClass]) {
+            const classSkills = SKILLS_DATA[myHero.charClass].skills;
+            classSkills.forEach((s, i) => {
+                const btn = document.getElementById(`sk-${i}`);
+                if (btn) {
+                    btn.style.backgroundImage = `url('${s.img}')`;
+                    btn.disabled = false;
+                    btn.title = `${s.name} (MP: ${s.cost})`;
+                }
+            });
+        }
         updateBars();
     }
 
     function updateBars() {
-        document.getElementById('p-hp-fill').style.width = (myHero.hp / myHero.maxHp * 100) + "%";
+        document.getElementById('p-hp-fill').style.width = Math.max(0, (myHero.hp / myHero.maxHp * 100)) + "%";
         document.getElementById('p-hp-val').innerText = `${Math.ceil(myHero.hp)} / ${myHero.maxHp} HP`;
-        document.getElementById('p-mp-fill').style.width = (myHero.mp / myHero.maxMp * 100) + "%";
+        document.getElementById('p-mp-fill').style.width = Math.max(0, (myHero.mp / myHero.maxMp * 100)) + "%";
         document.getElementById('p-mp-val').innerText = `${Math.ceil(myHero.mp)} / ${myHero.maxMp} MP`;
-
-        document.getElementById('e-hp-fill').style.width = (enemy.hp / enemy.maxHp * 100) + "%";
+        document.getElementById('e-hp-fill').style.width = Math.max(0, (enemy.hp / enemy.maxHp * 100)) + "%";
         document.getElementById('e-hp-val').innerText = `${Math.ceil(enemy.hp)} / ${enemy.maxHp} HP`;
     }
 
@@ -192,7 +201,6 @@
         log.innerHTML = `<div>${msg}</div>` + log.innerHTML;
     }
 
-    // JÁTÉKOS LÉPÉSE
     function playerAction(type) {
         if(!isMyTurn) return;
         myHero.isDefending = false;
@@ -200,56 +208,54 @@
         if(type === 'attack') {
             const roll = Math.floor(Math.random() * 20) + 1;
             document.getElementById('dice').innerText = roll;
-            let dmg = Math.max(1, (myHero.atk + Math.floor(roll/2)) - (enemy.isDefending ? enemy.def * 2 : enemy.def));
+            let dmg = Math.max(2, (myHero.atk + Math.floor(roll/2)) - (enemy.isDefending ? enemy.def * 2 : enemy.def));
             enemy.hp -= dmg;
-            addLog(`⚔️ ${myHero.name} megütötte: ${enemy.name} (-${dmg})`);
+            addLog(`⚔️ Megütötted: ${enemy.name} (-${dmg} HP)`);
         } else {
             myHero.isDefending = true;
-            addLog(`🛡️ ${myHero.name} védekező állást vett fel!`);
+            addLog(`🛡️ Védekezel! (Következő körben több sebzést fogsz fel)`);
         }
 
-        checkDeath();
+        checkStatus();
     }
 
     function playerSkill(idx) {
         if(!isMyTurn) return;
         const s = SKILLS_DATA[myHero.charClass].skills[idx];
-        if(myHero.mp < s.cost) return addLog("Nincs elég manád!");
+        if(myHero.mp < s.cost) return addLog("❌ Nincs elég manád!");
 
         myHero.mp -= s.cost;
-        let dmg = s.power + Math.floor(myHero.atk/2);
+        let dmg = s.power + Math.floor(myHero.atk / 2);
         enemy.hp -= dmg;
-        addLog(`✨ ${s.name} használva! (-${dmg})`);
+        addLog(`✨ ${s.name} használva! (-${dmg} HP)`);
         
-        checkDeath();
+        checkStatus();
     }
 
-    function checkDeath() {
+    function checkStatus() {
         updateBars();
         if(enemy.hp <= 0) {
             endBattle(true);
         } else {
             isMyTurn = false;
             toggleButtons(true);
-            document.getElementById('turn-display').innerText = "SZÖRNY KÖRE...";
-            setTimeout(enemyTurn, 1200);
+            document.getElementById('turn-display').innerText = "ELLENSÉG KÖRE...";
+            setTimeout(enemyTurn, 1000);
         }
     }
 
-    // SZÖRNY LÉPÉSE (AI)
     function enemyTurn() {
         enemy.isDefending = false;
         const roll = Math.floor(Math.random() * 20) + 1;
         document.getElementById('dice').innerText = roll;
 
-        // Egyszerű AI: 80% támad, 20% védekezik
         if(Math.random() > 0.2) {
-            let dmg = Math.max(1, (enemy.atk + Math.floor(roll/2)) - (myHero.isDefending ? myHero.def * 2 : myHero.def));
+            let dmg = Math.max(2, (enemy.atk + Math.floor(roll/2)) - (myHero.isDefending ? myHero.def * 2 : myHero.def));
             myHero.hp -= dmg;
-            addLog(`👹 ${enemy.name} visszatámad! (-${dmg})`);
+            addLog(`👹 ${enemy.name} megtámadott! (-${dmg} HP)`);
         } else {
             enemy.isDefending = true;
-            addLog(`🛡️ ${enemy.name} védekezik!`);
+            addLog(`🛡️ ${enemy.name} védekező állást vett fel!`);
         }
 
         updateBars();
@@ -265,13 +271,17 @@
     function toggleButtons(disabled) {
         document.getElementById('btn-attack').disabled = disabled;
         document.getElementById('btn-defend').disabled = disabled;
-        for(let i=0; i<3; i++) document.getElementById(`sk-${i}`).disabled = disabled;
+        for(let i=0; i<3; i++) {
+            let sk = document.getElementById(`sk-${i}`);
+            if(sk) sk.disabled = disabled;
+        }
     }
 
     function endBattle(win) {
         document.getElementById('win-screen').style.display = 'flex';
-        document.getElementById('win-title').innerText = win ? "GYŐZELEM!" : "VERESÉG!";
-        document.getElementById('win-title').style.color = win ? "var(--gold)" : "red";
+        const winTitle = document.getElementById('win-title');
+        winTitle.innerText = win ? "GYŐZELEM!" : "VERESÉG!";
+        winTitle.style.color = win ? "var(--gold)" : "#ff4444";
         
         const xpGain = win ? enemy.xp : Math.floor(enemy.xp / 4);
         const goldGain = win ? enemy.gold : 0;
@@ -279,11 +289,10 @@
         document.getElementById('reward-xp').innerText = `+${xpGain} XP`;
         document.getElementById('reward-gold').innerText = `+${goldGain} Arany`;
 
-        // Mentés Firebase-be
         db.ref(`characters/${myId}`).update({
             xp: (myHero.xp || 0) + xpGain,
             gold: (myHero.gold || 0) + goldGain,
-            hp: Math.max(1, myHero.hp)
+            hp: Math.max(1, Math.ceil(myHero.hp))
         });
     }
 </script>
