@@ -7,144 +7,98 @@
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #c5a059; --accent: #8b0000; --bg: #050507; --glass: rgba(15, 15, 20, 0.95); }
-
         body { 
             background: var(--bg); color: white; font-family: 'MedievalSharp', cursive; margin: 0;
             background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.9)), url('https://i.ibb.co/qFhK4jhF/Copilot-20260409-020526.png');
             background-size: cover; background-position: center; height: 100vh; overflow: hidden; display: flex; flex-direction: column;
         }
+        .arena-header { padding: 10px; border-bottom: 2px solid var(--gold); text-align: center; background: rgba(0,0,0,0.8); display: none; justify-content: space-between; align-items: center; }
+        .battlefield { display: none; flex: 1; justify-content: space-around; align-items: center; padding: 10px; gap: 15px; }
+        #campaign-menu { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 20px; position: relative; z-index: 10; }
+        #menu-image { max-width: 600px; border: 3px solid var(--gold); border-radius: 15px; box-shadow: 0 0 20px rgba(197,160,89,0.5); }
 
-        .arena-header { 
-            padding: 10px; border-bottom: 2px solid var(--gold); text-align: center; 
-            background: rgba(0,0,0,0.8); display: none; justify-content: space-between; align-items: center; 
-        }
-
-        .battlefield { 
-            display: none; flex: 1; justify-content: space-around; 
-            align-items: center; padding: 10px; gap: 15px; 
-        }
-
-        #campaign-menu { 
-            display: flex; flex-direction: column; align-items: center; 
-            justify-content: center; height: 100%; gap: 20px; position: relative; z-index: 10; 
-        }
-
-        #menu-image { 
-            max-width: 600px; border: 3px solid var(--gold); border-radius: 15px; 
-            box-shadow: 0 0 20px rgba(197, 160, 89, 0.5); 
-        }
-
-        .fighter-card { 
-            flex: 1; max-width: 320px; padding: 12px; border: 2px solid #333; 
-            background: var(--glass); border-radius: 12px; text-align: center; 
-            position: relative; overflow: visible; 
-        }
+        .fighter-card { flex: 1; max-width: 320px; padding: 12px; border: 2px solid #333; background: var(--glass); border-radius: 12px; text-align: center; position: relative; overflow: visible; }
 
         .hero-portrait { 
             width: 100%; height: 320px; border: 1px solid var(--gold); margin: 8px 0; 
-            background-size: cover; background-position: center top; border-radius: 6px; 
-            background-color: #111;
-            transition: transform 0.18s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
-                        filter 0.15s ease,
-                        box-shadow 0.15s ease;
+            background-size: cover; background-position: center top; border-radius: 6px; background-color: #111;
+            transition: transform 0.18s cubic-bezier(0.25,0.46,0.45,0.94), filter 0.15s ease, box-shadow 0.15s ease;
             position: relative; z-index: 2;
         }
-
-        /* Animációk */
         .hero-portrait.anim-attack-player { transform: translateX(55px) scale(1.04); }
         .hero-portrait.anim-attack-monster { transform: translateX(-55px) scale(1.04); }
-        .hero-portrait.anim-hit-normal { filter: brightness(2.5) sepia(1) saturate(8) hue-rotate(300deg); box-shadow: 0 0 30px rgba(255, 0, 0, 0.9); }
-        .hero-portrait.anim-hit-crit { filter: brightness(3) sepia(1) saturate(10) hue-rotate(30deg); box-shadow: 0 0 40px rgba(255, 220, 0, 1); }
-        .hero-portrait.anim-hit-weak { filter: brightness(2) sepia(1) saturate(5) hue-rotate(180deg); box-shadow: 0 0 20px rgba(0, 150, 255, 0.8); }
-        .hero-portrait.anim-skill { filter: brightness(2) saturate(3) hue-rotate(240deg); transform: scale(1.06); box-shadow: 0 0 30px rgba(150, 0, 255, 0.8); }
+        .hero-portrait.anim-hit-normal { filter: brightness(2.5) sepia(1) saturate(8) hue-rotate(300deg); box-shadow: 0 0 30px rgba(255,0,0,0.9); }
+        .hero-portrait.anim-hit-crit { filter: brightness(3) sepia(1) saturate(10) hue-rotate(30deg); box-shadow: 0 0 40px rgba(255,220,0,1); }
+        .hero-portrait.anim-hit-weak { filter: brightness(2) sepia(1) saturate(5) hue-rotate(180deg); box-shadow: 0 0 20px rgba(0,150,255,0.8); }
+        .hero-portrait.anim-skill { filter: brightness(2) saturate(3) hue-rotate(240deg); transform: scale(1.06); box-shadow: 0 0 30px rgba(150,0,255,0.8); }
 
         .bar-container { width: 100%; height: 18px; background: #000; border: 1px solid #444; margin: 4px 0; overflow: hidden; position: relative; border-radius: 3px; }
         .hp-fill { height: 100%; background: linear-gradient(90deg, #600, #f00); width: 100%; transition: 0.6s; }
         .mp-fill { height: 100%; background: linear-gradient(90deg, #003366, #0088ff); width: 100%; transition: 0.6s; }
         .bar-text { position: absolute; width: 100%; text-align: center; font-size: 10px; top: 1px; font-weight: bold; text-shadow: 1px 1px 2px black; z-index: 5; }
 
-        .skill-slot { 
-            width: 55px; height: 55px; background: #111; border: 2px solid var(--gold); 
-            border-radius: 6px; cursor: pointer; background-size: cover; margin: 0 4px;
-            position: relative; transition: 0.2s;
-        }
+        .skill-slot { width: 55px; height: 55px; background: #111; border: 2px solid var(--gold); border-radius: 6px; cursor: pointer; background-size: cover; margin: 0 4px; position: relative; transition: 0.2s; }
         .skill-slot:disabled { opacity: 0.4; cursor: not-allowed; }
         .skill-slot:not(:disabled):hover { box-shadow: 0 0 10px var(--gold); }
+        .cd-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.65); display: flex; align-items: center; justify-content: center; color: red; font-size: 1.2em; border-radius: 4px; }
 
-        .dice-box { 
-            width: 70px; height: 70px; border: 2px solid var(--gold); font-size: 1.5em; 
-            background: #000; color: var(--gold); border-radius: 10px; 
-            display: flex; align-items: center; justify-content: center; 
-        }
-        .battle-log { 
-            width: 100%; max-width: 250px; height: 150px; background: rgba(0,0,0,0.85); 
-            border: 1px solid #444; padding: 8px; font-size: 0.75em; overflow-y: auto; 
-            color: #ddd; border-radius: 6px; 
-        }
+        .dice-box { width: 70px; height: 70px; border: 2px solid var(--gold); font-size: 1.5em; background: #000; color: var(--gold); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+        .battle-log { width: 100%; max-width: 250px; height: 150px; background: rgba(0,0,0,0.85); border: 1px solid #444; padding: 8px; font-size: 0.75em; overflow-y: auto; color: #ddd; border-radius: 6px; }
 
-        .btn { 
-            background: var(--accent); color: white; border: 1px solid var(--gold); 
-            padding: 12px; font-family: 'MedievalSharp'; cursor: pointer; border-radius: 4px; 
-            font-weight: bold; transition: 0.2s; position: relative; z-index: 20; pointer-events: auto;
-        }
+        .btn { background: var(--accent); color: white; border: 1px solid var(--gold); padding: 12px; font-family: 'MedievalSharp'; cursor: pointer; border-radius: 4px; font-weight: bold; transition: 0.2s; }
         .btn:hover { background: #b30000; }
         .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-        .cd-overlay {
-            position: absolute; top:0; left:0; width:100%; height:100%;
-            background: rgba(0,0,0,0.75); color: white; display:flex;
-            align-items:center; justify-content:center; font-size:1.4em;
-            border-radius:4px; font-weight:bold;
-        }
+        #monster-ability-box { font-size: 0.8em; color: #ddd; text-align: center; padding: 8px; background: rgba(0,0,0,0.5); border-radius: 4px; min-height: 80px; margin-top: 10px; border: 1px solid #444; }
+        .passive-label { color: #aaa; font-size: 0.85em; }
+        .active-label { color: #ff9900; font-size: 0.85em; }
+        .passive-name { color: var(--gold); font-weight: bold; }
 
-        #win-screen { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.95); display: none; flex-direction: column; 
-            align-items: center; justify-content: center; z-index: 2000; 
-        }
+        .ability-flash { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,150,0,0.3); border-radius: 12px; pointer-events: none; opacity: 0; transition: opacity 0.1s; }
+        .ability-flash.show { opacity: 1; }
+
+        #status-effects { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin: 6px 0; min-height: 28px; }
+        .status-badge { font-size: 0.78em; padding: 3px 8px; border-radius: 10px; border: 1px solid; font-family: 'MedievalSharp'; box-shadow: 0 0 6px rgba(0,0,0,0.5); }
+        .status-burn  { background: rgba(255,80,0,0.25);  border-color: #ff5000; color: #ff9060; }
+        .status-stun  { background: rgba(255,220,0,0.2);  border-color: #ffdd00; color: #ffee80; }
+        .status-weak  { background: rgba(180,0,255,0.2);  border-color: #aa00ff; color: #cc80ff; }
+
+        #win-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; }
     </style>
 </head>
 <body>
 
 <div id="campaign-menu">
-    <img id="menu-image" src="https://i.ibb.co/GfFbXvNH/Copilot-20260409-011839.png">
-    <h1 style="color:var(--gold)">Válassz nehézséget!</h1>
+    <img id="menu-image" src="https://i.ibb.co/GfFbXvNH/Copilot-20260409-011839.png" alt="Banner">
+    <h1 style="color:var(--gold); text-shadow: 2px 2px 5px black;">Válassz nehézséget!</h1>
     <div style="display:flex; gap:20px;">
-        <button class="btn" onclick="startCampaign('easy')">KÖNNYŰ</button>
-        <button class="btn" onclick="startCampaign('medium')">KÖZEPES</button>
-        <button class="btn" onclick="startCampaign('hard')">NEHÉZ</button>
+        <button class="btn" style="width:150px; background:#27ae60;" onclick="startCampaign('easy')">KÖNNYŰ</button>
+        <button class="btn" style="width:150px; background:#2980b9;" onclick="startCampaign('medium')">KÖZEPES</button>
+        <button class="btn" style="width:150px; background:#c0392b;" onclick="startCampaign('hard')">NEHÉZ</button>
     </div>
     <button class="btn" style="background:#444; margin-top:20px;" onclick="location.href='index.html'">VISSZA A VÁROSBA</button>
 </div>
 
 <div class="arena-header" id="arena-header">
-    <button class="btn" style="padding: 5px 15px;" onclick="location.reload()">🏰 MENEKÜLÉS</button>
-    <h2 id="turn-display" style="color:var(--gold)">CSATA!</h2>
+    <button class="btn" style="padding:5px 15px; background:#444;" onclick="location.href='index.html'">🏰 VISSZA</button>
+    <h2 id="turn-display" style="color:var(--gold)">TE KÖVETKEZEL!</h2>
     <div style="width:100px;"></div>
 </div>
 
 <div class="battlefield" id="battlefield">
     <div class="fighter-card">
-        <h3 id="p-name" style="color: var(--gold)">Hősöd</h3>
+        <h3 id="p-name" style="color:var(--gold); margin:0;">Hősöm</h3>
         <div id="p-img" class="hero-portrait"></div>
-        
-        <div class="bar-container">
-            <div id="p-hp-fill" class="hp-fill"></div>
-            <div class="bar-text" id="p-hp-val">100/100</div>
+        <div id="status-effects"></div>
+        <div class="bar-container"><div id="p-hp-fill" class="hp-fill"></div><div class="bar-text" id="p-hp-val">100/100 HP</div></div>
+        <div class="bar-container" style="height:12px;"><div id="p-mp-fill" class="mp-fill"></div><div class="bar-text" id="p-mp-val">50/50 MP</div></div>
+        <div style="display:flex; justify-content:center; margin:10px 0;">
+            <button class="skill-slot" id="sk-0" onclick="playerSkill(0)" disabled></button>
+            <button class="skill-slot" id="sk-1" onclick="playerSkill(1)" disabled></button>
+            <button class="skill-slot" id="sk-2" onclick="playerSkill(2)" disabled></button>
         </div>
-        
-        <div class="bar-container" style="height:12px;">
-            <div id="p-mp-fill" class="mp-fill"></div>
-            <div class="bar-text" id="p-mp-val">50/50</div>
-        </div>
-
-        <div style="display: flex; justify-content: center; margin: 10px 0;">
-            <button class="skill-slot" id="sk-0" onclick="playerSkill(0)"></button>
-            <button class="skill-slot" id="sk-1" onclick="playerSkill(1)"></button>
-            <button class="skill-slot" id="sk-2" onclick="playerSkill(2)"></button>
-        </div>
-
-        <button id="btn-attack" class="btn" style="width:100%" onclick="playerAction('attack')">⚔️ TÁMADÁS</button>
+        <button id="btn-attack" class="btn" style="width:100%; margin-bottom:5px;" onclick="playerAction('attack')">⚔️ TÁMADÁS</button>
+        <button id="btn-defend" class="btn" style="width:100%; background:#2c3e50;" onclick="playerAction('defend')">🛡️ VÉDEKEZÉS</button>
     </div>
 
     <div style="display:flex; flex-direction:column; align-items:center; gap:15px;">
@@ -152,337 +106,428 @@
         <div id="log" class="battle-log"></div>
     </div>
 
-    <div class="fighter-card">
-        <h3 id="e-name" style="color: #ff4444">Ellenfél</h3>
+    <div class="fighter-card" style="position:relative;">
+        <div class="ability-flash" id="ability-flash"></div>
+        <h3 id="e-name" style="color:#ff4444; margin:0;">Ellenfél</h3>
         <div id="e-img" class="hero-portrait"></div>
-        
-        <div class="bar-container">
-            <div id="e-hp-fill" class="hp-fill"></div>
-            <div class="bar-text" id="e-hp-val">HP</div>
-        </div>
+        <div class="bar-container"><div id="e-hp-fill" class="hp-fill"></div><div class="bar-text" id="e-hp-val">HP:---</div></div>
         <div id="monster-ability-box">
-            <div class="passive-label">Képesség:</div>
-            <div class="passive-name" id="e-skill-name">-</div>
+            <div class="passive-label">⚙️ PASSZÍV</div>
+            <div class="passive-name" id="monster-passive-name">-</div>
+            <div id="monster-passive-desc" style="color:#aaa; font-size:0.85em;">-</div>
+            <hr style="border-color:#333; margin:5px 0;">
+            <div class="active-label">🔥 AKTÍV KÉPESSÉG</div>
+            <div id="monster-active-name" style="color:#ff9900;">-</div>
+            <div id="monster-active-cooldown" style="color:#888; font-size:0.8em;"></div>
         </div>
     </div>
 </div>
 
 <div id="win-screen">
-    <h1 id="win-title">GYŐZELEM!</h1>
-    <div style="padding: 20px; border: 1px solid var(--gold); text-align: center; background: rgba(0,0,0,0.5); min-width: 250px;">
-        <p id="reward-xp" style="font-size: 1.5em; margin: 10px 0;"></p>
-        <p id="reward-gold" style="color: gold; font-size: 1.5em; margin: 10px 0;"></p>
-        <p id="reward-hp" style="color: #44ff44; font-size: 1.1em;"></p>
+    <h1 id="win-title" style="color:var(--gold); font-size:3em;">GYŐZELEM!</h1>
+    <div style="padding:20px; border:1px solid var(--gold); width:280px; margin:20px 0; background:rgba(255,255,255,0.05); text-align:center;">
+        <p id="reward-xp" style="font-size:1.4em;"></p>
+        <p id="reward-gold" style="font-size:1.4em; color:gold;"></p>
+        <p id="reward-hp" style="color:#ff6666; font-size:1em; margin-top:5px;"></p>
     </div>
-    <button class="btn" style="margin-top:20px; padding: 15px 40px;" onclick="location.reload()">VISSZA</button>
+    <button class="btn" style="width:250px" onclick="location.href='index.html'">🏰 VISSZA A VÁROSBA</button>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="skills.js"></script>
+<script src="monsters.js"></script>
 
 <script>
-    // =====================================================
-    // BEÉPÍTETT ADATOK (Külső fájlok helyett)
-    // =====================================================
-    const SKILLS_DATA = {
-        "Harcos": { "manaPool": 50, "skills": [
-            { name: "Pajzsütés", cost: 15, cd: 2, power: 1.2, img: "https://i.ibb.co/kVDdHFxb/1.jpg" },
-            { name: "Vérszomj", cost: 20, cd: 3, power: 1.5, img: "https://i.ibb.co/FbvFzFGJ/N-vtelen.jpg" },
-            { name: "Birodalmi Roham", cost: 40, cd: 99, power: 2.5, img: "https://i.ibb.co/3ykRxmmq/ulti.jpg" }
-        ]},
-        "Mágus": { "manaPool": 150, "skills": [
-            { name: "Tűzgolyó", cost: 30, cd: 1, power: 1.8, img: "https://i.ibb.co/XZNf106p/1.jpg" },
-            { name: "Jégcsap", cost: 25, cd: 2, power: 1.4, img: "https://i.ibb.co/cKWxyMbJ/1.jpg" },
-            { name: "Apokalipszis", cost: 80, cd: 99, power: 3.5, img: "https://i.ibb.co/nMRzGwF2/ulti.jpg" }
-        ]},
-        "Lovag": { "manaPool": 60, "skills": [
-            { name: "Szent Csapás", cost: 20, cd: 1, power: 1.3, img: "https://i.ibb.co/Z1NGqhdh/1.jpg" },
-            { name: "Védelmező Aura", cost: 30, cd: 3, power: 0.5, img: "https://i.ibb.co/ym80gy3B/2.jpg" },
-            { name: "Égi Ítélet", cost: 50, cd: 99, power: 2.2, img: "https://i.ibb.co/VcJDZhQk/ulti.jpg" }
-        ]},
-        "Íjász": { "manaPool": 70, "skills": [
-            { name: "Mérgezett Nyíl", cost: 20, cd: 1, power: 1.2, img: "https://i.ibb.co/Kp5b2WZD/2.jpg" },
-            { name: "Sólyomszem", cost: 25, cd: 2, power: 1.6, img: "https://i.ibb.co/GfRZ1ng5/ulti.jpg" },
-            { name: "Nyíleső", cost: 50, cd: 99, power: 2.8, img: "https://i.ibb.co/Lhkdcqmb/1.jpg" }
-        ]},
-        "Bérgyilkos": { "manaPool": 80, "skills": [
-            { name: "Hátbaszúrás", cost: 25, cd: 1, power: 2.0, img: "https://i.ibb.co/mFT1D4xL/Blood-Mage-7.png" },
-            { name: "Füstbomba", cost: 30, cd: 3, power: 0.8, img: "https://i.ibb.co/qFrHMFXN/Engineer-7.png" },
-            { name: "Halálos Tánc", cost: 60, cd: 99, power: 4.0, img: "https://i.ibb.co/Kc3L2P33/Blood-Mage-8.png" }
-        ]},
-        "Nekromanta": { "manaPool": 120, "skills": [
-            { name: "Léleknyíl", cost: 25, cd: 1, power: 1.4, img: "https://i.ibb.co/hxcGJzqZ/N-vtelen.jpg" },
-            { name: "Életelszívás", cost: 40, cd: 4, power: 1.1, img: "https://i.ibb.co/S4ft5vJT/2.jpg" },
-            { name: "Holtak Serege", cost: 90, cd: 99, power: 3.2, img: "https://i.ibb.co/CKhc0K9m/ulti.jpg" }
-        ]}
-    };
-
-    const MONSTERS = {
-        easy: [
-            { name: "Éhes Goblin", hp: 45, atk: 7, def: 3, xp: 15, gold: 8, img: "https://i.ibb.co/VWVm0LzZ/monster.png" },
-            { name: "Kóbor Csontváz", hp: 35, atk: 9, def: 2, xp: 12, gold: 5, img: "https://i.ibb.co/VWVm0LzZ/monster.png" }
-        ],
-        medium: [
-            { name: "Ork Harcos", hp: 85, atk: 14, def: 6, xp: 40, gold: 25, img: "https://i.ibb.co/VWVm0LzZ/monster.png" },
-            { name: "Mocsári Troll", hp: 120, atk: 10, def: 8, xp: 50, gold: 30, img: "https://i.ibb.co/VWVm0LzZ/monster.png" }
-        ],
-        hard: [
-            { name: "Sötét Lovag", hp: 180, atk: 22, def: 12, xp: 100, gold: 75, img: "https://i.ibb.co/VWVm0LzZ/monster.png" },
-            { name: "Ősi Démon", hp: 250, atk: 28, def: 10, xp: 150, gold: 120, img: "https://i.ibb.co/VWVm0LzZ/monster.png" }
-        ]
-    };
-
-    // =====================================================
-    // HARCI MOTOR (Logic)
-    // =====================================================
-    const CombatEngine = {
-        calculatePhysicalDamage: function(attacker, defender) {
-            const roll = Math.floor(Math.random() * 20) + 1;
-            const isCrit = (roll === 20);
-            
-            // Sebzés képlet: Támadás + (dobás fele) - védekezés
-            let dmg = (attacker.atk || 10) + Math.floor(roll / 2) - (defender.def || 5);
-            dmg = Math.max(2, dmg); // Minimum 2 sebzés
-            
-            if (isCrit) dmg = Math.floor(dmg * 1.5);
-            
-            return { damage: dmg, roll, isCrit };
-        },
-        calculateSkillDamage: function(hero, skill) {
-            // Képesség sebzés: Támadás * szorzó
-            return Math.floor((hero.atk || 10) * (skill.power || 1));
+// =====================================================
+// COMBAT ENGINE - BEÁGYAZVA
+// =====================================================
+const CombatEngine = {
+    roll: function(count, sides, bonus) {
+        count = count || 1; sides = sides || 20; bonus = bonus || 0;
+        let total = 0, rolls = [];
+        for (let i = 0; i < count; i++) {
+            let r = Math.floor(Math.random() * sides) + 1;
+            rolls.push(r); total += r;
         }
-    };
+        return {
+            total: total + bonus, rolls: rolls,
+            display: count > 1 ? `${total+bonus} (${rolls.join('+')})` : `${total+bonus}`
+        };
+    },
+    calculatePhysicalDamage: function(attacker, defender) {
+        const diceResult = this.roll(1, 20);
+        const roll = diceResult.total;
+        const isCrit = roll === 20;
+        let baseDmg;
+        if (attacker.isMonster) {
+            const md = this.roll(2, 10);
+            baseDmg = md.total + (attacker.atk * 0.5);
+        } else {
+            baseDmg = attacker.atk * (0.8 + Math.random() * 0.4);
+            if (isCrit) baseDmg *= 2.5;
+        }
+        let effectiveDef = defender.def || 0;
+        if (defender.isDefending) effectiveDef *= 2;
+        const cap = defender.isDefending ? 0.9 : 0.8;
+        const reduction = Math.min(cap, effectiveDef / 100);
+        const finalDmg = Math.max(1, Math.floor(baseDmg * (1 - reduction)));
+        return { damage: finalDmg, isCrit: isCrit, roll: diceResult.display };
+    },
+    calculateSkillEffect: function(attacker, defender, skill) {
+        let rawDmg = Math.floor(attacker.atk * skill.power * (0.9 + Math.random() * 0.2));
+        let effectiveDef = defender.def || 0;
+        if (defender.isDefending) effectiveDef *= 1.5;
+        const reduction = Math.min(0.85, effectiveDef / 100);
+        let finalDmg = Math.max(1, Math.floor(rawDmg * (1 - reduction)));
+        let effect = { damage: finalDmg, healing: 0 };
+        if (attacker.charClass === "Nekromanta" && skill.name === "Életelszívás") {
+            effect.healing = Math.floor(finalDmg * 0.8);
+        }
+        return effect;
+    }
+};
 
-    // =====================================================
-    // FIREBASE & RENDELKEZÉS
-    // =====================================================
-    const firebaseConfig = { 
-        apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU", 
-        authDomain: "dnd-tracker-4fe05.firebaseapp.com", 
-        projectId: "dnd-tracker-4fe05", 
-        databaseURL: "https://dnd-tracker-4fe05-default-rtdb.europe-west1.firebasedatabase.app" 
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+const firebaseConfig = { apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU", authDomain: "dnd-tracker-4fe05.firebaseapp.com", projectId: "dnd-tracker-4fe05", databaseURL: "https://dnd-tracker-4fe05-default-rtdb.europe-west1.firebasedatabase.app" };
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-    const myId = localStorage.getItem('selectedCharId');
-    let myHero, currentMonster;
-    let isMyTurn = true;
-    let myCooldowns = [0, 0, 0];
+const myId = localStorage.getItem('selectedCharId');
+let myHero = null, currentMonster = null, isMyTurn = true;
+let myCooldowns = [0, 0, 0], myClassData = null;
+let playerStatus = { burn: 0, stun: 0, weakened: 0 };
+let monsterStatus = { burn: 0 };
+let monsterAbilityCooldown = 0, monsterAbilityUsedCount = 0;
+const MONSTER_ABILITY_MAX_USES = 3;
 
-    // =====================================================
-    // JÁTÉK INDÍTÁSA
-    // =====================================================
-    async function startCampaign(difficulty) {
-        if (!myId) { alert("Válassz karaktert a főmenüben!"); return; }
+const HERO_IMGS = {
+    "Harcos":"https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png",
+    "Mágus":"https://i.ibb.co/yFz5bcXv/Copilot-20260403-033651.png",
+    "Lovag":"https://i.ibb.co/Fk3n339M/Copilot-20260403-034043.png",
+    "Bérgyilkos":"https://i.ibb.co/b525CsLg/Copilot-20260403-032807.png",
+    "Nekromanta":"https://i.ibb.co/NnCwwCbR/Copilot-20260403-033301.png",
+    "Íjász":"https://i.ibb.co/whd2jNpB/Copilot-20260403-034402.png"
+};
 
+function playAttackAnim(attackerId, defenderId, damage, isCrit) {
+    return new Promise(resolve => {
+        const attacker = document.getElementById(attackerId);
+        const defender = document.getElementById(defenderId);
+        const animClass = attackerId === 'p-img' ? 'anim-attack-player' : 'anim-attack-monster';
+        attacker.classList.add(animClass);
+        setTimeout(() => {
+            attacker.classList.remove(animClass);
+            const hitClass = damage <= 5 ? 'anim-hit-weak' : isCrit ? 'anim-hit-crit' : 'anim-hit-normal';
+            defender.classList.add(hitClass);
+            setTimeout(() => { defender.classList.remove(hitClass); resolve(); }, 250);
+        }, 180);
+    });
+}
+
+function playSkillAnim(id) {
+    return new Promise(resolve => {
+        const el = document.getElementById(id);
+        el.classList.add('anim-skill');
+        setTimeout(() => { el.classList.remove('anim-skill'); resolve(); }, 350);
+    });
+}
+
+function flashMonsterAbility() {
+    const el = document.getElementById('ability-flash');
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 400);
+}
+
+async function startCampaign(difficulty) {
+    if (!myId) return alert("Hiba: Nincs karakter kiválasztva!");
+    try {
         const snap = await db.ref(`characters/${myId}`).once('value');
         myHero = snap.val();
+        if (!myHero) return alert("Hiba: Karakter nem található!");
 
-        // Szörny kiválasztása
-        const pool = MONSTERS[difficulty];
-        const raw = pool[Math.floor(Math.random() * pool.length)];
-        currentMonster = { ...raw, maxHp: raw.hp };
+        myClassData = SKILLS_DATA[myHero.charClass];
+        myHero.maxMp = myHero.maxMp || 100;
+        myHero.mp = myHero.mp !== undefined ? myHero.mp : myHero.maxMp;
+        myHero.hp = (myHero.hp !== undefined && myHero.hp > 0) ? myHero.hp : myHero.maxHp;
+        myHero.isDefending = false;
 
-        // Mana beállítása az osztály alapján
-        myHero.maxMp = SKILLS_DATA[myHero.charClass]?.manaPool || 50;
-        myHero.mp = myHero.maxMp;
+        currentMonster = rollMonsterWithChances(difficulty);
+        currentMonster.isDefending = false;
+        currentMonster.isMonster = true;
 
-        // UI váltás
+        myCooldowns = [0, 0, 0];
+        monsterAbilityCooldown = 0;
+        monsterAbilityUsedCount = 0;
+        playerStatus = { burn: 0, stun: 0, weakened: 0 };
+        monsterStatus = { burn: 0 };
+
         document.getElementById('campaign-menu').style.display = 'none';
         document.getElementById('arena-header').style.display = 'flex';
         document.getElementById('battlefield').style.display = 'flex';
 
-        initUI();
-        addLog(`⚔️ Egy <b>${currentMonster.name}</b> állta utad!`);
-    }
+        initBattleUI();
+        addLog(`⚔️ Egy vad <span style="color:#ff4444">${currentMonster.name}</span> támadt rád!`);
+    } catch(e) { console.error(e); alert("Hiba történt: " + e.message); }
+}
 
-    function initUI() {
-        document.getElementById('p-name').innerText = myHero.name;
-        document.getElementById('e-name').innerText = currentMonster.name;
-        document.getElementById('p-img').style.backgroundImage = `url('https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png')`;
-        document.getElementById('e-img').style.backgroundImage = `url('${currentMonster.img}')`;
-
-        // Képesség gombok képei
-        const skills = SKILLS_DATA[myHero.charClass].skills;
-        skills.forEach((s, i) => {
-            const btn = document.getElementById(`sk-${i}`);
-            btn.style.backgroundImage = `url('${s.img}')`;
-            btn.title = `${s.name} (${s.cost} MP)`;
-        });
-
-        updateBars();
-    }
-
-    // =====================================================
-    // HARCI CSELEKMÉNYEK
-    // =====================================================
-    async function playerAction(type) {
-        if (!isMyTurn) return;
-        isMyTurn = false;
-        toggleBtns(true);
-
-        const res = CombatEngine.calculatePhysicalDamage(myHero, currentMonster);
-        currentMonster.hp -= res.damage;
-        
-        document.getElementById('dice').innerText = res.roll;
-        addLog(`⚔️ ${myHero.name} támad: <b>${res.damage}</b> sebzés ${res.isCrit ? '(KRITIKUS!)' : ''}`);
-
-        await playAnim('p-img', 'e-img', res.isCrit ? 'crit' : 'normal');
-        checkBattleState();
-    }
-
-    async function playerSkill(idx) {
-        if (!isMyTurn || myCooldowns[idx] > 0) return;
-
-        const skill = SKILLS_DATA[myHero.charClass].skills[idx];
-        if (myHero.mp < skill.cost) {
-            addLog("❌ Nincs elég manád!");
-            return;
+function rollMonsterWithChances(diff) {
+    const roll = Math.random();
+    let cat = diff;
+    if (diff === 'easy' && roll < 0.05) cat = 'medium';
+    else if (diff === 'medium' && roll < 0.08) cat = 'hard';
+    else if (diff === 'hard') {
+        if (roll < 0.02) cat = 'boss';
+        else {
+            const pool = MONSTERS.medium.concat(MONSTERS.hard);
+            return JSON.parse(JSON.stringify(pool[Math.floor(Math.random() * pool.length)]));
         }
+    }
+    return getRandomMonster(cat);
+}
 
-        isMyTurn = false;
-        toggleBtns(true);
-        
-        myHero.mp -= skill.cost;
-        myCooldowns[idx] = skill.cd;
+function initBattleUI() {
+    document.getElementById('p-name').innerText = myHero.name;
+    document.getElementById('p-img').style.backgroundImage = `url('${HERO_IMGS[myHero.charClass] || ""}')`;
+    document.getElementById('e-name').innerText = currentMonster.name;
+    const eImg = (currentMonster.image && currentMonster.image !== "placeholder_link") ? currentMonster.image : `https://via.placeholder.com/300/111111/c5a059?text=${encodeURIComponent(currentMonster.name)}`;
+    document.getElementById('e-img').style.backgroundImage = `url('${eImg}')`;
+    document.getElementById('monster-passive-name').innerText = currentMonster.passiveName;
+    document.getElementById('monster-passive-desc').innerText = currentMonster.passiveDesc;
+    const activeInfo = getMonsterActiveAbilityInfo(currentMonster.passiveLogic);
+    document.getElementById('monster-active-name').innerText = activeInfo.name;
+    document.getElementById('monster-active-cooldown').innerText = `Cooldown: ${activeInfo.cd} kör | Max: ${MONSTER_ABILITY_MAX_USES}x`;
+    myClassData.skills.forEach((s, i) => {
+        const btn = document.getElementById(`sk-${i}`);
+        btn.style.backgroundImage = `url('${s.img}')`;
+        btn.innerHTML = '';
+        btn.title = `${s.name} (${s.cost} MP)`;
+    });
+    updateBars();
+    updateStatusBadges();
+    toggleBtns(false);
+}
 
-        const dmg = CombatEngine.calculateSkillDamage(myHero, skill);
+function getMonsterActiveAbilityInfo(logic) {
+    const map = {
+        "enrage_20": { name: "🔴 Dühroham — Dupla sebzés", cd: 4 },
+        "double_attack": { name: "🐀 Seregcsapás — 2x sebzés", cd: 3 },
+        "arrow_resist": { name: "🦴 Csontpajzs — 1 kör immunis", cd: 5 },
+        "cowardice": { name: "💨 Menekülés — Kihagyja a kört", cd: 4 },
+        "steal_gold": { name: "💰 Lopás — Elrabol 5 aranyat", cd: 5 },
+        "stun_immune": { name: "💀 Holtak Kara — Kábít 1 körre", cd: 4 },
+        "web_trap": { name: "🕸️ Háló — Kihagytat 1 kört", cd: 4 },
+        "crit_immune": { name: "🟫 Iszapár — Lassít -3 def 2 körre", cd: 5 },
+        "dodge_30": { name: "🦇 Ultrahang — Kitér és visszatámad", cd: 3 },
+        "pack_defense": { name: "🐺 Csordaüvöltés — +5 def 2 körre", cd: 4 },
+        "flat_reduction_3": { name: "⚔️ Pajzstörés — Def -5", cd: 4 },
+        "regen_5": { name: "🌿 Nagy Regen — +20 HP", cd: 5 },
+        "burn_aura": { name: "🔥 Tűzvihar — 3 kör égés", cd: 4 },
+        "low_hp_crit": { name: "💢 Vérszomj — Kritikus csapás", cd: 3 },
+        "miss_chance_25": { name: "🌑 Árnyékba lép — Kitér majd sebez", cd: 4 },
+        "silence_3": { name: "😶 Sikoly — Skillek zárolva 2 körre", cd: 5 },
+        "d12_enrage": { name: "🐺 Holdfázis — d12+atk sebzés", cd: 3 },
+        "stun_on_d20": { name: "🗿 Kővé dermeszt — Kábít 1 körre", cd: 5 },
+        "half_dmg_curse": { name: "☠️ Átok — Következő 2 sebzésed feleződik", cd: 4 },
+        "mana_only_dmg": { name: "👻 Manaszívás — Elvon 20 MP-t", cd: 3 },
+        "lifesteal_30": { name: "🩸 Nagy Életszívás — 50% visszaéled", cd: 4 },
+        "shield_break": { name: "🔨 Pajzszúzás — Def nullára 2 körre", cd: 5 },
+        "mass_cd": { name: "💀 Csontvihar — Minden skill CD-re kerül", cd: 6 },
+        "mana_shield": { name: "🔮 Mana Pajzs — 50% sebzés csökkentés", cd: 5 },
+        "hard_skin_15": { name: "🪨 Sziklabőr — 1 kör csak 1 sebzést kap", cd: 5 },
+        "tri_action": { name: "🔱 Háromfejű roham — Sebez+gyógyít+pajzsol", cd: 4 },
+        "burn_dot_5": { name: "🔥 Pokoltűz — 5 kör égés -5 HP/kör", cd: 5 },
+        "revive_once": { name: "💫 Feltámadás — Visszajön 50 HP-val", cd: 99 },
+        "death_timer_10": { name: "☠️ Halálos méreg — Azonnali mérgezés", cd: 99 },
+        "reflect_15": { name: "🔄 Visszaverés — Sebzés 20%-a visszamegy", cd: 4 },
+        "d20_only": { name: "🐉 Sárkánylehelet — 60 fix tűzsebzés", cd: 5 },
+        "time_rewind_4": { name: "⏳ Időtekercs — Full HP visszatöltés", cd: 99 },
+        "mirror_skill_50": { name: "🪞 Tükröz — Visszalövi a skill sebzésedet", cd: 4 },
+    };
+    return map[logic] || { name: "⚡ Vad csapás — Extra sebzés", cd: 4 };
+}
+
+function applyMonsterPassive(damage, isCrit) {
+    const logic = currentMonster.passiveLogic;
+    let d = damage;
+    switch(logic) {
+        case "enrage_20": if (currentMonster.hp / currentMonster.maxHp < 0.2) { d += 2; addLog(`🔴 Dühroham! +2 sebzés visszacsapás!`); } break;
+        case "arrow_resist": if (myHero.charClass === "Íjász") { d = Math.floor(d * 0.8); addLog(`🦴 Csontvázszerkezet: -20% sebzés`); } break;
+        case "steal_gold": if (Math.random() < 0.4) { myHero.gold = Math.max(0,(myHero.gold||0)-1); addLog(`💰 Zsebmetszés! -1 arany`); } break;
+        case "crit_immune": if (isCrit) { d = Math.floor(d * 0.5); addLog(`🟫 Amorf test: kritikus felezve`); } break;
+        case "flat_reduction_3": d = Math.max(1, d - 3); addLog(`⚔️ Acélfal: -3 sebzés`); break;
+        case "regen_5": currentMonster.hp = Math.min(currentMonster.maxHp, currentMonster.hp + 5); addLog(`🌿 Regeneráció: +5 HP`); break;
+        case "mana_shield": if (currentMonster.mana > 0) { const abs = Math.min(currentMonster.mana, Math.floor(d * 0.5)); currentMonster.mana -= abs; d = Math.max(1, d - abs); addLog(`🔮 Mana Pajzs: ${abs} sebzés elnyelve`); } break;
+        case "reflect_15": { const ref = Math.floor(d * 0.15); myHero.hp -= ref; addLog(`🔄 Visszaverés: -${ref} HP neked`); } break;
+        case "lifesteal_30": { const h = Math.floor(d * 0.3); currentMonster.hp = Math.min(currentMonster.maxHp, currentMonster.hp + h); addLog(`🩸 Életszívás: +${h} HP`); } break;
+    }
+    return d;
+}
+
+function executeMonsterActiveAbility() {
+    const logic = currentMonster.passiveLogic;
+    const info = getMonsterActiveAbilityInfo(logic);
+    monsterAbilityCooldown = info.cd;
+    monsterAbilityUsedCount++;
+    flashMonsterAbility();
+    addLog(`🔥 <span style="color:#ff9900">${currentMonster.name}: ${info.name}!</span>`);
+    switch(logic) {
+        case "enrage_20": case "low_hp_crit": case "d12_enrage": { const d = Math.max(1, Math.floor(currentMonster.atk * 1.5) - myHero.def); myHero.hp -= d; playAttackAnim('e-img','p-img',d,true); break; }
+        case "double_attack": { const d1 = Math.max(1, currentMonster.atk - myHero.def); const d2 = Math.max(1, Math.floor(currentMonster.atk*0.7) - myHero.def); myHero.hp -= (d1+d2); playAttackAnim('e-img','p-img',d1+d2,false); break; }
+        case "burn_aura": case "burn_dot_5": { const t = logic==="burn_dot_5"?5:3; playerStatus.burn = t; updateStatusBadges(); break; }
+        case "web_trap": case "stun_immune": case "stun_on_d20": playerStatus.stun = 1; updateStatusBadges(); break;
+        case "silence_3": playerStatus.stun = 2; updateStatusBadges(); break;
+        case "steal_gold": { const s = Math.min(myHero.gold||0, 5); myHero.gold = Math.max(0,(myHero.gold||0)-s); break; }
+        case "regen_5": currentMonster.hp = Math.min(currentMonster.maxHp, currentMonster.hp+20); break;
+        case "mana_only_dmg": myHero.mp = Math.max(0, myHero.mp-20); updateBars(); break;
+        case "mass_cd": myCooldowns = myCooldowns.map(()=>3); updateSkillBtns(); break;
+        case "half_dmg_curse": playerStatus.weakened = 2; updateStatusBadges(); break;
+        case "tri_action": { const d = Math.max(1, currentMonster.atk - myHero.def); myHero.hp -= d; currentMonster.hp = Math.min(currentMonster.maxHp, currentMonster.hp+15); playAttackAnim('e-img','p-img',d,false); break; }
+        case "revive_once": currentMonster._canRevive = true; break;
+        case "mirror_skill_50": currentMonster._mirrorNext = true; break;
+        case "lifesteal_30": { const l = Math.floor(currentMonster.atk*0.5); currentMonster.hp = Math.min(currentMonster.maxHp, currentMonster.hp+l); break; }
+        case "d20_only": { const d = Math.max(1, 60-myHero.def); myHero.hp -= d; playAttackAnim('e-img','p-img',d,true); break; }
+        case "time_rewind_4": currentMonster.hp = currentMonster.maxHp; break;
+        case "shield_break": { const orig = myHero.def; myHero.def = 0; setTimeout(()=>{ myHero.def = orig; }, 2*2000); break; }
+        case "reflect_15": currentMonster._reflectActive = true; break;
+        default: { const d = Math.max(1, Math.floor(currentMonster.atk*1.2) - myHero.def); myHero.hp -= d; playAttackAnim('e-img','p-img',d,false); }
+    }
+}
+
+async function playerAction(type) {
+    if (!isMyTurn) return;
+    isMyTurn = false; toggleBtns(true); myHero.isDefending = false;
+    if (type === 'attack') {
+        const result = CombatEngine.calculatePhysicalDamage(myHero, currentMonster);
+        let dmg = result.damage;
+        const isCrit = result.isCrit;
+        if (currentMonster.passiveLogic === "hard_skin_15" && parseInt(result.roll) < 15) { dmg = 1; addLog(`🪨 Sziklabőr!`); }
+        if (currentMonster.passiveLogic === "dodge_30" && Math.random() < 0.3) { addLog(`🦇 Kitérés!`); document.getElementById('dice').innerText = "💨"; updateBars(); checkTurnEnd(); return; }
+        if (playerStatus.weakened > 0) { dmg = Math.floor(dmg / 2); playerStatus.weakened--; updateStatusBadges(); }
+        dmg = applyMonsterPassive(dmg, isCrit);
         currentMonster.hp -= dmg;
+        document.getElementById('dice').innerText = isCrit ? `💥${result.roll}` : result.roll;
+        addLog(`⚔️ ${myHero.name}: ${dmg}${isCrit?' (KRIT!)':''}`);
+        await playAttackAnim('p-img', 'e-img', dmg, isCrit);
+    } else { myHero.isDefending = true; addLog(`🛡️ Védekezés!`); }
+    updateBars(); checkTurnEnd();
+}
 
-        addLog(`✨ <b>${skill.name}</b>! Sebzés: <b>${dmg}</b>`);
-        
-        await playAnim('p-img', 'e-img', 'skill');
-        checkBattleState();
+async function playerSkill(idx) {
+    if (!isMyTurn || playerStatus.stun > 0) return;
+    const s = myClassData.skills[idx];
+    if (myHero.mp < s.cost || myCooldowns[idx] > 0) return;
+    isMyTurn = false; toggleBtns(true);
+    myHero.mp -= s.cost; myCooldowns[idx] = s.cd; updateBars();
+    const res = CombatEngine.calculateSkillEffect(myHero, currentMonster, s);
+    let dmg = res.damage;
+    if (playerStatus.weakened > 0) { dmg = Math.floor(dmg / 2); playerStatus.weakened--; updateStatusBadges(); }
+    if (currentMonster._mirrorNext) { const mirror = Math.floor(dmg * 0.5); myHero.hp -= mirror; currentMonster._mirrorNext = false; }
+    dmg = applyMonsterPassive(dmg, false);
+    currentMonster.hp -= dmg;
+    if (res.healing > 0) { myHero.hp = Math.min(myHero.maxHp, myHero.hp + res.healing); }
+    document.getElementById('dice').innerText = "✨";
+    addLog(`✨ ${s.name}: ${dmg}`);
+    await playSkillAnim('p-img');
+    updateBars(); checkTurnEnd();
+}
+
+function checkTurnEnd() {
+    updateBars(); updateSkillBtns();
+    if (currentMonster.hp <= 0) {
+        if (currentMonster._canRevive) { currentMonster._canRevive = false; currentMonster.hp = 50; updateBars(); } 
+        else return endBattle(true);
     }
+    document.getElementById('turn-display').innerText = "ELLENSÉG KÖRE...";
+    setTimeout(enemyTurn, 900);
+}
 
-    async function enemyTurn() {
-        document.getElementById('turn-display').innerText = "ELLENFÉL KÖRE...";
-        document.getElementById('turn-display').style.color = "#ff4444";
-
-        await new Promise(r => setTimeout(r, 600));
-
-        const res = CombatEngine.calculatePhysicalDamage(currentMonster, myHero);
-        myHero.hp -= res.damage;
-
-        document.getElementById('dice').innerText = res.roll;
-        addLog(`👹 ${currentMonster.name} visszatámad: <b>${res.damage}</b> sebzés.`);
-
-        await playAnim('e-img', 'p-img', 'normal');
-
-        // Cooldownok csökkentése kör végén
-        myCooldowns = myCooldowns.map(c => Math.max(0, c - 1));
-        
-        updateBars();
-
-        if (myHero.hp <= 0) {
-            endBattle(false);
-        } else {
-            isMyTurn = true;
-            toggleBtns(false);
-            document.getElementById('turn-display').innerText = "TE KÖVETKEZEL!";
-            document.getElementById('turn-display').style.color = "var(--gold)";
-        }
+function enemyTurn() {
+    if (monsterStatus.burn > 0) { currentMonster.hp -= 4; monsterStatus.burn--; updateBars(); if (currentMonster.hp <= 0) return endBattle(true); }
+    if (playerStatus.burn > 0) { const ba = currentMonster.passiveLogic === "burn_dot_5" ? 5 : 3; myHero.hp -= ba; playerStatus.burn--; updateStatusBadges(); }
+    if (playerStatus.stun > 0) { playerStatus.stun--; updateBars(); updateStatusBadges(); myCooldowns = myCooldowns.map(c => c > 0 ? c-1 : 0); if (myHero.hp <= 0) return endBattle(false); isMyTurn = true; toggleBtns(false); document.getElementById('turn-display').innerText = "TE KÖVETKEZEL!"; return; }
+    const canUse = monsterAbilityCooldown === 0 && monsterAbilityUsedCount < MONSTER_ABILITY_MAX_USES && Math.random() < 0.28;
+    if (canUse) executeMonsterActiveAbility();
+    else {
+        if (Math.random() > 0.15) {
+            const result = CombatEngine.calculatePhysicalDamage(currentMonster, myHero);
+            myHero.hp -= result.damage; document.getElementById('dice').innerText = result.roll;
+            playAttackAnim('e-img', 'p-img', result.damage, result.isCrit);
+        } else { currentMonster.isDefending = true; addLog(`🛡️ Szörny véd!`); }
     }
+    if (monsterAbilityCooldown > 0) monsterAbilityCooldown--;
+    myCooldowns = myCooldowns.map(c => c > 0 ? c-1 : 0);
+    updateStatusBadges(); updateBars(); updateSkillBtns();
+    if (myHero.hp <= 0) return endBattle(false);
+    isMyTurn = true; toggleBtns(false); document.getElementById('turn-display').innerText = "TE KÖVETKEZEL!";
+}
 
-    // =====================================================
-    // SEGÉDFÜGGVÉNYEK
-    // =====================================================
-    function checkBattleState() {
-        updateBars();
-        if (currentMonster.hp <= 0) {
-            endBattle(true);
-        } else {
-            setTimeout(enemyTurn, 600);
-        }
-    }
+function updateBars() {
+    document.getElementById('p-hp-fill').style.width = Math.max(0, myHero.hp/myHero.maxHp*100)+"%";
+    document.getElementById('p-hp-val').innerText = `${Math.max(0,Math.ceil(myHero.hp))} / ${myHero.maxHp} HP`;
+    document.getElementById('p-mp-fill').style.width = (myHero.mp/myHero.maxMp*100)+"%";
+    document.getElementById('p-mp-val').innerText = `${Math.ceil(myHero.mp)} / ${myHero.maxMp} MP`;
+    document.getElementById('e-hp-fill').style.width = Math.max(0, currentMonster.hp/currentMonster.maxHp*100)+"%";
+    document.getElementById('e-hp-val').innerText = `${Math.max(0,Math.ceil(currentMonster.hp))} / ${currentMonster.maxHp} HP`;
+}
 
-    function updateBars() {
-        // Hős
-        const pHpPerc = Math.max(0, (myHero.hp / myHero.maxHp) * 100);
-        document.getElementById('p-hp-fill').style.width = pHpPerc + "%";
-        document.getElementById('p-hp-val').innerText = `${Math.ceil(myHero.hp)} / ${myHero.maxHp}`;
+function updateSkillBtns() {
+    myClassData.skills.forEach((s, i) => {
+        const btn = document.getElementById(`sk-${i}`);
+        const onCd = myCooldowns[i] > 0;
+        btn.disabled = !isMyTurn || onCd || myHero.mp < s.cost || playerStatus.stun > 0;
+        btn.innerHTML = onCd ? `<div class="cd-overlay">${myCooldowns[i]}</div>` : '';
+    });
+}
 
-        const pMpPerc = Math.max(0, (myHero.mp / myHero.maxMp) * 100);
-        document.getElementById('p-mp-fill').style.width = pMpPerc + "%";
-        document.getElementById('p-mp-val').innerText = `${myHero.mp} / ${myHero.maxMp}`;
+function updateStatusBadges() {
+    const el = document.getElementById('status-effects'); el.innerHTML = '';
+    if (playerStatus.burn > 0) el.innerHTML += `<span class="status-badge status-burn">🔥 Égés ${playerStatus.burn}</span>`;
+    if (playerStatus.stun > 0) el.innerHTML += `<span class="status-badge status-stun">😵 Kábult ${playerStatus.stun}</span>`;
+    if (playerStatus.weakened > 0) el.innerHTML += `<span class="status-badge status-weak">☠️ Gyengült ${playerStatus.weakened}</span>`;
+}
 
-        // Szörny
-        const eHpPerc = Math.max(0, (currentMonster.hp / currentMonster.maxHp) * 100);
-        document.getElementById('e-hp-fill').style.width = eHpPerc + "%";
-        document.getElementById('e-hp-val').innerText = `${Math.ceil(currentMonster.hp)} / ${currentMonster.maxHp}`;
+function toggleBtns(disable) {
+    document.getElementById('btn-attack').disabled = disable;
+    document.getElementById('btn-defend').disabled = disable;
+    if (!disable) updateSkillBtns();
+    else for (let i=0; i<3; i++) document.getElementById(`sk-${i}`).disabled = true;
+}
 
-        // Cooldown megjelenítés
-        for (let i = 0; i < 3; i++) {
-            const btn = document.getElementById(`sk-${i}`);
-            if (myCooldowns[i] > 0) {
-                btn.innerHTML = `<div class="cd-overlay">${myCooldowns[i]}</div>`;
-            } else {
-                btn.innerHTML = "";
-            }
-        }
-    }
+function addLog(msg) {
+    const log = document.getElementById('log'); const div = document.createElement('div');
+    div.style.cssText = 'border-bottom:1px solid #222; padding-bottom:3px; margin-bottom:3px;';
+    div.innerHTML = msg; log.insertBefore(div, log.firstChild);
+    while (log.children.length > 30) log.removeChild(log.lastChild);
+}
 
-    function toggleBtns(disable) {
-        document.getElementById('btn-attack').disabled = disable;
-        for (let i = 0; i < 3; i++) {
-            const btn = document.getElementById(`sk-${i}`);
-            btn.disabled = disable || (myCooldowns[i] > 0);
-        }
-    }
+// =====================================================
+// JAVÍTOTT HARC VÉGE - HP ÉS MP MENTÉSSEL
+// =====================================================
+function endBattle(win) {
+    toggleBtns(true);
+    document.getElementById('win-screen').style.display = 'flex';
+    document.getElementById('win-title').innerText = win ? "GYŐZELEM!" : "VERESÉG!";
+    document.getElementById('win-title').style.color = win ? "var(--gold)" : "#ff4444";
 
-    function addLog(msg) {
-        const log = document.getElementById('log');
-        const div = document.createElement('div');
-        div.style.borderBottom = '1px solid #222';
-        div.style.padding = '4px 0';
-        div.innerHTML = msg;
-        log.insertBefore(div, log.firstChild);
-    }
+    const xp = win ? currentMonster.xp : Math.floor(currentMonster.xp / 5);
+    const gold = win ? currentMonster.gold : 0;
+    
+    // Aktuális értékek mentése (legalább 1 HP, ha nyert)
+    const finalHp = Math.max(win ? 1 : 0, Math.ceil(myHero.hp));
+    const finalMp = Math.max(0, Math.ceil(myHero.mp));
 
-    function playAnim(attackerId, defenderId, type) {
-        return new Promise(resolve => {
-            const att = document.getElementById(attackerId);
-            const def = document.getElementById(defenderId);
-            
-            // Támadó animáció
-            const animClass = (attackerId === 'p-img') ? 'anim-attack-player' : 'anim-attack-monster';
-            const hitClass = (type === 'skill') ? 'anim-skill' : (type === 'crit' ? 'anim-hit-crit' : 'anim-hit-normal');
+    document.getElementById('reward-xp').innerText = `+${xp} XP`;
+    document.getElementById('reward-gold').innerText = `+${gold} Arany`;
+    document.getElementById('reward-hp').innerText = `Maradék HP: ${finalHp}`;
 
-            att.classList.add(animClass);
-
-            setTimeout(() => {
-                att.classList.remove(animClass);
-                def.classList.add(hitClass);
-                
-                setTimeout(() => {
-                    def.classList.remove(hitClass);
-                    resolve();
-                }, 250);
-            }, 200);
-        });
-    }
-
-    function endBattle(win) {
-        toggleBtns(true);
-        document.getElementById('win-screen').style.display = 'flex';
-        document.getElementById('win-title').innerText = win ? "GYŐZELEM!" : "VERESÉG!";
-        document.getElementById('win-title').style.color = win ? "var(--gold)" : "#ff4444";
-
-        const xp = win ? currentMonster.xp : Math.floor(currentMonster.xp / 4);
-        const gold = win ? currentMonster.gold : 0;
-
-        document.getElementById('reward-xp').innerText = `+${xp} XP`;
-        document.getElementById('reward-gold').innerText = `+${gold} Arany`;
-        document.getElementById('reward-hp').innerText = `Maradék életerő: ${Math.max(0, Math.ceil(myHero.hp))}`;
-
-        // Mentés Firebase-be
-        db.ref(`characters/${myId}`).update({
-            xp: (myHero.xp || 0) + xp,
-            gold: (myHero.gold || 0) + gold
-        });
-    }
+    // FIREBASE FRISSÍTÉS: Minden érték mentésre kerül
+    db.ref(`characters/${myId}`).update({
+        xp: (myHero.xp || 0) + xp,
+        gold: Math.max(0, (myHero.gold || 0) + gold),
+        hp: finalHp,
+        mp: finalMp
+    });
+}
 </script>
 </body>
 </html>
