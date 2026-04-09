@@ -1,10 +1,10 @@
 const MONSTERS = {
     easy: [
-        { id: "veszett_kutya", name: "Veszett Kutya", hp: 85, maxHp: 85, atk: 14, def: 4, gold: 5, xp: 15, image: "placeholder_link", passiveName: "Veszett düh", passiveDesc: "20% HP alatt sebzés +2", passiveLogic: "enrage_20" },
-        { id: "patkanyraj", name: "Patkányraj", hp: 66, maxHp: 66, atk: 10, def: 3, gold: 4, xp: 12, image: "placeholder_link", passiveName: "Sereghatás", passiveDesc: "Körönként kétszer sebez", passiveLogic: "double_attack" },
-        { id: "csontvaz", name: "Csontváz", hp: 94, maxHp: 94, atk: 17, def: 7, gold: 6, xp: 20, image: "placeholder_link", passiveName: "Csontvázszerkezet", passiveDesc: "Távolsági sebzés -20%", passiveLogic: "arrow_resist" },
-        { id: "goblin", name: "Goblin", hp: 75, maxHp: 75, atk: 19, def: 4, gold: 8, xp: 18, image: "placeholder_link", passiveName: "Gyávaság", passiveDesc: "Balszerencse esetén nem támad", passiveLogic: "cowardice" },
-        { id: "bandita", name: "Bandita", hp: 112, maxHp: 112, atk: 22, def: 9, gold: 12, xp: 25, image: "placeholder_link", passiveName: "Zsebmetszés", passiveDesc: "Ellop 1 aranyat minden ütésnél", passiveLogic: "steal_gold" },
+        { id: "veszett_kutya", name: "Veszett Kutya", hp: 85, maxHp: 85, atk: 14, def: 4, gold: 5, xp: 15, image: "https://i.ibb.co/PvSwKyJx/Copilot-20260409-202938.png", passiveName: "Veszett düh", passiveDesc: "20% HP alatt sebzés +2", passiveLogic: "enrage_20" },
+        { id: "patkanyraj", name: "Patkányraj", hp: 66, maxHp: 66, atk: 10, def: 3, gold: 4, xp: 12, image: "https://i.ibb.co/1YsWLbWD/Copilot-20260409-202953.png", passiveName: "Sereghatás", passiveDesc: "Körönként kétszer sebez", passiveLogic: "double_attack" },
+        { id: "csontvaz", name: "Csontváz", hp: 94, maxHp: 94, atk: 17, def: 7, gold: 6, xp: 20, image: "https://i.ibb.co/gM5dwp8f/Copilot-20260409-203247.png", passiveName: "Csontvázszerkezet", passiveDesc: "Távolsági sebzés -20%", passiveLogic: "arrow_resist" },
+        { id: "goblin", name: "Goblin", hp: 75, maxHp: 75, atk: 19, def: 4, gold: 8, xp: 18, image: "https://i.ibb.co/Gf4R1tQS/Copilot-20260409-211658.png", passiveName: "Gyávaság", passiveDesc: "Balszerencse esetén nem támad", passiveLogic: "cowardice" },
+        { id: "bandita", name: "Bandita", hp: 112, maxHp: 112, atk: 22, def: 9, gold: 12, xp: 25, image: "https://i.ibb.co/DDMVJ1FS/Copilot-20260409-211740.png", passiveName: "Zsebmetszés", passiveDesc: "Ellop 1 aranyat minden ütésnél", passiveLogic: "steal_gold" },
         { id: "zombi", name: "Zombi", hp: 141, maxHp: 141, atk: 14, def: 3, gold: 5, xp: 22, image: "placeholder_link", passiveName: "Holtak nyugalma", passiveDesc: "Immunis a kábításra", passiveLogic: "stun_immune" },
         { id: "oriaspok", name: "Óriáspók", hp: 104, maxHp: 104, atk: 19, def: 7, gold: 7, xp: 24, image: "placeholder_link", passiveName: "Hálócsapda", passiveDesc: "10% esély körkihagyásra", passiveLogic: "web_trap" },
         { id: "mocsari_iszap", name: "Mocsári Iszap", hp: 131, maxHp: 131, atk: 12, def: 4, gold: 6, xp: 20, image: "placeholder_link", passiveName: "Amorf test", passiveDesc: "Kritikus ütés ellen védett", passiveLogic: "crit_immune" },
