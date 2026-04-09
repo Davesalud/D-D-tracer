@@ -673,16 +673,18 @@
     // =====================================================
     // JÁTÉKOS AKCIÓK
     // =====================================================
-    function playerAction(type) {
+    async function playerAction(type) {
         if(!isMyTurn) return;
+        isMyTurn = false;
+        toggleBtns(true);
         myHero.isDefending = false;
 
         if(type === 'attack') {
-            // hard_skin_15 passzív: csak 15+ roll sérül
             const result = CombatEngine.calculatePhysicalDamage(myHero, currentMonster);
             let dmg = result.damage;
             const isCrit = result.isCrit;
 
+            // hard_skin_15 passzív
             if(currentMonster.passiveLogic === "hard_skin_15" && result.roll < 15) {
                 dmg = 1;
                 addLog(`🪨 Sziklabőr! Csak 15+ d20-ra sebzesz — 1 sebzés!`);
@@ -692,7 +694,9 @@
             if(currentMonster.passiveLogic === "dodge_30" && Math.random() < 0.3) {
                 addLog(`🦇 ${currentMonster.name} kitért!`);
                 document.getElementById('dice').innerText = "💨";
-                checkTurnEnd();
+                updateBars();
+                document.getElementById('turn-display').innerText = "ELLENSÉG KÖRE...";
+                setTimeout(enemyTurn, 900);
                 return;
             }
 
@@ -704,28 +708,35 @@
             }
 
             dmg = applyMonsterPassive(dmg, isCrit);
-
             currentMonster.hp -= dmg;
+
             document.getElementById('dice').innerText = isCrit ? `💥${result.roll}` : result.roll;
             addLog(`⚔️ ${myHero.name} sebez: <span style="color:${dmg <= 5 ? '#80c8ff' : isCrit ? '#ffd700' : '#ff6666'}">${dmg}</span>${isCrit ? ' (KRITIKUS!)' : ''}`);
-            playAttackAnim('p-img', 'e-img', dmg, isCrit);
+
+            await playAttackAnim('p-img', 'e-img', dmg, isCrit);
 
         } else {
             myHero.isDefending = true;
             addLog(`🛡️ Védekező állást vettél fel!`);
         }
+
+        updateBars();
         checkTurnEnd();
     }
 
-    function playerSkill(idx) {
+    async function playerSkill(idx) {
         if(!isMyTurn) return;
         if(playerStatus.stun > 0) return addLog(`😶 Képességeid zárolva vagy kábult vagy!`);
         const s = myClassData.skills[idx];
         if(myHero.mp < s.cost) return addLog(`❌ Nincs elég manád! (kell: ${s.cost})`);
         if(myCooldowns[idx] > 0) return addLog(`⏳ Cooldown: még ${myCooldowns[idx]} kör!`);
 
+        isMyTurn = false;
+        toggleBtns(true);
+
         myHero.mp -= s.cost;
         myCooldowns[idx] = s.cd;
+        updateBars(); // ← azonnal frissítjük a manát
 
         const res = CombatEngine.calculateSkillEffect(myHero, currentMonster, s);
         let dmg = res.damage;
@@ -756,8 +767,9 @@
 
         document.getElementById('dice').innerText = "✨";
         addLog(`✨ <span style="color:var(--gold)">${s.name}</span> — Sebzés: <span style="color:#ffd700">${dmg}</span>`);
-        playSkillAnim('p-img');
 
+        await playSkillAnim('p-img');
+        updateBars();
         checkTurnEnd();
     }
 
@@ -768,9 +780,7 @@
         updateBars();
         updateSkillBtns();
 
-        // Szörny halott?
         if(currentMonster.hp <= 0) {
-            // Feltámadás passzív
             if(currentMonster._canRevive) {
                 currentMonster._canRevive = false;
                 currentMonster.hp = 50;
@@ -781,8 +791,6 @@
             }
         }
 
-        isMyTurn = false;
-        toggleBtns(true);
         document.getElementById('turn-display').innerText = "ELLENSÉG KÖRE...";
         setTimeout(enemyTurn, 900);
     }
