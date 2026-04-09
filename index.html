@@ -81,7 +81,6 @@
         #btn-side-kampany    { background-image: url('https://i.ibb.co/GfFbXvNH/Copilot-20260409-011839.png'); }
         #btn-side-teamkampany{ background-image: url('https://i.ibb.co/ycxQ6jyC/Copilot-20260409-014707.png'); }
         #btn-side-arena      { background-image: url('https://i.ibb.co/p66KV1Vb/Copilot-20260405-021201.png'); }
-        /* FRISSÍTETT RANGLISTA KÉP */
         #btn-side-ranklist   { background-image: url('https://i.ibb.co/S40wz7Zt/Copilot-20260409-195601.png'); }
 
         .side-action-btn:hover {
@@ -106,7 +105,6 @@
         .xp-fill { height: 100%; background: var(--gold); width: 0%; transition: width 1s ease; }
         .nav-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0; }
         
-        /* JAVÍTOTT IMG-BTN EFFEKTEK */
         .img-btn { 
             display: flex; align-items: flex-end; justify-content: center; height: 80px; 
             border: 1px solid var(--gold); border-radius: 4px; text-decoration: none; 
@@ -268,11 +266,17 @@
 
     const HERO_IMAGES = { "Harcos": "https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png", "Mágus": "https://i.ibb.co/yFz5bcXv/Copilot-20260403-033651.png", "Lovag": "https://i.ibb.co/Fk3n339M/Copilot-20260403-034043.png", "Íjász": "https://i.ibb.co/whd2jNpB/Copilot-20260403-034402.png", "Bérgyilkos": "https://i.ibb.co/b525CsLg/Copilot-20260403-032807.png", "Nekromanta": "https://i.ibb.co/NnCwwCbR/Copilot-20260403-033301.png" };
 
-    checkAndApplyRegen(myId);
-    db.ref(`characters/${myId}/status`).once('value', s => {
-        const currentStatus = s.val();
-        if (currentStatus !== "fighting" && currentStatus !== "searching") {
-            db.ref(`characters/${myId}`).update({ status: "online" });
+    // JAVÍTÁS: Adatok lekérése után hívjuk csak a regent és frissítünk státuszt
+    db.ref(`characters/${myId}`).once('value', snapshot => {
+        const c = snapshot.val();
+        if (c) {
+            if (c.status !== "fighting" && c.status !== "searching") {
+                db.ref(`characters/${myId}`).update({ 
+                    status: "online",
+                    lastUpdate: Date.now() 
+                });
+            }
+            checkAndApplyRegen(myId);
         }
     });
 
