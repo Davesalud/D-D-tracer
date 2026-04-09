@@ -1,1 +1,263 @@
 
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Death's Armada - Ranglista</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,700;1,400&family=MedievalSharp&display=swap" rel="stylesheet">
+    <style>
+        :root { --gold: #c5a059; --bg: #050507; --glass: rgba(15, 15, 18, 0.95); --accent: #8b0000; }
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'MedievalSharp', cursive;
+            background-color: var(--bg);
+            color: #e8e8e8;
+            margin: 0;
+            min-height: 100vh;
+        }
+        .master-bg {
+            position: fixed; inset: 0; z-index: -1;
+            background-image: linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.92)),
+                url('https://i.ibb.co/S40wz7Zt/Copilot-20260409-195601.png');
+            background-size: cover; background-position: center;
+        }
+        .wrap {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 24px 16px 48px;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: var(--gold);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-size: 1.75rem;
+            margin: 0 0 8px;
+        }
+        .sub {
+            font-family: 'Crimson Text', serif;
+            font-size: 0.95rem;
+            color: #aaa;
+            max-width: 520px;
+            margin: 0 auto;
+            line-height: 1.45;
+        }
+        .card {
+            background: var(--glass);
+            border: 2px solid var(--gold);
+            border-radius: 4px;
+            box-shadow: 0 0 40px rgba(0,0,0,0.6);
+            backdrop-filter: blur(12px);
+            overflow: hidden;
+        }
+        .toolbar {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            background: rgba(0,0,0,0.35);
+            border-bottom: 1px solid rgba(197, 160, 89, 0.35);
+        }
+        .btn {
+            font-family: 'MedievalSharp', cursive;
+            background: var(--accent);
+            color: #fff;
+            border: 1px solid var(--gold);
+            padding: 8px 16px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        .btn:hover { filter: brightness(1.1); }
+        .btn-ghost {
+            background: #333;
+            text-decoration: none;
+            display: inline-block;
+            color: var(--gold);
+        }
+        .status {
+            font-family: 'Crimson Text', serif;
+            font-size: 0.9rem;
+            color: #888;
+            margin-right: auto;
+        }
+        .table-scroll { overflow-x: auto; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+        thead th {
+            text-align: left;
+            padding: 12px 14px;
+            background: rgba(139, 0, 0, 0.25);
+            color: var(--gold);
+            border-bottom: 2px solid var(--gold);
+            white-space: nowrap;
+        }
+        tbody td {
+            padding: 10px 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        tbody tr:hover td { background: rgba(197, 160, 89, 0.06); }
+        .col-rank { width: 56px; text-align: center; color: var(--gold); font-weight: bold; }
+        .col-num { text-align: right; font-variant-numeric: tabular-nums; }
+        .medal-1 { color: #ffd700; text-shadow: 0 0 8px rgba(255,215,0,0.4); }
+        .medal-2 { color: #c0c0c0; }
+        .medal-3 { color: #cd7f32; }
+        .err {
+            padding: 24px;
+            text-align: center;
+            color: #f66;
+            font-family: 'Crimson Text', serif;
+        }
+        footer {
+            text-align: center;
+            margin-top: 20px;
+        }
+        footer a {
+            color: var(--gold);
+            opacity: 0.75;
+            text-decoration: none;
+            font-size: 0.85rem;
+        }
+        footer a:hover { opacity: 1; text-decoration: underline; }
+    </style>
+</head>
+<body>
+<div class="master-bg"></div>
+<div class="wrap">
+    <header>
+        <h1>🏆 Ranglista</h1>
+        <p class="sub">Minden kalandor egy sor: <strong>győzelmek</strong>, <strong>szint</strong>, <strong>arany</strong>. A sorrend: először több győzelem, azon belül magasabb szint, majd több arany.</p>
+    </header>
+
+    <div class="card">
+        <div class="toolbar">
+            <span class="status" id="status">Betöltés…</span>
+            <button type="button" class="btn" id="btn-refresh" onclick="loadRankings()">Frissítés</button>
+            <a href="index.html" class="btn btn-ghost">← Lobby</a>
+        </div>
+        <div class="table-scroll">
+            <table>
+                <thead>
+                    <tr>
+                        <th class="col-rank">#</th>
+                        <th>Név</th>
+                        <th>Kaszt</th>
+                        <th class="col-num">Győzelmek</th>
+                        <th class="col-num">Szint</th>
+                        <th class="col-num">Arany</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody">
+                </tbody>
+            </table>
+        </div>
+        <div class="err" id="err" style="display:none;"></div>
+    </div>
+
+    <footer>
+        <a href="login.html">Belépés</a> · <a href="creator.html">Új kalandor</a>
+    </footer>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU",
+        authDomain: "dnd-tracker-4fe05.firebaseapp.com",
+        projectId: "dnd-tracker-4fe05",
+        databaseURL: "https://dnd-tracker-4fe05-default-rtdb.europe-west1.firebasedatabase.app"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function num(v, fallback) {
+        const n = Number(v);
+        return Number.isFinite(n) ? n : fallback;
+    }
+
+    function compareRows(a, b) {
+        if (b.wins !== a.wins) return b.wins - a.wins;
+        if (b.level !== a.level) return b.level - a.level;
+        return b.gold - a.gold;
+    }
+
+    function medalClass(rank) {
+        if (rank === 1) return 'medal-1';
+        if (rank === 2) return 'medal-2';
+        if (rank === 3) return 'medal-3';
+        return '';
+    }
+
+    function loadRankings() {
+        const tbody = document.getElementById('tbody');
+        const statusEl = document.getElementById('status');
+        const errEl = document.getElementById('err');
+        errEl.style.display = 'none';
+        errEl.textContent = '';
+        statusEl.textContent = 'Betöltés…';
+        tbody.innerHTML = '';
+
+        db.ref('characters').once('value')
+            .then(snapshot => {
+                const rows = [];
+                snapshot.forEach(child => {
+                    const data = child.val() || {};
+                    rows.push({
+                        id: child.key,
+                        name: (data.name != null && String(data.name).trim() !== '') ? String(data.name) : '—',
+                        charClass: data.charClass != null ? String(data.charClass) : '—',
+                        wins: num(data.wins, 0),
+                        level: num(data.level, 1),
+                        gold: num(data.gold, 0)
+                    });
+                });
+                rows.sort(compareRows);
+
+                statusEl.textContent = rows.length + ' kalandor';
+
+                if (rows.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:#888;">Még nincs egy kalandor sem az adatbázisban.</td></tr>';
+                    return;
+                }
+
+                rows.forEach((row, i) => {
+                    const rank = i + 1;
+                    const tr = document.createElement('tr');
+                    const rankCell = medalClass(rank);
+                    tr.innerHTML =
+                        '<td class="col-rank ' + rankCell + '">' + rank + '</td>' +
+                        '<td>' + escapeHtml(row.name) + '</td>' +
+                        '<td>' + escapeHtml(row.charClass) + '</td>' +
+                        '<td class="col-num">' + row.wins + '</td>' +
+                        '<td class="col-num">' + row.level + '</td>' +
+                        '<td class="col-num">' + row.gold + '</td>';
+                    tbody.appendChild(tr);
+                });
+            })
+            .catch(e => {
+                console.error(e);
+                statusEl.textContent = 'Hiba';
+                errEl.style.display = 'block';
+                errEl.textContent = 'Nem sikerült betölteni a ranglistát. Ellenőrizd a hálózatot, majd próbáld újra.';
+            });
+    }
+
+    function escapeHtml(s) {
+        const d = document.createElement('div');
+        d.textContent = s;
+        return d.innerHTML;
+    }
+
+    loadRankings();
+</script>
+</body>
+</html>
