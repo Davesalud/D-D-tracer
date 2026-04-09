@@ -15,8 +15,17 @@
         .arena-header { padding: 10px; border-bottom: 2px solid var(--gold); text-align: center; background: rgba(0,0,0,0.8); display: none; justify-content: space-between; align-items: center; }
         .battlefield { display: none; flex: 1; justify-content: space-around; align-items: center; padding: 10px; gap: 15px; }
         
-        /* Menü */
-        #campaign-menu { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 20px; }
+        /* Menü módosítva: z-index hozzáadva */
+        #campaign-menu { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            height: 100%; 
+            gap: 20px; 
+            position: relative;
+            z-index: 10;
+        }
         #menu-image { max-width: 600px; border: 3px solid var(--gold); border-radius: 15px; box-shadow: 0 0 20px rgba(197, 160, 89, 0.5); }
         
         /* Kártyák */
@@ -29,11 +38,24 @@
         .mp-fill { height: 100%; background: linear-gradient(90deg, #003366, #0088ff); width: 100%; transition: 0.6s; }
         .bar-text { position: absolute; width: 100%; text-align: center; font-size: 10px; top: 1px; font-weight: bold; text-shadow: 1px 1px 2px black; z-index: 5; }
         
-        /* Gombok és Log */
+        /* Gombok módosítva: z-index és pointer-events */
         .skill-slot { width: 55px; height: 55px; background: #111; border: 2px solid var(--gold); border-radius: 6px; cursor: pointer; background-size: cover; margin: 0 4px; }
         .dice-box { width: 70px; height: 70px; border: 2px solid var(--gold); font-size: 1.5em; background: #000; color: var(--gold); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
         .battle-log { width: 100%; max-width: 250px; height: 150px; background: rgba(0,0,0,0.85); border: 1px solid #444; padding: 8px; font-size: 0.8em; overflow-y: auto; color: #ddd; border-radius: 6px; }
-        .btn { background: var(--accent); color: white; border: 1px solid var(--gold); padding: 12px; font-family: 'MedievalSharp'; cursor: pointer; border-radius: 4px; font-weight: bold; transition: 0.2s; }
+        .btn { 
+            background: var(--accent); 
+            color: white; 
+            border: 1px solid var(--gold); 
+            padding: 12px; 
+            font-family: 'MedievalSharp'; 
+            cursor: pointer; 
+            border-radius: 4px; 
+            font-weight: bold; 
+            transition: 0.2s; 
+            position: relative;
+            z-index: 20;
+            pointer-events: auto;
+        }
         .btn:hover { background: #b30000; }
         .btn:disabled { opacity: 0.4; cursor: not-allowed; }
         
@@ -123,25 +145,33 @@
 
     // 3. Kampány Indítása (Fő funkció)
     async function startCampaign(difficulty) {
+        console.log("startCampaign hívva:", difficulty); // Debug infó
         if(!myId) return alert("Hiba: Nincs karakter kiválasztva!");
         
-        const snap = await db.ref(`characters/${myId}`).once('value');
-        myHero = snap.val();
-        myHero.maxMp = myHero.maxMp || 100;
-        myHero.mp = myHero.maxMp;
-        myHero.isDefending = false;
+        try {
+            const snap = await db.ref(`characters/${myId}`).once('value');
+            myHero = snap.val();
+            if(!myHero) return alert("Hiba: Karakter nem található az adatbázisban!");
+            
+            myHero.maxMp = myHero.maxMp || 100;
+            myHero.mp = myHero.maxMp;
+            myHero.isDefending = false;
 
-        // Szörny sorsolása
-        currentMonster = rollMonsterWithChances(difficulty);
-        currentMonster.isDefending = false;
+            // Szörny sorsolása
+            currentMonster = rollMonsterWithChances(difficulty);
+            currentMonster.isDefending = false;
 
-        // UI Váltás
-        document.getElementById('campaign-menu').style.display = 'none';
-        document.getElementById('arena-header').style.display = 'flex';
-        document.getElementById('battlefield').style.display = 'flex';
+            // UI Váltás
+            document.getElementById('campaign-menu').style.display = 'none';
+            document.getElementById('arena-header').style.display = 'flex';
+            document.getElementById('battlefield').style.display = 'flex';
 
-        initBattleUI();
-        addLog(`⚔️ Egy vad ${currentMonster.name} támadt rád!`);
+            initBattleUI();
+            addLog(`⚔️ Egy vad ${currentMonster.name} támadt rád!`);
+        } catch (e) {
+            console.error(e);
+            alert("Hiba történt a betöltéskor!");
+        }
     }
 
     // 4. Sorsoló logika
