@@ -86,6 +86,8 @@
             color: #888;
             margin-right: auto;
         }
+        .arena-win { color: #6ecf8f; }
+        .arena-loss { color: #e07070; }
         .table-scroll { overflow-x: auto; }
         table {
             width: 100%;
@@ -116,17 +118,6 @@
             color: #f66;
             font-family: 'Crimson Text', serif;
         }
-        footer {
-            text-align: center;
-            margin-top: 20px;
-        }
-        footer a {
-            color: var(--gold);
-            opacity: 0.75;
-            text-decoration: none;
-            font-size: 0.85rem;
-        }
-        footer a:hover { opacity: 1; text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -134,7 +125,7 @@
 <div class="wrap">
     <header>
         <h1>🏆 Ranglista</h1>
-        <p class="sub">Minden kalandor egy sor: <strong>győzelmek</strong>, <strong>szint</strong>, <strong>arany</strong>. A sorrend: először több győzelem, azon belül magasabb szint, majd több arany.</p>
+        <p class="sub">Minden kalandor egy sor: <strong>győzelmek</strong>, <strong>szint</strong>, <strong>arany</strong>. Az <strong>aréna</strong> oszlopok az <a href="arena.html" style="color:var(--gold);">aréna</a> PvP meccsek nyert / vesztett számlálói. A sorrend: először több győzelem, azon belül magasabb szint, majd több arany.</p>
     </header>
 
     <div class="card">
@@ -151,6 +142,8 @@
                         <th>Név</th>
                         <th>Kaszt</th>
                         <th class="col-num">Győzelmek</th>
+                        <th class="col-num" title="Aréna: nyert meccsek">Aréna ✓</th>
+                        <th class="col-num" title="Aréna: vesztett meccsek">Aréna ✗</th>
                         <th class="col-num">Szint</th>
                         <th class="col-num">Arany</th>
                     </tr>
@@ -161,10 +154,6 @@
         </div>
         <div class="err" id="err" style="display:none;"></div>
     </div>
-
-    <footer>
-        <a href="login.html">Belépés</a> · <a href="creator.html">Új kalandor</a>
-    </footer>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -216,16 +205,18 @@
                         name: (data.name != null && String(data.name).trim() !== '') ? String(data.name) : '—',
                         charClass: data.charClass != null ? String(data.charClass) : '—',
                         wins: num(data.wins, 0),
+                        arenaWins: num(data.arenaWins, 0),
+                        arenaLosses: num(data.arenaLosses, 0),
                         level: num(data.level, 1),
                         gold: num(data.gold, 0)
                     });
                 });
                 rows.sort(compareRows);
 
-                statusEl.textContent = rows.length + ' kalandor';
+                statusEl.textContent = rows.length + ' kalandor · auto frissítés: 10 mp';
 
                 if (rows.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:#888;">Még nincs egy kalandor sem az adatbázisban.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:24px;color:#888;">Még nincs egy kalandor sem az adatbázisban.</td></tr>';
                     return;
                 }
 
@@ -238,6 +229,8 @@
                         '<td>' + escapeHtml(row.name) + '</td>' +
                         '<td>' + escapeHtml(row.charClass) + '</td>' +
                         '<td class="col-num">' + row.wins + '</td>' +
+                        '<td class="col-num arena-win">' + row.arenaWins + '</td>' +
+                        '<td class="col-num arena-loss">' + row.arenaLosses + '</td>' +
                         '<td class="col-num">' + row.level + '</td>' +
                         '<td class="col-num">' + row.gold + '</td>';
                     tbody.appendChild(tr);
@@ -258,6 +251,7 @@
     }
 
     loadRankings();
+    setInterval(loadRankings, 10000);
 </script>
 </body>
 </html>
