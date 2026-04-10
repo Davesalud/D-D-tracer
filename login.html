@@ -9,13 +9,14 @@
         :root { --gold: #c5a059; --accent: #8b0000; --glass: rgba(10, 10, 12, 0.95); }
         
         html, body {
-            margin: 0; padding: 0; width: 100%; height: 100%;
+            margin: 0; padding: 0; width: 100%; min-height: 100%;
             background-color: #000;
             background-image: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0) 50%, rgba(0,0,0,0.8) 100%), 
                              url('https://i.ibb.co/5XNkZKLq/fantasy-group-adventurers.jpg');
             background-size: cover; background-position: center center;
             background-repeat: no-repeat; background-attachment: fixed;
-            overflow: hidden; display: flex; align-items: center; justify-content: center;
+            overflow-x: hidden; overflow-y: auto;
+            display: flex; align-items: center; justify-content: center;
             font-family: 'MedievalSharp', serif;
         }
 
@@ -31,7 +32,7 @@
         .patch-content { font-family: 'Crimson Text', serif; font-style: italic; color: #aaa; font-size: 17px; }
 
         /* BEJELENTKEZÉS KONTÉNER */
-        .login-container { position: relative; margin-top: 40vh; width: 440px; z-index: 20; }
+        .login-container { position: relative; margin: 24px auto; width: min(440px, 92vw); z-index: 20; flex-shrink: 0; }
 
         .card { 
             background: var(--glass); border: 2px solid var(--gold); 
@@ -68,9 +69,10 @@
             text-transform: uppercase; font-family: 'MedievalSharp'; 
             font-weight: bold; border: none; font-size: 22px; transition: 0.3s;
         }
-        .btn-main { background: var(--accent); color: white; margin-bottom: 10px; }
-        .btn-main:hover { background: #b00000; letter-spacing: 2px; }
-        .btn-sub { background: transparent; color: var(--gold); border: 1px solid rgba(197, 160, 89, 0.4); font-size: 15px; opacity: 0.8; }
+        .btn-main { background: var(--accent); color: white; margin-bottom: 0; min-height: 52px; }
+        /* Ne változtasson letter-spacing hoveren: különben elcsúszhat a két gomb egymáshoz képest, és a kattintás az alsó gombra esik. */
+        .btn-main:hover { background: #b00000; filter: brightness(1.05); }
+        .btn-sub { background: transparent; color: var(--gold); border: 1px solid rgba(197, 160, 89, 0.4); font-size: 15px; opacity: 0.8; margin-top: 14px; }
         .btn-sub:hover { opacity: 1; border-color: var(--gold); }
     </style>
 </head>
@@ -92,8 +94,8 @@
 
             <input type="password" id="login-pin" placeholder="PIN KÓD" maxlength="4" style="margin-bottom: 15px;">
             
-            <button type="button" class="btn btn-main" onclick="login()">Belépés</button>
-            <button type="button" class="btn btn-sub" onclick="location.href='creator.html'">Új Karakter Indítása</button>
+            <button type="button" class="btn btn-main" id="btn-login">Belépés</button>
+            <button type="button" class="btn btn-sub" id="btn-new-char">Új Karakter Indítása</button>
         </div>
     </div>
 
@@ -111,19 +113,17 @@
 
         let chars = {};
         let selId = null;
-        let charsReady = false;
 
         // Karakterek és Krónikák betöltése
-        db.ref('characters').on('value', s => {
-            chars = s.val() || {};
-            charsReady = true;
-        });
+        db.ref('characters').on('value', s => { chars = s.val() || {}; });
         db.ref('settings/patchNotes').on('value', s => { 
             document.getElementById('patch-text').innerText = s.val() || "A birodalom békés."; 
         });
 
         const inp = document.getElementById('hero-search');
         const list = document.getElementById('autocomplete-list');
+        document.getElementById('btn-login').addEventListener('click', function (e) { e.preventDefault(); login(); });
+        document.getElementById('btn-new-char').addEventListener('click', function () { window.location.href = 'creator.html'; });
 
         // Kereső logika
         inp.addEventListener('input', function() {
@@ -149,50 +149,24 @@
             list.style.display = list.childElementCount > 0 ? 'block' : 'none';
         });
 
-        function normalizeName(s) {
-            return (s || '').trim().replace(/\s+/g, ' ');
-        }
-
-        function resolveCharIdByName(nameInput) {
-            const want = normalizeName(nameInput).toLowerCase();
-            if (!want) return null;
-            return Object.keys(chars).find(id => {
-                const c = chars[id];
-                return c && normalizeName(c.name).toLowerCase() === want;
-            }) || null;
-        }
-
         // Belépés logika
         function login() {
-            if (!charsReady) {
-                alert("Még töltődnek a kalandorok az adatbázisból — várj egy másodpercet, és próbáld újra.");
-                return;
-            }
-            const pin = document.getElementById('login-pin').value.trim();
-            const nameInput = normalizeName(inp.value);
+            const pin = document.getElementById('login-pin').value;
+            const nameInput = inp.value.trim();
 
-            let id = selId;
-            const selStillMatches = id && chars[id] && normalizeName(chars[id].name).toLowerCase() === nameInput.toLowerCase();
-            if (!id || !selStillMatches) {
-                id = resolveCharIdByName(nameInput);
+            // Ha nem kattintott a listára, megkeressük név alapján
+            if (!selId) {
+                selId = Object.keys(chars).find(id => chars[id].name === nameInput);
             }
 
-            const row = id ? chars[id] : null;
-            if (row && row.pin != null && String(row.pin) === pin) {
-                localStorage.setItem('selectedCharId', id);
-                window.location.href = 'index.html';
-            } else {
-                alert("Hiba a névben vagy PIN kódban!");
+            if (selId && chars[selId].pin && chars[selId].pin.toString() === pin) {
+                localStorage.setItem('selectedCharId', selId);
+                window.location.href = 'index.html'; // Ide jön a karakterlapod neve!
+            } else { 
+                alert("Hiba a névben vagy PIN kódban!"); 
                 selId = null;
             }
         }
-
-        document.getElementById('login-pin').addEventListener('keydown', function (e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                login();
-            }
-        });
     </script>
 </body>
 </html>
