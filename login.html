@@ -190,8 +190,10 @@
             }
 
             if (selId && chars[selId].pin && chars[selId].pin.toString() === pin) {
-                localStorage.setItem('selectedCharId', selId);
-                window.location.href = 'index.html'; // Ide jön a karakterlapod neve!
+                try { localStorage.setItem('selectedCharId', selId); } catch (e) {}
+                try { sessionStorage.setItem('selectedCharId', selId); } catch (e2) {}
+                /* ?c= — az auth-guard akkor is felismeri a karaktert, ha a tároló nem elérhető */
+                window.location.href = 'index.html?c=' + encodeURIComponent(selId);
             } else { 
                 alert("Hiba a névben vagy PIN kódban!"); 
                 selId = null;
