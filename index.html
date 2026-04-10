@@ -266,15 +266,13 @@
 
     const HERO_IMAGES = { "Harcos": "https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png", "Mágus": "https://i.ibb.co/yFz5bcXv/Copilot-20260403-033651.png", "Lovag": "https://i.ibb.co/Fk3n339M/Copilot-20260403-034043.png", "Íjász": "https://i.ibb.co/whd2jNpB/Copilot-20260403-034402.png", "Bérgyilkos": "https://i.ibb.co/b525CsLg/Copilot-20260403-032807.png", "Nekromanta": "https://i.ibb.co/NnCwwCbR/Copilot-20260403-033301.png" };
 
-    // JAVÍTÁS: Adatok lekérése után hívjuk csak a regent és frissítünk státuszt
+    // Online státusz külön: lastUpdate-et itt ne írjuk felül, mert a checkAndApplyRegen
+    // a régi lastUpdate alapján számolja a kimaradt HP/MP töltést, majd ő frissíti.
     db.ref(`characters/${myId}`).once('value', snapshot => {
         const c = snapshot.val();
         if (c) {
             if (c.status !== "fighting" && c.status !== "searching") {
-                db.ref(`characters/${myId}`).update({ 
-                    status: "online",
-                    lastUpdate: Date.now() 
-                });
+                db.ref(`characters/${myId}`).update({ status: "online" });
             }
             checkAndApplyRegen(myId);
         }
