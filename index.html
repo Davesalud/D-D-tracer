@@ -137,6 +137,9 @@
         .dm-key-btn { position: fixed; bottom: 20px; right: 20px; width: 40px; height: 40px; background: rgba(0,0,0,0.8); border: 2px solid var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 1000; color: var(--gold); }
 
         #lvl-up-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
+        #dm-pin-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 10000; }
+        #dm-pin-overlay input#dm-pin-input { user-select: text; -webkit-user-select: text; width: 100%; box-sizing: border-box; padding: 10px; margin-top: 10px; background: #000; border: 1px solid var(--gold); color: #eee; font-family: 'MedievalSharp', serif; font-size: 1em; border-radius: 4px; }
+        #dm-pin-overlay .dm-pin-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
         .lvl-card { background: #111; border: 2px solid var(--gold); padding: 30px; border-radius: 8px; text-align: center; }
         .stat-option { background: rgba(255,255,255,0.05); border: 1px solid #444; color: #fff; padding: 12px; margin: 8px 0; border-radius: 4px; cursor: pointer; width: 100%; font-family: 'MedievalSharp'; }
         .stat-option:hover { background: var(--gold); color: #000; }
@@ -178,6 +181,18 @@
         <button class="stat-option" onclick="chooseStat('def', 1)">🛡️ Páncél +1</button>
         <button class="stat-option" onclick="chooseStat('maxHp', 10)">❤️ Életerő +10</button>
         <button class="stat-option" onclick="chooseStat('atk', 1)">⚔️ Támadás +1</button>
+    </div>
+</div>
+
+<div id="dm-pin-overlay" onclick="if(event.target===this) closeDmPinOverlay()">
+    <div class="lvl-card" onclick="event.stopPropagation()">
+        <h2 style="font-family:'MedievalSharp'; color:var(--gold); margin-top:0;">DM belépés</h2>
+        <p style="margin:0; color:#aaa; font-size:0.9em;">Írd be a PIN-t:</p>
+        <input id="dm-pin-input" type="text" inputmode="text" autocomplete="off" autocorrect="off" spellcheck="false" maxlength="32" placeholder="PIN…" onkeydown="if(event.key==='Enter'){ event.preventDefault(); submitDmPin(); }">
+        <div class="dm-pin-actions">
+            <button type="button" class="stat-option" onclick="submitDmPin()">Belépés</button>
+            <button type="button" class="stat-option" onclick="closeDmPinOverlay()">Mégse</button>
+        </div>
     </div>
 </div>
 
