@@ -1,272 +1,258 @@
+
 <!DOCTYPE html>
 <html lang="hu">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="auth-guard.js"></script>
-    <title>Kereskedő - Death's Armada</title>
-    <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
+    <title>Death's Armada - Ranglista</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,700;1,400&family=MedievalSharp&display=swap" rel="stylesheet">
     <style>
-        :root { --gold: #c5a059; --accent: #8b0000; --bg: #050507; --panel-bg: rgba(20, 20, 25, 0.95); }
-        * { box-sizing: border-box; -webkit-user-select: none; user-select: none; }
-        
-        body { 
-            font-family: 'MedievalSharp', cursive; 
-            background-color: var(--bg); 
-            color: #ccc; 
-            margin: 0; 
-            min-height: 100vh; 
-            overflow-x: hidden;
-            overflow-y: auto; /* Engedjük a görgetést mobilon */
+        :root { --gold: #c5a059; --bg: #050507; --glass: rgba(15, 15, 18, 0.95); --accent: #8b0000; }
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'MedievalSharp', cursive;
+            background-color: var(--bg);
+            color: #e8e8e8;
+            margin: 0;
+            min-height: 100vh;
         }
-
-        .master-bg { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background-image: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.95)), url('https://i.ibb.co/0HSGQK0/Copilot-20260405-001515.png'); 
-            background-size: cover; background-position: center; z-index: -1; 
+        .master-bg {
+            position: fixed; inset: 0; z-index: -1;
+            background-image: linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.92)),
+                url('https://i.ibb.co/S40wz7Zt/Copilot-20260409-195601.png');
+            background-size: cover; background-position: center;
         }
-
-        /* HEADER */
-        .shop-header { 
-            display: flex; justify-content: space-between; align-items: center; 
-            padding: 10px 20px; background: rgba(0,0,0,0.9); border-bottom: 2px solid var(--gold); 
-            position: sticky; top: 0; z-index: 100;
+        .wrap {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 24px 16px 48px;
         }
-        .gold-display { color: var(--gold); font-size: 1.3em; border: 1px solid var(--gold); padding: 5px 15px; border-radius: 6px; background: rgba(255,255,255,0.05); }
-
-        /* LAYOUT */
-        .trade-layout { 
-            display: flex; justify-content: center; align-items: flex-start; 
-            padding: 20px; gap: 20px; max-width: 1400px; margin: 0 auto; 
+        header {
+            text-align: center;
+            margin-bottom: 20px;
         }
-
-        .panel { 
-            background: var(--panel-bg); border: 2px solid var(--gold); border-radius: 8px; 
-            display: flex; flex-direction: column; align-items: center; padding: 15px; 
-            width: 340px; flex-shrink: 0;
+        h1 {
+            color: var(--gold);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-size: 1.75rem;
+            margin: 0 0 8px;
         }
-        .panel-header { color: var(--gold); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; border-bottom: 1px solid var(--gold); width: 100%; text-align: center; padding-bottom: 5px; }
-
-        .avatar-box { width: 100%; aspect-ratio: 1/1; border: 3px solid var(--gold); border-radius: 4px; overflow: hidden; background: #000; margin-bottom: 10px; }
-        .avatar-box img { width: 100%; height: 100%; object-fit: cover; object-position: center 20%; }
-
-        /* ITEM GRID */
-        .item-grid { 
-            width: 100%; height: 300px; display: grid; grid-template-columns: repeat(3, 1fr); 
-            gap: 8px; overflow-y: auto; padding: 10px 5px; border-top: 1px solid #444; 
+        .sub {
+            font-family: 'Crimson Text', serif;
+            font-size: 0.95rem;
+            color: #aaa;
+            max-width: 520px;
+            margin: 0 auto;
+            line-height: 1.45;
         }
-        .item-grid::-webkit-scrollbar { width: 4px; }
-        .item-grid::-webkit-scrollbar-thumb { background: var(--gold); }
-
-        .item-slot { 
-            background: rgba(0,0,0,0.5); border: 1px solid #444; padding: 5px; 
-            text-align: center; cursor: pointer; border-radius: 4px; transition: 0.2s; 
+        .card {
+            background: var(--glass);
+            border: 2px solid var(--gold);
+            border-radius: 4px;
+            box-shadow: 0 0 40px rgba(0,0,0,0.6);
+            backdrop-filter: blur(12px);
+            overflow: hidden;
         }
-        .item-slot:hover { background: rgba(197, 160, 89, 0.2); }
-        .item-slot img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 4px; margin-bottom: 4px; }
-        .item-slot .name { font-size: 0.65em; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #eee; }
-        .item-slot .price-tag { font-size: 0.6em; color: var(--gold); }
-
-        /* DEAL ZONE */
-        .deal-zone { flex: 0 1 400px; min-width: 300px; }
-        .deal-display { 
-            width: 100%; min-height: 250px; background: rgba(0,0,0,0.8); 
-            border: 2px dashed var(--gold); border-radius: 15px; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            margin-bottom: 15px; text-align: center; padding: 15px; 
+        .toolbar {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            background: rgba(0,0,0,0.35);
+            border-bottom: 1px solid rgba(197, 160, 89, 0.35);
         }
-        .deal-display img.big-item-preview { width: 140px; height: 140px; object-fit: contain; filter: drop-shadow(0 0 10px var(--gold)); }
-
-        .btn-group { width: 100%; display: flex; flex-direction: column; gap: 8px; }
-        .btn-action { width: 100%; padding: 12px; font-family: 'MedievalSharp'; font-size: 1.1em; cursor: pointer; border-radius: 6px; }
-        .buy-btn { background: var(--accent); color: white; border: 1px solid #f00; }
-        .sell-btn { background: #2d5a27; color: white; border: 1px solid #5f5; }
-        .cancel-btn { background: #333; color: #ccc; border: 1px solid #555; }
-
-        .btn-back { position: fixed; bottom: 15px; left: 15px; background: #000; color: var(--gold); border: 1px solid var(--gold); padding: 8px 15px; text-decoration: none; border-radius: 4px; z-index: 200; font-size: 0.9em; }
-
-        /* --- MOBIL OPTIMALIZÁLÁS --- */
-        @media (max-width: 1100px) {
-            .trade-layout { 
-                flex-direction: column; 
-                align-items: center; 
-                padding-bottom: 80px; 
-            }
-            .panel { width: 100%; max-width: 500px; }
-            .deal-zone { order: -1; position: sticky; top: 70px; z-index: 90; margin-bottom: 10px; } /* Az alku zóna legyen szem előtt */
-            .avatar-box { height: 200px; } /* Mobilon ne foglaljon annyi helyet a kép */
-            .item-grid { grid-template-columns: repeat(4, 1fr); height: auto; max-height: 400px; }
-            .shop-header { padding: 10px; }
-            .shop-header div:first-child { font-size: 1.2em; }
+        .btn {
+            font-family: 'MedievalSharp', cursive;
+            background: var(--accent);
+            color: #fff;
+            border: 1px solid var(--gold);
+            padding: 8px 16px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 0.9rem;
         }
-
-        @media (max-width: 500px) {
-            .item-grid { grid-template-columns: repeat(3, 1fr); }
-            .avatar-box { display: none; } /* Nagyon kicsi telón kapcsoljuk ki az avatarokat a shopban, hogy elférjen a rács */
+        .btn:hover { filter: brightness(1.1); }
+        .btn-ghost {
+            background: #333;
+            text-decoration: none;
+            display: inline-block;
+            color: var(--gold);
+        }
+        .status {
+            font-family: 'Crimson Text', serif;
+            font-size: 0.9rem;
+            color: #888;
+            margin-right: auto;
+        }
+        .arena-win { color: #6ecf8f; }
+        .arena-loss { color: #e07070; }
+        .table-scroll { overflow-x: auto; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+        thead th {
+            text-align: left;
+            padding: 12px 14px;
+            background: rgba(139, 0, 0, 0.25);
+            color: var(--gold);
+            border-bottom: 2px solid var(--gold);
+            white-space: nowrap;
+        }
+        tbody td {
+            padding: 10px 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        tbody tr:hover td { background: rgba(197, 160, 89, 0.06); }
+        .col-rank { width: 56px; text-align: center; color: var(--gold); font-weight: bold; }
+        .col-num { text-align: right; font-variant-numeric: tabular-nums; }
+        .medal-1 { color: #ffd700; text-shadow: 0 0 8px rgba(255,215,0,0.4); }
+        .medal-2 { color: #c0c0c0; }
+        .medal-3 { color: #cd7f32; }
+        .err {
+            padding: 24px;
+            text-align: center;
+            color: #f66;
+            font-family: 'Crimson Text', serif;
         }
     </style>
 </head>
 <body>
-
 <div class="master-bg"></div>
+<div class="wrap">
+    <header>
+        <h1>🏆 Ranglista</h1>
+        <p class="sub">Minden kalandor egy sor: <strong>győzelmek</strong>, <strong>szint</strong>, <strong>arany</strong>. Az <strong>aréna</strong> oszlopok az <a href="arena.html" style="color:var(--gold);">aréna</a> PvP meccsek nyert / vesztett számlálói. A sorrend: először több győzelem, azon belül magasabb szint, majd több arany.</p>
+    </header>
 
-<div class="shop-header">
-    <div>🛒 Kalmár Sátra</div>
-    <div class="gold-display">💰 <span id="current-gold">0</span></div>
+    <div class="card">
+        <div class="toolbar">
+            <span class="status" id="status">Betöltés…</span>
+            <button type="button" class="btn" id="btn-refresh" onclick="loadRankings()">Frissítés</button>
+            <a href="index.html" class="btn btn-ghost">← Lobby</a>
+        </div>
+        <div class="table-scroll">
+            <table>
+                <thead>
+                    <tr>
+                        <th class="col-rank">#</th>
+                        <th>Név</th>
+                        <th>Kaszt</th>
+                        <th class="col-num">Győzelmek</th>
+                        <th class="col-num" title="Aréna: nyert meccsek">Aréna ✓</th>
+                        <th class="col-num" title="Aréna: vesztett meccsek">Aréna ✗</th>
+                        <th class="col-num">Szint</th>
+                        <th class="col-num">Arany</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody">
+                </tbody>
+            </table>
+        </div>
+        <div class="err" id="err" style="display:none;"></div>
+    </div>
 </div>
-
-<div class="trade-layout">
-    <div class="panel">
-        <div class="panel-header">Kereskedő</div>
-        <div class="avatar-box">
-            <img src="https://i.ibb.co/LzMTVrSt/Copilot-20260405-024414.png" alt="Merchant">
-        </div>
-        <div id="shop-items" class="item-grid"></div>
-    </div>
-
-    <div class="panel deal-zone">
-        <div id="deal-container" class="deal-display">
-            <div style="font-style: italic; color: #555;">Válassz egy árut...</div>
-        </div>
-        <div id="action-area" class="btn-group"></div>
-    </div>
-
-    <div class="panel">
-        <div class="panel-header">Hátizsákod</div>
-        <div class="avatar-box">
-            <img id="player-img" src="" alt="Player Avatar">
-        </div>
-        <div id="player-inventory" class="item-grid"></div>
-    </div>
-</div>
-
-<a href="index.html" class="btn-back">⬅ Várba</a>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
 <script>
-    const ITEMS = {
-        "fakard_01": { id: "fakard_01", name: "Ócska Fakard", type: "fegyver", price: 150, sellPrice: 35, atk: 2, def: 0, rarity: "common", img: "https://i.ibb.co/twxWwxFJ/Copilot-20260405-035308.png" },
-        "rezkard_01": { id: "rezkard_01", name: "Réz Kard", type: "fegyver", price: 450, sellPrice: 120, atk: 5, def: 0, rarity: "uncommon", img: "https://i.ibb.co/nNFg9ps5/Copilot-20260405-040140.png" },
-        "vaskard_01": { id: "vaskard_01", name: "Harci Vas Kard", type: "fegyver", price: 1200, sellPrice: 400, atk: 12, def: 1, rarity: "rare", img: "https://i.ibb.co/LDcq0LQp/Copilot-20260405-040230.png" },
-        "szakadtfelso_01": { id: "szakadtfelso_01", name: "Szakadt Felső", type: "páncél", price: 80, sellPrice: 20, atk: 0, def: 2, rarity: "common", img: "https://i.ibb.co/dsr66j0L/Copilot-20260405-035126.png" },
-        "potion_01": { id: "potion_01", name: "Kisebb Életerő Ital", type: "consumable", heal: 25, price: 50, sellPrice: 15, rarity: "common", img: "https://i.ibb.co/3YChW7rk/Copilot-20260405-034109.png" },
-        "potion_02": { id: "potion_02", name: "Nagyobb Életerő Ital", type: "consumable", heal: 60, price: 150, sellPrice: 50, rarity: "uncommon", img: "https://i.ibb.co/fd2Jys7X/Copilot-20260405-035701.png" }
+    const firebaseConfig = {
+        apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU",
+        authDomain: "dnd-tracker-4fe05.firebaseapp.com",
+        projectId: "dnd-tracker-4fe05",
+        databaseURL: "https://dnd-tracker-4fe05-default-rtdb.europe-west1.firebasedatabase.app"
     };
-
-    const firebaseConfig = { apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU", authDomain: "dnd-tracker-4fe05.firebaseapp.com", projectId: "dnd-tracker-4fe05", databaseURL: "https://dnd-tracker-4fe05-default-rtdb.europe-west1.firebasedatabase.app" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    const myId = localStorage.getItem('selectedCharId');
-    let myGold = 0;
-    let selectedItem = null;
-    let selectedType = "";
-    let currentInv = {};
-
-    const HERO_IMAGES = { "Harcos": "https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png", "Mágus": "https://i.ibb.co/yFz5bcXv/Copilot-20260403-033651.png", "Lovag": "https://i.ibb.co/Fk3n339M/Copilot-20260403-034043.png", "Íjász": "https://i.ibb.co/whd2jNpB/Copilot-20260403-034402.png", "Bérgyilkos": "https://i.ibb.co/b525CsLg/Copilot-20260403-032807.png", "Nekromanta": "https://i.ibb.co/NnCwwCbR/Copilot-20260403-033301.png" };
-
-    db.ref(`characters/${myId}`).on('value', snap => {
-        const data = snap.val();
-        if (!data) return;
-        myGold = data.gold || 0;
-        document.getElementById('current-gold').innerText = myGold;
-        document.getElementById('player-img').src = HERO_IMAGES[data.charClass] || "";
-        renderPlayerInventory(data.inventory || {});
-    });
-
-    function renderShop() {
-        const shopItems = document.getElementById('shop-items');
-        shopItems.innerHTML = Object.keys(ITEMS).map(key => {
-            const i = ITEMS[key];
-            return `
-                <div class="item-slot ${i.rarity}" onclick="selectForDeal('${i.id}', 'buy')">
-                    <img src="${i.img}" alt="${i.name}">
-                    <span class="name">${i.name}</span>
-                    <div class="price-tag">💰 ${i.price}</div>
-                </div>
-            `;
-        }).join('');
+    function num(v, fallback) {
+        const n = Number(v);
+        return Number.isFinite(n) ? n : fallback;
     }
 
-    function renderPlayerInventory(inv) {
-        currentInv = inv;
-        const container = document.getElementById('player-inventory');
-        container.innerHTML = '';
-        Object.keys(inv).forEach(key => {
-            const itemId = inv[key];
-            const itemData = ITEMS[itemId];
-            if (itemData) {
-                container.innerHTML += `
-                    <div class="item-slot ${itemData.rarity}" onclick="selectForDeal('${key}', 'sell')">
-                        <img src="${itemData.img}" alt="${itemData.name}">
-                        <span class="name">${itemData.name}</span>
-                        <div class="price-tag">💰 ${itemData.sellPrice}</div>
-                    </div>
-                `;
-            }
-        });
+    function compareRows(a, b) {
+        if (b.wins !== a.wins) return b.wins - a.wins;
+        if (b.level !== a.level) return b.level - a.level;
+        return b.gold - a.gold;
     }
 
-    function selectForDeal(id, type) {
-        selectedType = type;
-        const container = document.getElementById('deal-container');
-        const action = document.getElementById('action-area');
-        let itemData;
-
-        if(type === 'buy') {
-            itemData = ITEMS[id];
-            selectedItem = { ...itemData };
-        } else {
-            const itemId = currentInv[id];
-            itemData = ITEMS[itemId];
-            if(!itemData) return;
-            selectedItem = { key: id, itemId: itemId, ...itemData, price: itemData.sellPrice };
-        }
-
-        const stats = itemData.type === "consumable" ? `Gyógyítás: +${itemData.heal}` : `Atk: +${itemData.atk || 0} | Def: +${itemData.def || 0}`;
-
-        container.innerHTML = `
-            <img src="${selectedItem.img}" class="big-item-preview">
-            <div style="font-size: 1.2em; color: white; margin-top: 5px;">${selectedItem.name}</div>
-            <div style="font-size: 0.8em; color: #aaa;">${stats}</div>
-            <div style="font-size: 1.5em; color: var(--gold); font-weight: bold;">💰 ${selectedItem.price}</div>
-        `;
-        
-        action.innerHTML = `
-            <button class="btn-action ${type === 'buy' ? 'buy-btn' : 'sell-btn'}" onclick="trade()">
-                ${type === 'buy' ? 'VÁSÁRLÁS' : 'ELADÁS'}
-            </button>
-            <button class="btn-action cancel-btn" onclick="resetDeal()">MÉGSE</button>
-        `;
-
-        // Mobilon görgessünk az alku zónához, ha kiválasztottunk valamit
-        if(window.innerWidth < 1100) {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
+    function medalClass(rank) {
+        if (rank === 1) return 'medal-1';
+        if (rank === 2) return 'medal-2';
+        if (rank === 3) return 'medal-3';
+        return '';
     }
 
-    function resetDeal() {
-        selectedItem = null;
-        document.getElementById('deal-container').innerHTML = `<div style="font-style: italic; color: #555;">Válassz egy árut...</div>`;
-        document.getElementById('action-area').innerHTML = "";
+    function loadRankings() {
+        const tbody = document.getElementById('tbody');
+        const statusEl = document.getElementById('status');
+        const errEl = document.getElementById('err');
+        errEl.style.display = 'none';
+        errEl.textContent = '';
+        statusEl.textContent = 'Betöltés…';
+        tbody.innerHTML = '';
+
+        db.ref('characters').once('value')
+            .then(snapshot => {
+                const rows = [];
+                snapshot.forEach(child => {
+                    const data = child.val() || {};
+                    rows.push({
+                        id: child.key,
+                        name: (data.name != null && String(data.name).trim() !== '') ? String(data.name) : '—',
+                        charClass: data.charClass != null ? String(data.charClass) : '—',
+                        wins: num(data.wins, 0),
+                        arenaWins: num(data.arenaWins, 0),
+                        arenaLosses: num(data.arenaLosses, 0),
+                        level: num(data.level, 1),
+                        gold: num(data.gold, 0)
+                    });
+                });
+                rows.sort(compareRows);
+
+                statusEl.textContent = rows.length + ' kalandor · auto frissítés: 10 mp';
+
+                if (rows.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:24px;color:#888;">Még nincs egy kalandor sem az adatbázisban.</td></tr>';
+                    return;
+                }
+
+                rows.forEach((row, i) => {
+                    const rank = i + 1;
+                    const tr = document.createElement('tr');
+                    const rankCell = medalClass(rank);
+                    tr.innerHTML =
+                        '<td class="col-rank ' + rankCell + '">' + rank + '</td>' +
+                        '<td>' + escapeHtml(row.name) + '</td>' +
+                        '<td>' + escapeHtml(row.charClass) + '</td>' +
+                        '<td class="col-num">' + row.wins + '</td>' +
+                        '<td class="col-num arena-win">' + row.arenaWins + '</td>' +
+                        '<td class="col-num arena-loss">' + row.arenaLosses + '</td>' +
+                        '<td class="col-num">' + row.level + '</td>' +
+                        '<td class="col-num">' + row.gold + '</td>';
+                    tbody.appendChild(tr);
+                });
+            })
+            .catch(e => {
+                console.error(e);
+                statusEl.textContent = 'Hiba';
+                errEl.style.display = 'block';
+                errEl.textContent = 'Nem sikerült betölteni a ranglistát. Ellenőrizd a hálózatot, majd próbáld újra.';
+            });
     }
 
-    function trade() {
-        if(!selectedItem) return;
-        const charRef = db.ref(`characters/${myId}`);
-        if(selectedType === 'buy') {
-            if(myGold < selectedItem.price) return alert("Nincs elég pénzed!");
-            charRef.update({ gold: myGold - selectedItem.price });
-            charRef.child('inventory').push(selectedItem.id);
-        } else {
-            charRef.update({ gold: myGold + selectedItem.price });
-            charRef.child(`inventory/${selectedItem.key}`).remove();
-        }
-        resetDeal();
+    function escapeHtml(s) {
+        const d = document.createElement('div');
+        d.textContent = s;
+        return d.innerHTML;
     }
-    renderShop();
+
+    loadRankings();
+    setInterval(loadRankings, 10000);
 </script>
 </body>
 </html>
