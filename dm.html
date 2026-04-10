@@ -4,9 +4,8 @@
     <meta charset="UTF-8">
     <title>DM Master Control - Death's Armada</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
     <style>
-        :root { --gold: #c5a059; --accent: #8b0000; --bg: #050507; --card: rgba(20, 20, 25, 0.9); --blue: #0088ff; --hp: #e74c3c; --mp: #3498db; }
-        body { background: var(--bg); color: var(--gold); font-family: 'Segoe UI', sans-serif; padding: 20px; margin: 0; padding-bottom: 80px; }
         
         .header-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent); padding: 10px 20px; margin-bottom: 20px; }
         h1 { font-family: 'MedievalSharp'; margin: 0; }
@@ -25,9 +24,7 @@
 
         .btn-top { padding: 8px 15px; font-family: 'MedievalSharp'; cursor: pointer; border: none; background: var(--accent); color: white; font-size: 0.9em; border-radius: 4px; }
         .btn-blue { background: var(--blue); }
-
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; padding: 0 20px; }
-        .char-card { background: var(--card); border: 1px solid #444; padding: 15px; border-radius: 5px; display: flex; flex-direction: column; box-shadow: 0 4px 15px rgba(0,0,0,0.5); position: relative; }
+.char-card { background: var(--card); border: 1px solid #444; padding: 15px; border-radius: 5px; display: flex; flex-direction: column; box-shadow: 0 4px 15px rgba(0,0,0,0.5); position: relative; }
         
         select, input, button { background: #1a1a1a; color: white; border: 1px solid #444; padding: 8px; margin: 5px 0; width: 100%; cursor: pointer; font-family: 'MedievalSharp'; box-sizing: border-box; }
         button:hover { background: var(--gold); color: black; }
@@ -57,7 +54,7 @@
         .value-control { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 2px; }
     </style>
 </head>
-<body>
+<body class="page-dm">
     <script src="dm-guard.js"></script>
     <script>requireDmGate();</script>
 
@@ -90,11 +87,10 @@
 
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="firebase-credentials.js"></script>
     <script src="items.js"></script>
     <script>
-        const firebaseConfig = { apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU", authDomain: "dnd-tracker-4fe05.firebaseapp.com", projectId: "dnd-tracker-4fe05", databaseURL: "https://dnd-tracker-4fe05-default-rtdb.europe-west1.firebasedatabase.app" };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+        const db = window.initFirebaseDb();
 
         db.ref('settings/patchNotes').on('value', snap => {
             if(snap.val()) document.getElementById('patch-input').value = snap.val();

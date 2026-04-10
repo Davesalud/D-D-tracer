@@ -6,20 +6,8 @@
     <script src="auth-guard.js"></script>
     <title>Hős Leltár - Death's Armada</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
     <style>
-        :root { --gold: #c5a059; --accent: #8b0000; --bg: #050507; --card: rgba(20, 20, 25, 0.9); }
-        
-        body { 
-            background: var(--bg); color: white; font-family: 'MedievalSharp', cursive; 
-            margin: 0; display: flex; flex-direction: column; align-items: center; 
-            min-height: 100vh; overflow-x: hidden;
-        }
-
-        body::before { 
-            content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background-image: url('https://i.ibb.co/y1rJBhv/Copilot-20260404-235606.png'); 
-            background-size: cover; background-position: center; opacity: 0.2; z-index: -1; 
-        }
         
         .header { 
             padding: 15px; text-align: center; border-bottom: 2px solid var(--accent); 
@@ -33,12 +21,9 @@
         }
 
         /* HP ÉS MP CSÍKOK */
-        .bar-container { width: 120px; height: 16px; background: #000; border: 1px solid var(--gold); border-radius: 8px; position: relative; overflow: hidden; }
-        #hp-fill { width: 0%; height: 100%; background: linear-gradient(to right, #ff0000, #8b0000); transition: 0.5s; }
+#hp-fill { width: 0%; height: 100%; background: linear-gradient(to right, #ff0000, #8b0000); transition: 0.5s; }
         #mp-fill { width: 0%; height: 100%; background: linear-gradient(to right, #004cff, #00d4ff); transition: 0.5s; }
-        .bar-text { position: absolute; width: 100%; text-align: center; font-size: 0.7em; top: 0; left: 0; line-height: 16px; color: white; text-shadow: 1px 1px 2px black; }
-        
-        .main-container { 
+.main-container { 
             display: flex; gap: 30px; justify-content: center; flex-wrap: wrap; 
             padding: 20px; width: 100%; max-width: 1200px;
         }
@@ -73,37 +58,26 @@
             background: var(--card); border: 2px solid var(--gold); 
             padding: 15px; border-radius: 8px; width: 100%; max-width: 320px; 
         }
-        .grid { 
-            display: grid; grid-template-columns: repeat(4, 1fr); 
-            gap: 8px; margin-top: 15px; 
-        }
-        .inv-slot { 
+.inv-slot { 
             aspect-ratio: 1/1; border: 1px solid #444; 
             background: rgba(0,0,0,0.5); display: flex; 
             align-items: center; justify-content: center; cursor: pointer; border-radius: 2px;
         }
         .inv-slot:hover { border-color: var(--gold); }
         .item-icon { width: 85%; height: 85%; object-fit: contain; }
-
-        .btn-back { 
-            margin: 20px 0 40px; padding: 12px 30px; 
-            background: black; border: 1px solid var(--gold); 
-            color: var(--gold); text-decoration: none; font-size: 1.1em;
-            transition: 0.3s; cursor: pointer; display: inline-block;
-        }
-        .btn-back:hover { background: var(--gold); color: black; }
+.btn-back:hover { background: var(--gold); color: black; }
     </style>
 </head>
-<body>
+<body class="page-inventory">
 
 <div class="header">
     <h2 id="char-name" style="margin:0; color:var(--gold);">Hős betöltése...</h2>
     <div class="stat-bar">
-        <div class="bar-container">
+        <div class="bar-container inline">
             <div id="hp-fill"></div>
             <span id="hp-text" class="bar-text">? / ? HP</span>
         </div>
-        <div class="bar-container">
+        <div class="bar-container inline">
             <div id="mp-fill"></div>
             <span id="mp-text" class="bar-text">? / ? MP</span>
         </div>
@@ -134,12 +108,11 @@
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="firebase-credentials.js"></script>
 <script src="items.js"></script>
 
 <script>
-    const firebaseConfig = { apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU", authDomain: "dnd-tracker-4fe05.firebaseapp.com", projectId: "dnd-tracker-4fe05", databaseURL: "https://dnd-tracker-4fe05-default-rtdb.europe-west1.firebasedatabase.app" };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    const db = window.initFirebaseDb();
     const myId = localStorage.getItem('selectedCharId');
 
     let isProcessing = false;

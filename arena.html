@@ -6,35 +6,18 @@
     <script src="auth-guard.js"></script>
     <title>Death's Armada - ARENA v4.9 ⚔️</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
     <style>
-        :root { --gold: #c5a059; --accent: #8b0000; --bg: #050507; --glass: rgba(15, 15, 20, 0.95); }
-        body { 
-            background: var(--bg); color: white; font-family: 'MedievalSharp', cursive; margin: 0;
-            background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.9)), url('https://i.ibb.co/JjJy8Qry/Copilot-20260407-160524.png');
-            background-size: cover; background-position: center; height: 100vh; overflow: hidden; display: flex; flex-direction: column;
-        }
-        .arena-header { padding: 10px; border-bottom: 2px solid var(--gold); text-align: center; background: rgba(0,0,0,0.8); display: flex; justify-content: space-between; align-items: center; }
-        #timer-box { position: absolute; left: 50%; transform: translateX(-50%); top: 65px; font-size: 1.8em; color: #ff4444; border: 2px solid var(--gold); padding: 2px 15px; background: rgba(0,0,0,0.9); border-radius: 8px; z-index: 100; box-shadow: 0 0 10px rgba(255,0,0,0.3); }
-        .battlefield { display: flex; flex: 1; justify-content: space-around; align-items: center; padding: 10px; gap: 15px; }
-        .fighter-card { flex: 1; max-width: 320px; padding: 12px; border: 2px solid #333; background: var(--glass); border-radius: 12px; text-align: center; transition: 0.3s; position: relative; }
-        .hero-portrait { width: 100%; height: 360px; border: 1px solid var(--gold); margin: 8px 0; background-size: cover; background-position: center top; border-radius: 6px; box-shadow: inset 0 0 15px black; background-color: #111; }
-        .bar-container { width: 100%; height: 18px; background: #000; border: 1px solid #444; margin: 4px 0; overflow: hidden; position: relative; border-radius: 3px; }
-        .hp-fill { height: 100%; background: linear-gradient(90deg, #600, #f00); width: 100%; transition: 0.6s; }
-        .mp-fill { height: 100%; background: linear-gradient(90deg, #003366, #0088ff); width: 0%; transition: 0.6s; }
-        .bar-text { position: absolute; width: 100%; text-align: center; font-size: 10px; top: 1px; font-weight: bold; text-shadow: 1px 1px 2px black; z-index: 5; }
-        .skill-slot { width: 55px; height: 55px; background: #111; border: 2px solid var(--gold); border-radius: 6px; cursor: pointer; background-size: cover; margin: 0 4px; position: relative; }
-        .skill-info-box { height: 50px; margin-top: 10px; border: 1px solid #444; background: rgba(0,0,0,0.5); border-radius: 5px; font-size: 0.85em; padding: 5px; color: #ccc; }
-        .dice-box { width: 70px; height: 70px; border: 2px solid var(--gold); font-size: 1.5em; background: #000; color: var(--gold); border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 10px rgba(197, 160, 89, 0.2); }
-        .battle-log { width: 100%; max-width: 250px; height: 120px; background: rgba(0,0,0,0.85); border: 1px solid #444; padding: 8px; font-size: 0.8em; overflow-y: auto; color: #ddd; border-radius: 6px; }
-        .btn { background: var(--accent); color: white; border: 1px solid var(--gold); padding: 10px; font-family: 'MedievalSharp'; cursor: pointer; width: 100%; border-radius: 4px; font-weight: bold; margin-bottom: 5px; position: relative; }
-        .btn:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none !important; }
+#timer-box { position: absolute; left: 50%; transform: translateX(-50%); top: 65px; font-size: 1.8em; color: #ff4444; border: 2px solid var(--gold); padding: 2px 15px; background: rgba(0,0,0,0.9); border-radius: 8px; z-index: 100; box-shadow: 0 0 10px rgba(255,0,0,0.3); }
+.skill-info-box { height: 50px; margin-top: 10px; border: 1px solid #444; background: rgba(0,0,0,0.5); border-radius: 5px; font-size: 0.85em; padding: 5px; color: #ccc; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none !important; }
         .glow-attack:not(:disabled) { box-shadow: 0 0 15px #ffcc00, inset 0 0 10px #ffcc00; border-color: #ffcc00; }
         .glow-defend:not(:disabled) { box-shadow: 0 0 15px #00e5ff, inset 0 0 10px #00e5ff; border-color: #00e5ff; }
         #ready-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); z-index: 1500; display:flex; flex-direction:column; align-items:center; justify-content:center; }
         #win-screen, #flee-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.98); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; text-align: center; }
     </style>
 </head>
-<body>
+<body class="page-arena">
 
 <div id="ready-overlay">
     <h2 id="ready-text" style="color:var(--gold);">Karakter adatok betöltése...</h2>
@@ -73,7 +56,7 @@
         <h3 id="p-name" style="color: var(--gold); margin: 0;">Betöltés...</h3>
         <div id="p-img" class="hero-portrait"></div>
         <div class="bar-container"><div id="p-hp-fill" class="hp-fill"></div><div class="bar-text" id="p-hp-val">--- HP</div></div>
-        <div class="bar-container" style="height:12px;"><div id="p-mp-fill" class="mp-fill"></div><div class="bar-text" id="p-mp-val">--- MP</div></div>
+        <div class="bar-container"><div id="p-mp-fill" class="mp-fill"></div><div class="bar-text" id="p-mp-val">--- MP</div></div>
         <div style="display: flex; justify-content: center; margin: 10px 0;">
             <button class="skill-slot" id="sk-0" onclick="useSkill(0)" onmouseover="showSkillInfo(0)" onmouseout="clearSkillInfo()" disabled></button>
             <button class="skill-slot" id="sk-1" onclick="useSkill(1)" onmouseover="showSkillInfo(1)" onmouseout="clearSkillInfo()" disabled></button>
@@ -101,11 +84,10 @@
 <script src="combat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="firebase-credentials.js"></script>
 
 <script>
-    const firebaseConfig = { apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU", authDomain: "dnd-tracker-4fe05.firebaseapp.com", projectId: "dnd-tracker-4fe05", databaseURL: "https://dnd-tracker-4fe05-default-rtdb.europe-west1.firebasedatabase.app" };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    const db = window.initFirebaseDb();
     const myId = typeof getSelectedCharId === 'function' ? getSelectedCharId() : localStorage.getItem('selectedCharId');
     
     let currentRoom = null, bRef = null, isFighting = false, rewarded = false, hasFled = false;

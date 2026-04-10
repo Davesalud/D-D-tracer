@@ -7,23 +7,10 @@
     <script src="auth-guard.js"></script>
     <title>Death's Armada - Ranglista</title>
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,700;1,400&family=MedievalSharp&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
     <style>
-        :root { --gold: #c5a059; --bg: #050507; --glass: rgba(15, 15, 18, 0.95); --accent: #8b0000; }
         * { box-sizing: border-box; }
-        body {
-            font-family: 'MedievalSharp', cursive;
-            background-color: var(--bg);
-            color: #e8e8e8;
-            margin: 0;
-            min-height: 100vh;
-        }
-        .master-bg {
-            position: fixed; inset: 0; z-index: -1;
-            background-image: linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.92)),
-                url('https://i.ibb.co/S40wz7Zt/Copilot-20260409-195601.png');
-            background-size: cover; background-position: center;
-        }
-        .wrap {
+.wrap {
             max-width: 960px;
             margin: 0 auto;
             padding: 24px 16px 48px;
@@ -47,14 +34,7 @@
             margin: 0 auto;
             line-height: 1.45;
         }
-        .card {
-            background: var(--glass);
-            border: 2px solid var(--gold);
-            border-radius: 4px;
-            box-shadow: 0 0 40px rgba(0,0,0,0.6);
-            backdrop-filter: blur(12px);
-            overflow: hidden;
-        }
+        
         .toolbar {
             display: flex;
             justify-content: flex-end;
@@ -64,17 +44,7 @@
             background: rgba(0,0,0,0.35);
             border-bottom: 1px solid rgba(197, 160, 89, 0.35);
         }
-        .btn {
-            font-family: 'MedievalSharp', cursive;
-            background: var(--accent);
-            color: #fff;
-            border: 1px solid var(--gold);
-            padding: 8px 16px;
-            cursor: pointer;
-            border-radius: 4px;
-            font-size: 0.9rem;
-        }
-        .btn:hover { filter: brightness(1.1); }
+.btn:hover { filter: brightness(1.1); }
         .btn-ghost {
             background: #333;
             text-decoration: none;
@@ -121,7 +91,7 @@
         }
     </style>
 </head>
-<body>
+<body class="page-ranklist">
 <div class="master-bg"></div>
 <div class="wrap">
     <header>
@@ -159,15 +129,9 @@
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="firebase-credentials.js"></script>
 <script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU",
-        authDomain: "dnd-tracker-4fe05.firebaseapp.com",
-        projectId: "dnd-tracker-4fe05",
-        databaseURL: "https://dnd-tracker-4fe05-default-rtdb.europe-west1.firebasedatabase.app"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    const db = window.initFirebaseDb();
 
     function num(v, fallback) {
         const n = Number(v);

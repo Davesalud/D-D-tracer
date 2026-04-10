@@ -1,0 +1,227 @@
+:root {
+    --gold: #c5a059;
+    --accent: #8b0000;
+    --bg: #050507;
+    --card: rgba(20, 20, 25, 0.9);
+    --glass: rgba(15, 15, 18, 0.95);
+    --text: #e0e0e0;
+    --panel-bg: rgba(20, 20, 25, 0.95);
+    --blue: #0088ff;
+    --hp: #e74c3c;
+    --mp: #3498db;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    margin: 0;
+    background-color: var(--bg);
+    font-family: "MedievalSharp", cursive;
+    color: white;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.card {
+    background: var(--glass);
+    border: 2px solid var(--gold);
+    border-radius: 4px;
+    padding: 25px;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+    backdrop-filter: blur(12px);
+}
+
+.card-lobby {
+    width: 420px;
+}
+
+@media (max-width: 900px) {
+    .card-lobby {
+        width: 95vw;
+        margin: 10px 0;
+    }
+}
+
+.page-login {
+    padding: 0;
+    width: 100%;
+    /* min-height: 100%; */
+    background-color: #000;
+    background-image: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0) 50%, rgba(0,0,0,0.8) 100%),
+                      url("https://i.ibb.co/5XNkZKLq/fantasy-group-adventurers.jpg");
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    overflow-x: hidden;
+    overflow-y: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "MedievalSharp", serif;
+}
+
+.page-index {
+    font-family: "Crimson Text", serif;
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.page-creator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.page-campaign {
+    background: var(--bg);
+    background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.9)), url("https://i.ibb.co/qFhK4jhF/Copilot-20260409-020526.png");
+    background-size: cover;
+    background-position: center;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.page-arena {
+    background: var(--bg);
+    background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.9)), url("https://i.ibb.co/JjJy8Qry/Copilot-20260407-160524.png");
+    background-size: cover;
+    background-position: center;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.page-inventory {
+    background: var(--bg);
+    align-items: center;
+    overflow-x: hidden;
+}
+
+.page-inventory::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url("https://i.ibb.co/y1rJBhv/Copilot-20260404-235606.png");
+    background-size: cover;
+    background-position: center;
+    opacity: 0.2;
+    z-index: -1;
+}
+
+.page-shop {
+    color: #ccc;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.page-dm {
+    background: var(--bg);
+    color: var(--gold);
+    font-family: "Segoe UI", sans-serif;
+    padding: 20px;
+    margin: 0;
+    padding-bottom: 80px;
+}
+
+.page-ranklist {
+    color: #e8e8e8;
+}
+
+.page-teamcampaign {
+    margin: 0;
+    background: #050507;
+    color: #c5a059;
+    font-family: serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Shared class rules moved from page-local styles */
+.arena-header { padding: 10px; border-bottom: 2px solid var(--gold); text-align: center; background: rgba(0,0,0,0.8); display: none; justify-content: space-between; align-items: center; }
+
+.bar-container { width: 100%; height: 18px; background: #000; border: 1px solid #444; margin: 4px 0; overflow: hidden; position: relative; border-radius: 3px; }
+
+.bar-container.inline {
+    width: 120px !important;
+    height: 16px !important; 
+    border: 1px solid var(--gold) !important; 
+    border-radius: 8px !important; 
+}
+
+#hp-fill { width: 0%; height: 100%; background: linear-gradient(to right, #ff0000, #8b0000); transition: 0.5s; }
+#mp-fill { width: 0%; height: 100%; background: linear-gradient(to right, #004cff, #00d4ff); transition: 0.5s; }
+/* .bar-text { position: absolute; width: 100%; text-align: center; font-size: 10px; top: 1px; font-weight: bold; text-shadow: 1px 1px 2px black; z-index: 5; } */
+.bar-text { 
+    position: absolute; 
+    width: 100%;
+    top: 0; left: 0; 
+
+    text-align: center;
+    font-size: 0.7em; 
+    font-weight: bold;
+    line-height: 16px;
+    color: white; 
+    text-shadow: 1px 1px 2px black; 
+}
+
+
+.battle-log { width: 100%; max-width: 250px; height: 150px; background: rgba(0,0,0,0.85); border: 1px solid #444; padding: 8px; font-size: 0.75em; overflow-y: auto; color: #ddd; border-radius: 6px; }
+
+.battlefield { display: none; flex: 1; justify-content: space-around; align-items: center; padding: 10px; gap: 15px; }
+
+.btn { background: var(--accent); color: white; border: 1px solid var(--gold); padding: 12px; font-family: 'MedievalSharp'; cursor: pointer; border-radius: 4px; font-weight: bold; transition: 0.2s; }
+
+.btn-back { 
+            margin: 20px 0 40px; padding: 12px 30px; 
+            background: black; border: 1px solid var(--gold); 
+            color: var(--gold); text-decoration: none; font-size: 1.1em;
+            transition: 0.3s; cursor: pointer; display: inline-block;
+        }
+
+.dice-box { width: 70px; height: 70px; border: 2px solid var(--gold); font-size: 1.5em; background: #000; color: var(--gold); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+
+.fighter-card { flex: 1; max-width: 320px; padding: 12px; border: 2px solid #333; background: var(--glass); border-radius: 12px; text-align: center; position: relative; overflow: visible; }
+
+.grid { 
+            display: grid; grid-template-columns: repeat(4, 1fr); 
+            gap: 8px; margin-top: 15px; 
+        }
+
+.hero-portrait { 
+            width: 100%; height: 320px; border: 1px solid var(--gold); margin: 8px 0; 
+            background-size: cover; background-position: center top; border-radius: 6px; background-color: #111;
+            transition: transform 0.18s cubic-bezier(0.25,0.46,0.45,0.94), filter 0.15s ease, box-shadow 0.15s ease;
+            position: relative; z-index: 2;
+        }
+
+.hp-fill { height: 100%; background: linear-gradient(90deg, #600, #f00); width: 100%; transition: 0.6s; }
+
+.master-bg { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.8)), url('https://i.ibb.co/5XNkZKLq/fantasy-group-adventurers.jpg'); 
+            background-size: cover; background-position: center; z-index: -1; 
+        }
+
+.mp-fill { height: 100%; background: linear-gradient(90deg, #003366, #0088ff); width: 100%; transition: 0.6s; }
+
+.skill-slot { width: 55px; height: 55px; background: #111; border: 2px solid var(--gold); border-radius: 6px; cursor: pointer; background-size: cover; margin: 0 4px; position: relative; transition: 0.2s; }
+/* End shared class rules */

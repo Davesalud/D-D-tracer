@@ -3,51 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
     <script src="auth-guard.js"></script>
+    <script src="combat.js"></script>
+
     <title>Death's Armada - KAMPÁNY ⚔️</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
     <style>
-        :root { --gold: #c5a059; --accent: #8b0000; --bg: #050507; --glass: rgba(15, 15, 20, 0.95); }
-        body { 
-            background: var(--bg); color: white; font-family: 'MedievalSharp', cursive; margin: 0;
-            background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.9)), url('https://i.ibb.co/qFhK4jhF/Copilot-20260409-020526.png');
-            background-size: cover; background-position: center; height: 100vh; overflow: hidden; display: flex; flex-direction: column;
-        }
-        .arena-header { padding: 10px; border-bottom: 2px solid var(--gold); text-align: center; background: rgba(0,0,0,0.8); display: none; justify-content: space-between; align-items: center; }
-        .battlefield { display: none; flex: 1; justify-content: space-around; align-items: center; padding: 10px; gap: 15px; }
-        #campaign-menu { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 20px; position: relative; z-index: 10; }
+#campaign-menu { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 20px; position: relative; z-index: 10; }
         #menu-image { max-width: 600px; border: 3px solid var(--gold); border-radius: 15px; box-shadow: 0 0 20px rgba(197,160,89,0.5); }
-
-        .fighter-card { flex: 1; max-width: 320px; padding: 12px; border: 2px solid #333; background: var(--glass); border-radius: 12px; text-align: center; position: relative; overflow: visible; }
-
-        .hero-portrait { 
-            width: 100%; height: 320px; border: 1px solid var(--gold); margin: 8px 0; 
-            background-size: cover; background-position: center top; border-radius: 6px; background-color: #111;
-            transition: transform 0.18s cubic-bezier(0.25,0.46,0.45,0.94), filter 0.15s ease, box-shadow 0.15s ease;
-            position: relative; z-index: 2;
-        }
-        .hero-portrait.anim-attack-player { transform: translateX(55px) scale(1.04); }
+.hero-portrait.anim-attack-player { transform: translateX(55px) scale(1.04); }
         .hero-portrait.anim-attack-monster { transform: translateX(-55px) scale(1.04); }
         .hero-portrait.anim-hit-normal { filter: brightness(2.5) sepia(1) saturate(8) hue-rotate(300deg); box-shadow: 0 0 30px rgba(255,0,0,0.9); }
         .hero-portrait.anim-hit-crit { filter: brightness(3) sepia(1) saturate(10) hue-rotate(30deg); box-shadow: 0 0 40px rgba(255,220,0,1); }
         .hero-portrait.anim-hit-weak { filter: brightness(2) sepia(1) saturate(5) hue-rotate(180deg); box-shadow: 0 0 20px rgba(0,150,255,0.8); }
         .hero-portrait.anim-skill { filter: brightness(2) saturate(3) hue-rotate(240deg); transform: scale(1.06); box-shadow: 0 0 30px rgba(150,0,255,0.8); }
-
-        .bar-container { width: 100%; height: 18px; background: #000; border: 1px solid #444; margin: 4px 0; overflow: hidden; position: relative; border-radius: 3px; }
-        .hp-fill { height: 100%; background: linear-gradient(90deg, #600, #f00); width: 100%; transition: 0.6s; }
-        .mp-fill { height: 100%; background: linear-gradient(90deg, #003366, #0088ff); width: 100%; transition: 0.6s; }
-        .bar-text { position: absolute; width: 100%; text-align: center; font-size: 10px; top: 1px; font-weight: bold; text-shadow: 1px 1px 2px black; z-index: 5; }
-
-        .skill-slot { width: 55px; height: 55px; background: #111; border: 2px solid var(--gold); border-radius: 6px; cursor: pointer; background-size: cover; margin: 0 4px; position: relative; transition: 0.2s; }
-        .skill-slot:disabled { opacity: 0.4; cursor: not-allowed; }
+.skill-slot:disabled { opacity: 0.4; cursor: not-allowed; }
         .skill-slot:not(:disabled):hover { box-shadow: 0 0 10px var(--gold); }
         .cd-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.65); display: flex; align-items: center; justify-content: center; color: red; font-size: 1.2em; border-radius: 4px; }
-
-        .dice-box { width: 70px; height: 70px; border: 2px solid var(--gold); font-size: 1.5em; background: #000; color: var(--gold); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
-        .battle-log { width: 100%; max-width: 250px; height: 150px; background: rgba(0,0,0,0.85); border: 1px solid #444; padding: 8px; font-size: 0.75em; overflow-y: auto; color: #ddd; border-radius: 6px; }
-
-        .btn { background: var(--accent); color: white; border: 1px solid var(--gold); padding: 12px; font-family: 'MedievalSharp'; cursor: pointer; border-radius: 4px; font-weight: bold; transition: 0.2s; }
-        .btn:hover { background: #b30000; }
+.btn:hover { background: #b30000; }
         .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
         #monster-ability-box { font-size: 0.8em; color: #ddd; text-align: center; padding: 8px; background: rgba(0,0,0,0.5); border-radius: 4px; min-height: 80px; margin-top: 10px; border: 1px solid #444; }
@@ -67,7 +42,7 @@
         #win-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; }
     </style>
 </head>
-<body>
+<body class="page-campaign">
 
 <div id="campaign-menu">
     <img id="menu-image" src="https://i.ibb.co/GfFbXvNH/Copilot-20260409-011839.png" alt="Banner">
@@ -92,7 +67,7 @@
         <div id="p-img" class="hero-portrait"></div>
         <div id="status-effects"></div>
         <div class="bar-container"><div id="p-hp-fill" class="hp-fill"></div><div class="bar-text" id="p-hp-val">100/100 HP</div></div>
-        <div class="bar-container" style="height:12px;"><div id="p-mp-fill" class="mp-fill"></div><div class="bar-text" id="p-mp-val">50/50 MP</div></div>
+        <div class="bar-container"><div id="p-mp-fill" class="mp-fill"></div><div class="bar-text" id="p-mp-val">50/50 MP</div></div>
         <div style="display:flex; justify-content:center; margin:10px 0;">
             <button class="skill-slot" id="sk-0" onclick="playerSkill(0)" disabled></button>
             <button class="skill-slot" id="sk-1" onclick="playerSkill(1)" disabled></button>
@@ -136,62 +111,12 @@
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="firebase-credentials.js"></script>
 <script src="skills.js"></script>
 <script src="monsters.js"></script>
 
 <script>
-// =====================================================
-// COMBAT ENGINE - BEÁGYAZVA
-// =====================================================
-const CombatEngine = {
-    roll: function(count, sides, bonus) {
-        count = count || 1; sides = sides || 20; bonus = bonus || 0;
-        let total = 0, rolls = [];
-        for (let i = 0; i < count; i++) {
-            let r = Math.floor(Math.random() * sides) + 1;
-            rolls.push(r); total += r;
-        }
-        return {
-            total: total + bonus, rolls: rolls,
-            display: count > 1 ? `${total+bonus} (${rolls.join('+')})` : `${total+bonus}`
-        };
-    },
-    calculatePhysicalDamage: function(attacker, defender) {
-        const diceResult = this.roll(1, 20);
-        const roll = diceResult.total;
-        const isCrit = roll === 20;
-        let baseDmg;
-        if (attacker.isMonster) {
-            const md = this.roll(2, 10);
-            baseDmg = md.total + (attacker.atk * 0.5);
-        } else {
-            baseDmg = attacker.atk * (0.8 + Math.random() * 0.4);
-            if (isCrit) baseDmg *= 2.5;
-        }
-        let effectiveDef = defender.def || 0;
-        if (defender.isDefending) effectiveDef *= 2;
-        const cap = defender.isDefending ? 0.9 : 0.8;
-        const reduction = Math.min(cap, effectiveDef / 100);
-        const finalDmg = Math.max(1, Math.floor(baseDmg * (1 - reduction)));
-        return { damage: finalDmg, isCrit: isCrit, roll: diceResult.display };
-    },
-    calculateSkillEffect: function(attacker, defender, skill) {
-        let rawDmg = Math.floor(attacker.atk * skill.power * (0.9 + Math.random() * 0.2));
-        let effectiveDef = defender.def || 0;
-        if (defender.isDefending) effectiveDef *= 1.5;
-        const reduction = Math.min(0.85, effectiveDef / 100);
-        let finalDmg = Math.max(1, Math.floor(rawDmg * (1 - reduction)));
-        let effect = { damage: finalDmg, healing: 0 };
-        if (attacker.charClass === "Nekromanta" && skill.name === "Életelszívás") {
-            effect.healing = Math.floor(finalDmg * 0.8);
-        }
-        return effect;
-    }
-};
-
-const firebaseConfig = { apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU", authDomain: "dnd-tracker-4fe05.firebaseapp.com", projectId: "dnd-tracker-4fe05", databaseURL: "https://dnd-tracker-4fe05-default-rtdb.europe-west1.firebasedatabase.app" };
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
+const db = window.initFirebaseDb();
 
 const myId = localStorage.getItem('selectedCharId');
 let myHero = null, currentMonster = null, isMyTurn = true;

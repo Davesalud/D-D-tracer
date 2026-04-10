@@ -7,31 +7,10 @@
     <script src="dm-guard.js"></script>
     <title>Death's Armada - Lobby</title>
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,600;1,700&family=MedievalSharp&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
     <style>
-        :root { --gold: #c5a059; --bg: #050507; --card: rgba(15, 15, 18, 0.95); --accent: #8b0000; --text: #e0e0e0; }
         * { box-sizing: border-box; -webkit-user-select: none; user-select: none; outline: none; }
-        
-        body { 
-            font-family: 'Crimson Text', serif; 
-            background-color: var(--bg); 
-            color: var(--text); 
-            margin: 0; 
-            min-height: 100vh; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center;
-            overflow-x: hidden;
-            overflow-y: auto; 
-        }
-        
-        .master-bg { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.8)), url('https://i.ibb.co/5XNkZKLq/fantasy-group-adventurers.jpg'); 
-            background-size: cover; background-position: center; z-index: -1; 
-        }
-
-        .lobby-wrapper {
+.lobby-wrapper {
             position: relative;
             display: flex;
             align-items: flex-end;
@@ -91,16 +70,10 @@
             filter: brightness(1.2);
         }
 
-        .card { 
-            background: var(--card); border: 1px solid var(--gold); 
-            padding: 25px; border-radius: 4px; width: 420px; 
-            text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,1); 
-            backdrop-filter: blur(15px); position: relative; z-index: 5;
-        }
+        
         
         .lobby-hero-portrait { width: 100%; aspect-ratio: 1/1; border: 2px solid var(--gold); margin: 15px 0; background-size: cover; background-position: center 20%; border-radius: 4px; }
-        .bar-container { height: 20px; background: #000; border: 1px solid #333; position: relative; margin-top: 8px; border-radius: 3px; overflow: hidden; }
-        .bar-fill { height: 100%; transition: width 0.5s ease; background: linear-gradient(90deg, #600, #b00); width: 0%; }
+.bar-fill { height: 100%; transition: width 0.5s ease; background: linear-gradient(90deg, #600, #b00); width: 0%; }
         .mana-fill { height: 100%; transition: width 0.5s ease; background: linear-gradient(90deg, #004cff, #00d4ff); width: 0%; }
         .hp-count-text { font-size: 13px; color: #ccc; margin-top: 2px; font-family: 'MedievalSharp'; }
         .xp-container { height: 6px; background: #111; border: 1px solid #333; margin-top: 8px; border-radius: 4px; }
@@ -152,7 +125,7 @@
             .side-group { width: 95vw; justify-content: center; margin: 5px 0 !important; }
             .side-action-btn { width: 48%; height: 80px; flex-direction: row; align-items: center; }
             .side-action-btn span { border-top: none; border-left: 1px solid var(--gold); width: auto; height: 100%; display: flex; align-items: center; padding: 0 10px; font-size: 0.7em; }
-            .card { width: 95vw; margin: 10px 0; }
+            
         }
 
         #chat-widget { position: fixed; bottom: 20px; right: 70px; width: 300px; z-index: 500; font-family: 'MedievalSharp'; }
@@ -171,7 +144,7 @@
         #chat-send:hover { background: #b00; }
     </style>
 </head>
-<body>
+<body class="page-index">
 <div class="master-bg"></div>
 
 <div id="lvl-up-overlay">
@@ -204,7 +177,7 @@
         <a href="teamcampaign.html" id="btn-side-teamkampany" class="side-action-btn"><span>⚔️ Csapat Kampány</span></a>
     </div>
 
-    <div class="card">
+    <div class="card card-lobby">
         <div style="display:flex; justify-content: space-between; align-items: center;">
             <h1 id="lobby-name" style="font-family:'MedievalSharp'; color:var(--gold); margin:0; font-size: 1.5em;">...</h1>
             <span id="lobby-lvl" style="color: var(--gold); font-family:'MedievalSharp'; border: 1px solid var(--gold); padding: 2px 8px;">LVL -</span>
@@ -269,12 +242,11 @@
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="firebase-credentials.js"></script>
 <script src="regen.js"></script>
 
 <script>
-    const firebaseConfig = { apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU", authDomain: "dnd-tracker-4fe05.firebaseapp.com", projectId: "dnd-tracker-4fe05", databaseURL: "https://dnd-tracker-4fe05-default-rtdb.europe-west1.firebasedatabase.app" };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    const db = window.initFirebaseDb();
     
     let chars = {}, myId = typeof getSelectedCharId === 'function' ? getSelectedCharId() : localStorage.getItem('selectedCharId');
     let isLeveling = false;
