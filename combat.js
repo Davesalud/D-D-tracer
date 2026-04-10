@@ -1,4 +1,3 @@
-
 /**
  * Death's Armada - közös harci motor (arena + campaign)
  */
