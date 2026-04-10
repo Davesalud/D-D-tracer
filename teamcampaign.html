@@ -1,14 +1,1797 @@
-
 <!DOCTYPE html>
 <html lang="hu">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="auth-guard.js"></script>
-    <title>Death's Armada - Csapat kampány</title>
+    <script src="combat.js"></script>
+    <title>Death's Armada — Csapat kampány</title>
+    <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <style>
+        body.page-teamcampaign {
+            display: flex;
+            margin: 0;
+            min-height: 100vh;
+            flex-direction: column;
+            align-items: stretch;
+            justify-content: flex-start;
+            font-family: 'MedievalSharp', cursive;
+            color: #e0e0e0;
+            background: var(--bg);
+            background-image: linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.92)), url("https://i.ibb.co/qFhK4jhF/Copilot-20260409-020526.png");
+            background-size: cover;
+            background-position: center;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        #phase-setup, #phase-map, #phase-battle { display: none; }
+        #phase-setup.active, #phase-map.active, #phase-battle.active { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+        .setup-wrap { max-width: 520px; margin: 24px auto; padding: 20px; background: var(--glass); border: 2px solid var(--gold); border-radius: 12px; }
+        .setup-wrap h1 { color: var(--gold); text-align: center; margin-top: 0; }
+        .party-row { display: flex; gap: 10px; align-items: center; margin: 10px 0; flex-wrap: wrap; }
+        .party-row label { min-width: 90px; color: var(--gold); font-size: 0.85em; }
+        .party-row input, .party-row select { flex: 1; min-width: 140px; padding: 8px; background: #111; border: 1px solid #444; color: #eee; font-family: inherit; border-radius: 4px; }
+        .map-scroll { overflow-x: auto; padding: 16px; background: rgba(0,0,0,0.5); border-bottom: 2px solid var(--gold); }
+        .map-track { display: flex; align-items: center; gap: 0; min-width: min-content; padding: 8px 24px; }
+        .map-node {
+            display: flex; flex-direction: column; align-items: center; min-width: 100px;
+            position: relative;
+        }
+        .map-node::after {
+            content: ""; position: absolute; top: 28px; left: 100%; width: 40px; height: 4px;
+            background: linear-gradient(90deg, var(--gold), rgba(197,160,89,0.3));
+            z-index: 0;
+        }
+        .map-node:last-child::after { display: none; }
+        .map-dot {
+            width: 56px; height: 56px; border-radius: 50%; border: 3px solid #555; background: #1a1a1f;
+            display: flex; align-items: center; justify-content: center; font-size: 1.4em; z-index: 1;
+            transition: 0.25s;
+        }
+        .map-node.done .map-dot { border-color: #27ae60; background: rgba(39,174,96,0.25); }
+        .map-node.current .map-dot { border-color: var(--gold); box-shadow: 0 0 18px rgba(197,160,89,0.7); transform: scale(1.08); }
+        .map-node.boss .map-dot { border-color: #c0392b; background: rgba(192,57,43,0.35); }
+        .map-node.camp .map-dot { border-color: #2980b9; }
+        .map-label { font-size: 0.72em; text-align: center; margin-top: 6px; max-width: 100px; color: #bbb; line-height: 1.2; }
+        .party-strip { display: flex; gap: 8px; flex-wrap: wrap; padding: 8px 12px; background: rgba(0,0,0,0.65); border-bottom: 1px solid #333; }
+        .mini-hero {
+            display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 8px;
+            border: 2px solid #444; background: rgba(30,30,35,0.95); cursor: default; font-size: 0.75em;
+        }
+        .mini-hero.active { border-color: var(--gold); box-shadow: 0 0 10px rgba(197,160,89,0.4); }
+        .mini-hero.dead { opacity: 0.45; filter: grayscale(0.8); }
+        .mini-hero .mh-p { width: 70px; height: 8px; background: #000; border-radius: 4px; overflow: hidden; border: 1px solid #333; }
+        .mini-hero .mh-p > i { display: block; height: 100%; background: linear-gradient(90deg,#600,#e33); width: 50%; }
+        .battlefield-team { display: flex; flex: 1; justify-content: space-around; align-items: flex-start; padding: 12px; gap: 12px; flex-wrap: wrap; }
+        .fighter-card-team { flex: 1; min-width: 260px; max-width: 340px; }
+        .hero-portrait.anim-attack-player { transform: translateX(40px) scale(1.03); }
+        .hero-portrait.anim-attack-monster { transform: translateX(-40px) scale(1.03); }
+        .hero-portrait.anim-hit-normal { filter: brightness(2.5) sepia(1) saturate(8) hue-rotate(300deg); box-shadow: 0 0 24px rgba(255,0,0,0.85); }
+        .hero-portrait.anim-hit-crit { filter: brightness(3) sepia(1) saturate(10) hue-rotate(30deg); box-shadow: 0 0 32px rgba(255,220,0,1); }
+        .hero-portrait.anim-hit-weak { filter: brightness(2) sepia(1) saturate(5) hue-rotate(180deg); box-shadow: 0 0 16px rgba(0,150,255,0.75); }
+        .hero-portrait.anim-skill { filter: brightness(2) saturate(3) hue-rotate(240deg); transform: scale(1.05); box-shadow: 0 0 24px rgba(150,0,255,0.75); }
+        .skill-slot:disabled { opacity: 0.4; cursor: not-allowed; }
+        .cd-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.65); display: flex; align-items: center; justify-content: center; color: #f44; font-size: 1.1em; border-radius: 4px; }
+        #monster-ability-box { font-size: 0.78em; color: #ddd; text-align: center; padding: 8px; background: rgba(0,0,0,0.5); border-radius: 4px; min-height: 72px; margin-top: 8px; border: 1px solid #444; }
+        .status-effects-mini { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; min-height: 22px; margin: 4px 0; }
+        .status-badge { font-size: 0.72em; padding: 2px 6px; border-radius: 8px; border: 1px solid; }
+        .status-burn { background: rgba(255,80,0,0.25); border-color: #ff5000; color: #ff9060; }
+        .status-stun { background: rgba(255,220,0,0.2); border-color: #ffdd00; color: #ffee80; }
+        .status-weak { background: rgba(180,0,255,0.2); border-color: #aa00ff; color: #cc80ff; }
+        .ability-flash { position: absolute; inset: 0; background: rgba(255,150,0,0.3); border-radius: 12px; pointer-events: none; opacity: 0; transition: opacity 0.1s; }
+        .ability-flash.show { opacity: 1; }
+        #win-screen-team { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; padding: 20px; text-align: center; }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .map-hud { padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; background: rgba(0,0,0,0.6); }
+        .mode-tabs { display: flex; gap: 8px; margin-bottom: 16px; justify-content: center; flex-wrap: wrap; }
+        .mode-tabs button { flex: 1; min-width: 120px; padding: 10px; border: 2px solid #444; background: #1a1a1f; color: #888; font-family: inherit; cursor: pointer; border-radius: 6px; }
+        .mode-tabs button.active { border-color: var(--gold); color: var(--gold); background: rgba(197,160,89,0.12); }
+        .lobby-panel { max-width: 520px; margin: 0 auto 20px; padding: 16px; background: rgba(0,0,0,0.45); border: 1px solid #444; border-radius: 10px; }
+        .lobby-code { font-size: 1.8em; letter-spacing: 0.2em; color: var(--gold); text-align: center; margin: 10px 0; font-weight: bold; }
+        .lobby-list { list-style: none; padding: 0; margin: 12px 0; }
+        .lobby-list li { padding: 8px 10px; margin: 4px 0; background: rgba(255,255,255,0.04); border-radius: 6px; display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .lobby-ready { color: #27ae60; font-size: 0.85em; }
+        .lobby-wait { color: #888; font-size: 0.85em; }
+        #phase-lobby { display: none; }
+        #phase-lobby.active { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+        .online-hint { font-size: 0.82em; color: #9ad; margin-top: 8px; text-align: center; }
+    </style>
 </head>
 <body class="page-teamcampaign">
-    <p>Hamarosan.</p>
+
+<div id="phase-setup" class="active setup-wrap">
+    <h1>Csapat szörnyvadászat</h1>
+    <p style="text-align:center;color:#aaa;font-size:0.9em;">2–4 hős, lineáris útvonal, a <strong>kampány szörnyei</strong> ellen. A végén egy <strong>főellenség</strong> vár.</p>
+    <div class="mode-tabs">
+        <button type="button" class="active" id="tab-mode-local">Helyi (egy gép)</button>
+        <button type="button" id="tab-mode-online">Online váró</button>
+    </div>
+    <div id="block-local-setup">
+    <div class="party-row">
+        <label>Nehézség</label>
+        <select id="sel-difficulty">
+            <option value="easy">Könnyű</option>
+            <option value="medium" selected>Közepes</option>
+            <option value="hard">Nehéz</option>
+        </select>
+    </div>
+    <div class="party-row">
+        <label>Csapat méret</label>
+        <select id="sel-party-size">
+            <option value="2">2 hős</option>
+            <option value="3" selected>3 hős</option>
+            <option value="4">4 hős</option>
+        </select>
+    </div>
+    <p style="color:var(--gold);font-size:0.85em;">1. hős: a belépett karaktered (Firebase). További helyek: vendég hősök (nem mentődnek).</p>
+    <div id="guest-slots"></div>
+    <button type="button" class="btn" style="width:100%;margin-top:16px;" id="btn-start-run">Útra kelünk</button>
+    </div>
+    <div id="block-online-setup" style="display:none;">
+        <p style="text-align:center;color:#bbb;font-size:0.9em;">Valódi játékosok csatlakoznak Firebase szobába. A <strong>házigazda</strong> indítja a futamot; a harc szinkronban fut (távoli körök).</p>
+        <div class="party-row">
+            <label>Nehézség</label>
+            <select id="sel-online-difficulty">
+                <option value="easy">Könnyű</option>
+                <option value="medium" selected>Közepes</option>
+                <option value="hard">Nehéz</option>
+            </select>
+        </div>
+        <div class="party-row">
+            <label>Max. létszám</label>
+            <select id="sel-online-max">
+                <option value="2">2 fő</option>
+                <option value="3" selected>3 fő</option>
+                <option value="4">4 fő</option>
+            </select>
+        </div>
+        <button type="button" class="btn" style="width:100%;margin-top:10px;" id="btn-create-room">Szoba létrehozása (kód)</button>
+        <div class="party-row" style="margin-top:12px;">
+            <label>Kód</label>
+            <input type="text" id="inp-join-code" placeholder="Pl. A3K7M2" maxlength="8" style="text-transform:uppercase;">
+        </div>
+        <button type="button" class="btn" style="width:100%;margin-top:8px;background:#2c3e50;" id="btn-join-code">Csatlakozás kóddal</button>
+        <button type="button" class="btn" style="width:100%;margin-top:10px;background:#1e6b3a;" id="btn-quick-match">Gyors meccs (nyilvános váró)</button>
+        <p class="online-hint">A gyors meccs egy nyitott szobát keres ugyanarra a nehézségre, vagy létrehoz egyet, ha üres a sor.</p>
+    </div>
+    <button type="button" class="btn" style="width:100%;margin-top:16px;background:#444;" onclick="location.href='index.html'">Vissza a városba</button>
+</div>
+
+<div id="phase-lobby" class="setup-wrap" style="max-width:560px;margin:20px auto;">
+    <h1 style="color:var(--gold);text-align:center;">Várószoba</h1>
+    <div class="lobby-panel">
+        <div style="text-align:center;color:#aaa;font-size:0.85em;">Szoba kód (oszd meg a társakkal)</div>
+        <div class="lobby-code" id="lobby-room-code">——</div>
+        <div style="text-align:center;color:#888;font-size:0.8em;" id="lobby-room-meta"></div>
+        <ul class="lobby-list" id="lobby-member-list"></ul>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px;">
+            <button type="button" class="btn" id="btn-lobby-ready">Készen állok</button>
+            <button type="button" class="btn" style="background:#2980b9;display:none;" id="btn-lobby-start">Futam indítása</button>
+            <button type="button" class="btn" style="background:#444;" id="btn-lobby-leave">Kilépés a váróból</button>
+        </div>
+    </div>
+</div>
+
+<div id="phase-map">
+    <div class="map-hud">
+        <span id="map-run-title" style="color:var(--gold);font-weight:bold;">Útvonal</span>
+        <button type="button" class="btn" style="padding:8px 14px;background:#444;" onclick="confirmAbortRun()">Feladás</button>
+    </div>
+    <div class="map-scroll">
+        <div class="map-track" id="map-track"></div>
+    </div>
+    <div class="party-strip" id="map-party-strip"></div>
+    <div style="padding:20px;text-align:center;">
+        <p id="map-node-desc" style="color:#ccc;max-width:480px;margin:0 auto 16px;"></p>
+        <button type="button" class="btn" id="btn-enter-node" style="min-width:220px;">Tovább</button>
+    </div>
+</div>
+
+<div id="phase-battle">
+    <div class="arena-header" id="arena-header-team" style="display:flex;">
+        <button type="button" class="btn" style="padding:5px 12px;background:#444;" onclick="confirmAbortRun()">🏰 Feladás</button>
+        <h2 id="turn-display-team" style="color:var(--gold);margin:0;font-size:1em;">—</h2>
+        <div style="width:80px;"></div>
+    </div>
+    <div class="party-strip" id="battle-party-strip"></div>
+    <div class="battlefield-team" id="battlefield-team">
+        <div class="fighter-card fighter-card-team">
+            <h3 id="p-name-team" style="color:var(--gold);margin:0 0 6px;">—</h3>
+            <div id="p-img-team" class="hero-portrait" style="height:240px;"></div>
+            <div class="status-effects-mini" id="status-effects-team"></div>
+            <div class="bar-container"><div id="p-hp-fill-team" class="hp-fill"></div><div class="bar-text" id="p-hp-val-team">—</div></div>
+            <div class="bar-container"><div id="p-mp-fill-team" class="mp-fill"></div><div class="bar-text" id="p-mp-val-team">—</div></div>
+            <div style="display:flex;justify-content:center;margin:8px 0;flex-wrap:wrap;">
+                <button type="button" class="skill-slot" id="sk-t-0" onclick="playerSkillTeam(0)"></button>
+                <button type="button" class="skill-slot" id="sk-t-1" onclick="playerSkillTeam(1)"></button>
+                <button type="button" class="skill-slot" id="sk-t-2" onclick="playerSkillTeam(2)"></button>
+            </div>
+            <button type="button" id="btn-attack-team" class="btn" style="width:100%;margin-bottom:6px;" onclick="playerActionTeam('attack')">⚔️ Támadás</button>
+            <button type="button" id="btn-defend-team" class="btn" style="width:100%;background:#2c3e50;" onclick="playerActionTeam('defend')">🛡️ Védekezés</button>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+            <div id="dice-team" class="dice-box">🎲</div>
+            <div id="log-team" class="battle-log" style="height:200px;max-width:280px;"></div>
+        </div>
+        <div class="fighter-card fighter-card-team" style="position:relative;">
+            <div class="ability-flash" id="ability-flash-team"></div>
+            <h3 id="e-name-team" style="color:#ff4444;margin:0;">—</h3>
+            <div id="e-img-team" class="hero-portrait" style="height:240px;"></div>
+            <div class="bar-container"><div id="e-hp-fill-team" class="hp-fill"></div><div class="bar-text" id="e-hp-val-team">—</div></div>
+            <div id="monster-ability-box">
+                <div style="color:#aaa;font-size:0.85em;">⚙️ PASSZÍV</div>
+                <div style="color:var(--gold);font-weight:bold;" id="monster-passive-name-team">—</div>
+                <div id="monster-passive-desc-team" style="color:#888;font-size:0.8em;">—</div>
+                <hr style="border-color:#333;margin:6px 0;">
+                <div style="color:#ff9900;font-size:0.85em;">🔥 AKTÍV</div>
+                <div id="monster-active-name-team" style="color:#ff9900;">—</div>
+                <div id="monster-active-cd-team" style="color:#888;font-size:0.75em;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="win-screen-team">
+    <h1 id="win-title-team" style="color:var(--gold);font-size:2.2em;">—</h1>
+    <p id="win-sub-team" style="color:#aaa;max-width:400px;"></p>
+    <div style="padding:16px;border:1px solid var(--gold);margin:16px 0;background:rgba(255,255,255,0.05);min-width:260px;">
+        <p id="reward-xp-team" style="font-size:1.2em;"></p>
+        <p id="reward-gold-team" style="color:gold;font-size:1.2em;"></p>
+    </div>
+    <button type="button" class="btn" onclick="finishRunToCity()">🏰 Vissza a városba</button>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="firebase-credentials.js"></script>
+<script src="skills.js"></script>
+<script src="monsters.js"></script>
+<script>
+const db = window.initFirebaseDb();
+const myId = localStorage.getItem('selectedCharId');
+const MONSTER_ABILITY_MAX_USES = 3;
+const EXCLUDE_IDS = new Set(['orias_skorpio']);
+
+const HERO_IMGS = {
+    "Harcos":"https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png",
+    "Mágus":"https://i.ibb.co/yFz5bcXv/Copilot-20260403-033651.png",
+    "Lovag":"https://i.ibb.co/Fk3n339M/Copilot-20260403-034043.png",
+    "Bérgyilkos":"https://i.ibb.co/b525CsLg/Copilot-20260403-032807.png",
+    "Nekromanta":"https://i.ibb.co/NnCwwCbR/Copilot-20260403-033301.png",
+    "Íjász":"https://i.ibb.co/whd2jNpB/Copilot-20260403-034402.png"
+};
+
+const TEAM_CLASS_BASE = {
+    "Harcos": { hp: 132, mp: 55, atk: 12, def: 8 },
+    "Mágus": { hp: 88, mp: 165, atk: 15, def: 4 },
+    "Lovag": { hp: 165, mp: 66, atk: 10, def: 12 },
+    "Íjász": { hp: 99, mp: 77, atk: 14, def: 6 },
+    "Bérgyilkos": { hp: 94, mp: 88, atk: 16, def: 5 },
+    "Nekromanta": { hp: 110, mp: 132, atk: 13, def: 7 }
+};
+
+const RUN_MAP = [
+    { type: 'fight', tier: 'easy', label: 'Vészkút erdeje' },
+    { type: 'fight', tier: 'easy', label: 'Mohos ösvény' },
+    { type: 'fight', tier: 'easy', label: 'Törött kapu' },
+    { type: 'camp', label: 'Biztos tábor' },
+    { type: 'fight', tier: 'medium', label: 'Ködfolt szoros' },
+    { type: 'fight', tier: 'medium', label: 'Kőbe vésett út' },
+    { type: 'fight', tier: 'medium', label: 'Vámszedő bástya' },
+    { type: 'camp', label: 'Forrásvidék' },
+    { type: 'fight', tier: 'hard', label: 'Sötét síkság' },
+    { type: 'fight', tier: 'hard', label: 'Átok szélén' },
+    { type: 'boss', label: 'Sárkányfészek (főellenség)' },
+];
+
+let runDifficulty = 'medium';
+let diffScale = 1;
+let party = [];
+let mapIndex = 0;
+let mainHeroSnapshot = null;
+
+let currentMonster = null;
+let monsterStatus = { burn: 0 };
+let monsterAbilityCooldown = 0;
+let monsterAbilityUsedCount = 0;
+let activeHeroIdx = 0;
+let waitingForPlayer = null;
+let roundActive = false;
+let battleOver = false;
+
+let totalXpEarned = 0;
+let totalGoldEarned = 0;
+let runOutcomeHandled = false;
+let joiningOnlineRun = false;
+
+/** @type {{ roomId: string, ref: any, isHost: boolean, hostCharId: string, unsubs: (()=>void)[] } | null} */
+let onlineSession = null;
+let lobbyRoomId = null;
+let lobbyUnsubs = [];
+let onDisconnectRef = null;
+
+function unsubAll(arr) {
+    (arr || []).forEach(fn => { try { fn(); } catch (e) {} });
+    return [];
+}
+
+function makeRoomCode() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let s = '';
+    for (let i = 0; i < 6; i++) s += chars[Math.floor(Math.random() * chars.length)];
+    return s;
+}
+
+function normRoomCode(raw) {
+    return String(raw || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 8);
+}
+
+function getMonsterActiveAbilityInfo(logic) {
+    const map = {
+        "enrage_20": { name: "🔴 Dühroham", cd: 4 },
+        "double_attack": { name: "🐀 Seregcsapás", cd: 3 },
+        "arrow_resist": { name: "🦴 Csontpajzs", cd: 5 },
+        "cowardice": { name: "💨 Menekülés", cd: 4 },
+        "steal_gold": { name: "💰 Lopás", cd: 5 },
+        "stun_immune": { name: "💀 Holtak kara", cd: 4 },
+        "web_trap": { name: "🕸️ Háló", cd: 4 },
+        "crit_immune": { name: "🟫 Iszapár", cd: 5 },
+        "dodge_30": { name: "🦇 Ultrahang", cd: 3 },
+        "pack_defense": { name: "🐺 Csordaüvöltés", cd: 4 },
+        "flat_reduction_3": { name: "⚔️ Pajzstörés", cd: 4 },
+        "regen_5": { name: "🌿 Nagy Regen", cd: 5 },
+        "burn_aura": { name: "🔥 Tűzvihar", cd: 4 },
+        "low_hp_crit": { name: "💢 Vérszomj", cd: 3 },
+        "miss_chance_25": { name: "🌑 Árnyék", cd: 4 },
+        "silence_3": { name: "😶 Sikoly", cd: 5 },
+        "d12_enrage": { name: "🐺 Holdfázis", cd: 3 },
+        "stun_on_d20": { name: "🗿 Kővé dermeszt", cd: 5 },
+        "half_dmg_curse": { name: "☠️ Átok", cd: 4 },
+        "mana_only_dmg": { name: "👻 Manaszívás", cd: 3 },
+        "lifesteal_30": { name: "🩸 Életszívás", cd: 4 },
+        "shield_break": { name: "🔨 Pajzszúzás", cd: 5 },
+        "mass_cd": { name: "💀 Csontvihar", cd: 6 },
+        "mana_shield": { name: "🔮 Mana pajzs", cd: 5 },
+        "hard_skin_15": { name: "🪨 Sziklabőr", cd: 5 },
+        "tri_action": { name: "🔱 Háromfejű roham", cd: 4 },
+        "burn_dot_5": { name: "🔥 Pokoltűz", cd: 5 },
+        "revive_once": { name: "💫 Feltámadás", cd: 99 },
+        "reflect_15": { name: "🔄 Visszaverés", cd: 4 },
+        "d20_only": { name: "🐉 Sárkánylehelet", cd: 5 },
+        "time_rewind_4": { name: "⏳ Időtekercs", cd: 99 },
+        "mirror_skill_50": { name: "🪞 Tükrözés", cd: 4 },
+    };
+    return map[logic] || { name: "⚡ Vad csapás", cd: 4 };
+}
+
+function buildGuestSlots() {
+    const n = parseInt(document.getElementById('sel-party-size').value, 10) - 1;
+    const host = document.getElementById('guest-slots');
+    host.innerHTML = '';
+    for (let i = 0; i < n; i++) {
+        const row = document.createElement('div');
+        row.className = 'party-row';
+        row.innerHTML = `
+            <label>Társ ${i + 2}</label>
+            <input type="text" id="guest-name-${i}" placeholder="Név" maxlength="12" value="Társ${i + 2}">
+            <select id="guest-class-${i}">
+                <option>Harcos</option><option>Mágus</option><option>Lovag</option>
+                <option>Íjász</option><option>Bérgyilkos</option><option>Nekromanta</option>
+            </select>`;
+        host.appendChild(row);
+    }
+}
+
+document.getElementById('sel-party-size').addEventListener('change', buildGuestSlots);
+buildGuestSlots();
+
+function scaleDifficultyMult(d) {
+    if (d === 'easy') return 0.88;
+    if (d === 'hard') return 1.12;
+    return 1;
+}
+
+function cloneMonsterForBattle(tier) {
+    let raw;
+    let tries = 0;
+    do {
+        if (tier === 'boss') {
+            const list = MONSTERS.boss;
+            raw = list[Math.floor(Math.random() * list.length)];
+        } else {
+            raw = getRandomMonster(tier);
+        }
+        tries++;
+    } while (EXCLUDE_IDS.has(raw.id) && tries < 40);
+
+    const m = JSON.parse(JSON.stringify(raw));
+    m.isMonster = true;
+    m.isDefending = false;
+    const s = diffScale;
+    m.maxHp = Math.max(20, Math.round(m.maxHp * s));
+    m.hp = m.maxHp;
+    m.atk = Math.max(1, Math.round(m.atk * s));
+    m.def = Math.max(0, Math.round((m.def || 0) * s));
+    if (m.maxMana != null) {
+        m.maxMana = Math.round(m.maxMana * s);
+        m.mana = m.maxMana;
+    }
+    return m;
+}
+
+function normalizeHero(h, isGuest) {
+    if (h.ownerCharId === undefined) h.ownerCharId = null;
+    h.maxMp = h.maxMp || h.mp || 100;
+    h.mp = h.mp !== undefined ? h.mp : h.maxMp;
+    h.hp = (h.hp !== undefined && h.hp > 0) ? h.hp : h.maxHp;
+    h.isDefending = false;
+    h.isGuest = !!isGuest;
+    h.cooldowns = [0, 0, 0];
+    h.status = { burn: 0, stun: 0, weakened: 0 };
+    h.classData = SKILLS_DATA[h.charClass];
+    if (!h.classData) h.classData = SKILLS_DATA['Harcos'];
+    h.atk = (h.atk || 0) + (h.bonusAtk || 0);
+    h.def = (h.def || 0) + (h.bonusDef || 0);
+    return h;
+}
+
+function playAttackAnim(attackerId, defenderId, damage, isCrit) {
+    return new Promise(resolve => {
+        const attacker = document.getElementById(attackerId);
+        const defender = document.getElementById(defenderId);
+        if (!attacker || !defender) return resolve();
+        const animClass = attackerId === 'p-img-team' ? 'anim-attack-player' : 'anim-attack-monster';
+        attacker.classList.add(animClass);
+        setTimeout(() => {
+            attacker.classList.remove(animClass);
+            const hitClass = damage <= 5 ? 'anim-hit-weak' : isCrit ? 'anim-hit-crit' : 'anim-hit-normal';
+            defender.classList.add(hitClass);
+            setTimeout(() => { defender.classList.remove(hitClass); resolve(); }, 220);
+        }, 160);
+    });
+}
+
+function playSkillAnim() {
+    return new Promise(resolve => {
+        const el = document.getElementById('p-img-team');
+        el.classList.add('anim-skill');
+        setTimeout(() => { el.classList.remove('anim-skill'); resolve(); }, 320);
+    });
+}
+
+function flashMonsterAbility() {
+    const el = document.getElementById('ability-flash-team');
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 350);
+}
+
+function addLog(msg) {
+    const log = document.getElementById('log-team');
+    const div = document.createElement('div');
+    div.style.cssText = 'border-bottom:1px solid #222;padding-bottom:3px;margin-bottom:3px;';
+    div.innerHTML = msg;
+    log.insertBefore(div, log.firstChild);
+    while (log.children.length > 28) log.removeChild(log.lastChild);
+}
+
+function randomAliveHeroIdx() {
+    const idxs = party.map((h, i) => (h.hp > 0 ? i : -1)).filter(i => i >= 0);
+    if (!idxs.length) return -1;
+    return idxs[Math.floor(Math.random() * idxs.length)];
+}
+
+function applyMonsterPassiveToDamage(damage, isCrit, attackerHero) {
+    const logic = currentMonster.passiveLogic;
+    let d = damage;
+    switch (logic) {
+        case "enrage_20":
+            if (currentMonster.hp / currentMonster.maxHp < 0.2) { d += 2; addLog(`🔴 Dühroham! +2 visszaütés`); }
+            break;
+        case "arrow_resist":
+            if (attackerHero.charClass === "Íjász") { d = Math.floor(d * 0.8); addLog(`🦴 Csontváz: -20%`); }
+            break;
+        case "steal_gold":
+            if (Math.random() < 0.4) {
+                const g = attackerHero.gold || 0;
+                attackerHero.gold = Math.max(0, g - 1);
+                addLog(`💰 Zsebmetszés (${attackerHero.name})`);
+            }
+            break;
+        case "crit_immune":
+            if (isCrit) { d = Math.floor(d * 0.5); addLog(`🟫 Kritikus felezve`); }
+            break;
+        case "flat_reduction_3":
+            d = Math.max(1, d - 3);
+            addLog(`⚔️ Acélfal: -3`);
+            break;
+        case "regen_5":
+            currentMonster.hp = Math.min(currentMonster.maxHp, currentMonster.hp + 5);
+            addLog(`🌿 Szörny +5 HP`);
+            break;
+        case "mana_shield":
+            if (currentMonster.mana > 0) {
+                const abs = Math.min(currentMonster.mana, Math.floor(d * 0.5));
+                currentMonster.mana -= abs;
+                d = Math.max(1, d - abs);
+                addLog(`🔮 Mana pajzs: -${abs}`);
+            }
+            break;
+        case "reflect_15": {
+            const ref = Math.floor(d * 0.15);
+            attackerHero.hp -= ref;
+            addLog(`🔄 Visszaverés: ${attackerHero.name} -${ref} HP`);
+            break;
+        }
+        case "lifesteal_30": {
+            const h = Math.floor(d * 0.3);
+            currentMonster.hp = Math.min(currentMonster.maxHp, currentMonster.hp + h);
+            addLog(`🩸 Életszívás +${h}`);
+            break;
+        }
+        default: break;
+    }
+    return d;
+}
+
+function pickStunTargetIdx() {
+    return randomAliveHeroIdx();
+}
+
+function executeMonsterActiveAbility() {
+    const logic = currentMonster.passiveLogic;
+    const info = getMonsterActiveAbilityInfo(logic);
+    monsterAbilityCooldown = info.cd;
+    monsterAbilityUsedCount++;
+    flashMonsterAbility();
+    addLog(`🔥 <span style="color:#ff9900">${currentMonster.name}: ${info.name}!</span>`);
+
+    const hit = (idx, dmg, crit) => {
+        if (idx < 0) return;
+        party[idx].hp -= dmg;
+        playAttackAnim('e-img-team', 'p-img-team', dmg, crit);
+    };
+
+    const rnd = randomAliveHeroIdx();
+
+    switch (logic) {
+        case "enrage_20":
+        case "low_hp_crit":
+        case "d12_enrage": {
+            const t = rnd;
+            if (t < 0) break;
+            const d = Math.max(1, Math.floor(currentMonster.atk * 1.5) - party[t].def);
+            hit(t, d, true);
+            break;
+        }
+        case "double_attack": {
+            const t = rnd;
+            if (t < 0) break;
+            const d1 = Math.max(1, currentMonster.atk - party[t].def);
+            const d2 = Math.max(1, Math.floor(currentMonster.atk * 0.7) - party[t].def);
+            party[t].hp -= (d1 + d2);
+            playAttackAnim('e-img-team', 'p-img-team', d1 + d2, false);
+            break;
+        }
+        case "burn_aura":
+        case "burn_dot_5": {
+            const k = pickStunTargetIdx();
+            if (k >= 0) {
+                const turns = logic === "burn_dot_5" ? 5 : 3;
+                party[k].status.burn = turns;
+            }
+            break;
+        }
+        case "web_trap":
+        case "stun_immune":
+        case "stun_on_d20": {
+            const k = pickStunTargetIdx();
+            if (k >= 0) party[k].status.stun = Math.max(party[k].status.stun, 1);
+            break;
+        }
+        case "silence_3": {
+            const k = pickStunTargetIdx();
+            if (k >= 0) party[k].status.stun = Math.max(party[k].status.stun, 2);
+            break;
+        }
+        case "steal_gold": {
+            const k = rnd;
+            if (k >= 0) {
+                const s = Math.min(party[k].gold || 0, 5);
+                party[k].gold = Math.max(0, (party[k].gold || 0) - s);
+            }
+            break;
+        }
+        case "regen_5":
+            currentMonster.hp = Math.min(currentMonster.maxHp, currentMonster.hp + 20);
+            break;
+        case "mana_only_dmg": {
+            const k = rnd;
+            if (k >= 0) party[k].mp = Math.max(0, party[k].mp - 20);
+            break;
+        }
+        case "mass_cd":
+            party.forEach(h => { h.cooldowns = h.cooldowns.map(() => 3); });
+            break;
+        case "half_dmg_curse": {
+            const k = pickStunTargetIdx();
+            if (k >= 0) party[k].status.weakened = Math.max(party[k].status.weakened, 2);
+            break;
+        }
+        case "tri_action": {
+            const t = rnd;
+            if (t < 0) break;
+            const d = Math.max(1, currentMonster.atk - party[t].def);
+            party[t].hp -= d;
+            currentMonster.hp = Math.min(currentMonster.maxHp, currentMonster.hp + 15);
+            playAttackAnim('e-img-team', 'p-img-team', d, false);
+            break;
+        }
+        case "revive_once":
+            currentMonster._canRevive = true;
+            break;
+        case "mirror_skill_50":
+            currentMonster._mirrorNext = true;
+            break;
+        case "lifesteal_30": {
+            const l = Math.floor(currentMonster.atk * 0.5);
+            currentMonster.hp = Math.min(currentMonster.maxHp, currentMonster.hp + l);
+            break;
+        }
+        case "d20_only": {
+            const t = rnd;
+            if (t < 0) break;
+            const d = Math.max(1, 60 - party[t].def);
+            party[t].hp -= d;
+            playAttackAnim('e-img-team', 'p-img-team', d, true);
+            break;
+        }
+        case "time_rewind_4":
+            currentMonster.hp = currentMonster.maxHp;
+            break;
+        case "shield_break": {
+            const t = rnd;
+            if (t < 0) break;
+            const orig = party[t].def;
+            party[t].def = 0;
+            party[t]._shieldBreakRestore = orig;
+            setTimeout(() => {
+                if (party[t] && party[t]._shieldBreakRestore != null) {
+                    party[t].def = party[t]._shieldBreakRestore;
+                    party[t]._shieldBreakRestore = null;
+                }
+            }, 4000);
+            break;
+        }
+        case "reflect_15":
+            currentMonster._reflectActive = true;
+            break;
+        default: {
+            const t = rnd;
+            if (t < 0) break;
+            const d = Math.max(1, Math.floor(currentMonster.atk * 1.2) - party[t].def);
+            party[t].hp -= d;
+            playAttackAnim('e-img-team', 'p-img-team', d, false);
+            break;
+        }
+    }
+}
+
+function allHeroesDown() {
+    return party.every(h => h.hp <= 0);
+}
+
+function toggleBattleBtns(disabled) {
+    document.getElementById('btn-attack-team').disabled = disabled;
+    document.getElementById('btn-defend-team').disabled = disabled;
+    if (disabled) {
+        for (let i = 0; i < 3; i++) document.getElementById(`sk-t-${i}`).disabled = true;
+    } else {
+        updateSkillBtnsForHero(party[activeHeroIdx]);
+    }
+}
+
+function updateSkillBtnsForHero(h) {
+    if (!h || !h.classData) return;
+    h.classData.skills.forEach((s, i) => {
+        const btn = document.getElementById(`sk-t-${i}`);
+        const onCd = h.cooldowns[i] > 0;
+        btn.style.backgroundImage = `url('${s.img}')`;
+        btn.title = `${s.name} (${s.cost} MP)`;
+        btn.innerHTML = onCd ? `<div class="cd-overlay">${h.cooldowns[i]}</div>` : '';
+        const can = !battleOver && h.hp > 0 && !onCd && h.mp >= s.cost && h.status.stun === 0;
+        btn.disabled = !can;
+    });
+}
+
+function updateBattleUI() {
+    const h = party[activeHeroIdx];
+    if (!h || h.hp <= 0) {
+        document.getElementById('p-name-team').innerText = '—';
+        return;
+    }
+    document.getElementById('p-name-team').innerText = h.name + (h.isGuest ? ' (vendég)' : '');
+    document.getElementById('p-img-team').style.backgroundImage = `url('${HERO_IMGS[h.charClass] || ''}')`;
+    document.getElementById('p-hp-fill-team').style.width = Math.max(0, h.hp / h.maxHp * 100) + '%';
+    document.getElementById('p-hp-val-team').innerText = `${Math.max(0, Math.ceil(h.hp))} / ${h.maxHp} HP`;
+    document.getElementById('p-mp-fill-team').style.width = (h.mp / h.maxMp * 100) + '%';
+    document.getElementById('p-mp-val-team').innerText = `${Math.ceil(h.mp)} / ${h.maxMp} MP`;
+    document.getElementById('e-hp-fill-team').style.width = Math.max(0, currentMonster.hp / currentMonster.maxHp * 100) + '%';
+    document.getElementById('e-hp-val-team').innerText = `${Math.max(0, Math.ceil(currentMonster.hp))} / ${currentMonster.maxHp} HP`;
+
+    const st = document.getElementById('status-effects-team');
+    st.innerHTML = '';
+    if (h.status.burn > 0) st.innerHTML += `<span class="status-badge status-burn">🔥 ${h.status.burn}</span>`;
+    if (h.status.stun > 0) st.innerHTML += `<span class="status-badge status-stun">😵 ${h.status.stun}</span>`;
+    if (h.status.weakened > 0) st.innerHTML += `<span class="status-badge status-weak">☠️ ${h.status.weakened}</span>`;
+
+    renderPartyStrip('battle-party-strip', true);
+    updateSkillBtnsForHero(h);
+}
+
+function renderPartyStrip(id, highlightActive) {
+    const el = document.getElementById(id);
+    el.innerHTML = party.map((h, i) => {
+        const pct = h.maxHp > 0 ? Math.max(0, h.hp / h.maxHp * 100) : 0;
+        const cls = (h.hp <= 0 ? 'dead ' : '') + (highlightActive && i === activeHeroIdx && h.hp > 0 ? 'active' : '');
+        return `<div class="mini-hero ${cls}"><span>${h.name}</span><div class="mh-p"><i style="width:${pct}%"></i></div></div>`;
+    }).join('');
+}
+
+function initBattleMonsterUI() {
+    document.getElementById('e-name-team').innerText = currentMonster.name;
+    const eImg = (currentMonster.image && currentMonster.image !== 'placeholder_link')
+        ? currentMonster.image
+        : `https://via.placeholder.com/300/111111/c5a059?text=${encodeURIComponent(currentMonster.name)}`;
+    document.getElementById('e-img-team').style.backgroundImage = `url('${eImg}')`;
+    document.getElementById('monster-passive-name-team').innerText = currentMonster.passiveName;
+    document.getElementById('monster-passive-desc-team').innerText = currentMonster.passiveDesc;
+    const activeInfo = getMonsterActiveAbilityInfo(currentMonster.passiveLogic);
+    document.getElementById('monster-active-name-team').innerText = activeInfo.name;
+    document.getElementById('monster-active-cd-team').innerText = `CD: ${activeInfo.cd} kör | max ${MONSTER_ABILITY_MAX_USES}x`;
+}
+
+/** kind: 'attack' | 'defend' | 'skill' */
+async function performHeroAction(h, kind, skillIdx) {
+    if (kind === 'defend') {
+        h.isDefending = true;
+        addLog(`🛡️ ${h.name} védekezik`);
+        return;
+    }
+    h.isDefending = false;
+    if (kind === 'skill') {
+        const s = h.classData.skills[skillIdx];
+        if (!s) return;
+        h.mp -= s.cost;
+        h.cooldowns[skillIdx] = s.cd;
+        const res = CombatEngine.calculateSkillEffect(h, currentMonster, s);
+        let dmg = res.damage;
+        if (h.status.weakened > 0) { dmg = Math.floor(dmg / 2); h.status.weakened--; }
+        if (currentMonster._mirrorNext) {
+            const mirror = Math.floor(dmg * 0.5);
+            h.hp -= mirror;
+            currentMonster._mirrorNext = false;
+            addLog(`🪞 Tükör: ${h.name} -${mirror}`);
+        }
+        dmg = applyMonsterPassiveToDamage(dmg, false, h);
+        currentMonster.hp -= dmg;
+        if (res.healing > 0) h.hp = Math.min(h.maxHp, h.hp + res.healing);
+        document.getElementById('dice-team').innerText = '✨';
+        addLog(`✨ ${h.name} — ${s.name}: ${dmg}`);
+        await playSkillAnim();
+        return;
+    }
+    if (kind === 'attack') {
+        const result = CombatEngine.calculatePhysicalDamage(h, currentMonster);
+        let dmg = result.damage;
+        const isCrit = result.isCrit;
+        if (currentMonster.passiveLogic === 'hard_skin_15' && parseInt(String(result.roll), 10) < 15) {
+            dmg = 1;
+            addLog(`🪨 Sziklabőr!`);
+        }
+        if (currentMonster.passiveLogic === 'dodge_30' && Math.random() < 0.3) {
+            addLog(`🦇 Kitérés!`);
+            document.getElementById('dice-team').innerText = '💨';
+            return;
+        }
+        if (h.status.weakened > 0) { dmg = Math.floor(dmg / 2); h.status.weakened--; }
+        dmg = applyMonsterPassiveToDamage(dmg, isCrit, h);
+        currentMonster.hp -= dmg;
+        document.getElementById('dice-team').innerText = isCrit ? `💥${result.roll}` : result.roll;
+        addLog(`⚔️ ${h.name}: ${dmg}${isCrit ? ' KRIT' : ''}`);
+        await playAttackAnim('p-img-team', 'e-img-team', dmg, isCrit);
+    }
+}
+
+function writeOnlineQueuedAction(payload) {
+    if (!onlineSession || onlineSession.isHost) return;
+    onlineSession.ref.child('queuedAction').set({
+        ...payload,
+        ts: Date.now(),
+        fromId: myId
+    }).catch(e => console.error(e));
+}
+
+function partyLiteForSync() {
+    return party.map(h => ({
+        name: h.name,
+        hp: h.hp,
+        maxHp: h.maxHp,
+        mp: h.mp,
+        maxMp: h.maxMp,
+        charClass: h.charClass,
+        isGuest: h.isGuest,
+        ownerCharId: h.ownerCharId,
+        cooldowns: [...h.cooldowns],
+        status: { ...h.status },
+        isDefending: h.isDefending,
+        atk: h.atk,
+        def: h.def
+    }));
+}
+
+function monsterLiteForSync() {
+    if (!currentMonster) return null;
+    return {
+        name: currentMonster.name,
+        hp: currentMonster.hp,
+        maxHp: currentMonster.maxHp,
+        atk: currentMonster.atk,
+        def: currentMonster.def,
+        passiveName: currentMonster.passiveName,
+        passiveDesc: currentMonster.passiveDesc,
+        passiveLogic: currentMonster.passiveLogic,
+        image: currentMonster.image,
+        mana: currentMonster.mana,
+        maxMana: currentMonster.maxMana,
+        _canRevive: !!currentMonster._canRevive,
+        _mirrorNext: !!currentMonster._mirrorNext
+    };
+}
+
+function pushBattleStateToRoom(extra) {
+    if (!onlineSession || !onlineSession.isHost) return;
+    const elLog = document.getElementById('log-team');
+    onlineSession.ref.child('battleState').set({
+        party: partyLiteForSync(),
+        monster: monsterLiteForSync(),
+        activeHeroIdx,
+        turnDisplay: document.getElementById('turn-display-team').innerText,
+        dice: document.getElementById('dice-team').innerText,
+        logHtml: elLog ? elLog.innerHTML.slice(0, 14000) : '',
+        expectCharId: extra && extra.expectCharId != null ? extra.expectCharId : null,
+        battleOver,
+        monsterAbilityCooldown,
+        monsterAbilityUsedCount,
+        monsterStatus: { ...monsterStatus }
+    }).catch(e => console.error(e));
+}
+
+function applyGuestBattleView(data) {
+    if (!data || !data.party || !data.monster) return;
+    if (!currentMonster) {
+        currentMonster = { isMonster: true, isDefending: false };
+    }
+    const m = data.monster;
+    Object.assign(currentMonster, {
+        name: m.name,
+        hp: m.hp,
+        maxHp: m.maxHp,
+        atk: m.atk,
+        def: m.def,
+        passiveName: m.passiveName,
+        passiveDesc: m.passiveDesc,
+        passiveLogic: m.passiveLogic,
+        image: m.image,
+        mana: m.mana,
+        maxMana: m.maxMana,
+        _canRevive: !!m._canRevive,
+        _mirrorNext: !!m._mirrorNext
+    });
+    data.party.forEach((row, i) => {
+        if (!party[i]) return;
+        party[i].hp = row.hp;
+        party[i].mp = row.mp;
+        party[i].cooldowns = row.cooldowns || [0, 0, 0];
+        party[i].status = row.status || { burn: 0, stun: 0, weakened: 0 };
+        party[i].isDefending = !!row.isDefending;
+    });
+    activeHeroIdx = data.activeHeroIdx || 0;
+    monsterAbilityCooldown = data.monsterAbilityCooldown || 0;
+    monsterAbilityUsedCount = data.monsterAbilityUsedCount || 0;
+    monsterStatus = data.monsterStatus ? { ...data.monsterStatus } : { burn: 0 };
+    document.getElementById('turn-display-team').innerText = data.turnDisplay || '';
+    document.getElementById('dice-team').innerText = data.dice || '🎲';
+    const log = document.getElementById('log-team');
+    if (log && data.logHtml) log.innerHTML = data.logHtml;
+    battleOver = !!data.battleOver;
+
+    const h = party[activeHeroIdx];
+    if (h) {
+        document.getElementById('p-name-team').innerText = h.name + (h.isGuest ? ' (vendég)' : '');
+        document.getElementById('p-img-team').style.backgroundImage = `url('${HERO_IMGS[h.charClass] || ''}')`;
+        document.getElementById('p-hp-fill-team').style.width = Math.max(0, h.hp / h.maxHp * 100) + '%';
+        document.getElementById('p-hp-val-team').innerText = `${Math.max(0, Math.ceil(h.hp))} / ${h.maxHp} HP`;
+        document.getElementById('p-mp-fill-team').style.width = (h.mp / h.maxMp * 100) + '%';
+        document.getElementById('p-mp-val-team').innerText = `${Math.ceil(h.mp)} / ${h.maxMp} MP`;
+        const st = document.getElementById('status-effects-team');
+        st.innerHTML = '';
+        if (h.status.burn > 0) st.innerHTML += `<span class="status-badge status-burn">🔥 ${h.status.burn}</span>`;
+        if (h.status.stun > 0) st.innerHTML += `<span class="status-badge status-stun">😵 ${h.status.stun}</span>`;
+        if (h.status.weakened > 0) st.innerHTML += `<span class="status-badge status-weak">☠️ ${h.status.weakened}</span>`;
+    }
+    document.getElementById('e-name-team').innerText = currentMonster.name;
+    document.getElementById('monster-passive-name-team').innerText = currentMonster.passiveName;
+    document.getElementById('monster-passive-desc-team').innerText = currentMonster.passiveDesc;
+    const eImg = (currentMonster.image && currentMonster.image !== 'placeholder_link')
+        ? currentMonster.image
+        : `https://via.placeholder.com/300/111111/c5a059?text=${encodeURIComponent(currentMonster.name)}`;
+    document.getElementById('e-img-team').style.backgroundImage = `url('${eImg}')`;
+    document.getElementById('e-hp-fill-team').style.width = Math.max(0, currentMonster.hp / currentMonster.maxHp * 100) + '%';
+    document.getElementById('e-hp-val-team').innerText = `${Math.max(0, Math.ceil(currentMonster.hp))} / ${currentMonster.maxHp} HP`;
+    const activeInfo = getMonsterActiveAbilityInfo(currentMonster.passiveLogic);
+    document.getElementById('monster-active-name-team').innerText = activeInfo.name;
+    document.getElementById('monster-active-cd-team').innerText = `CD: ${activeInfo.cd} kör | max ${MONSTER_ABILITY_MAX_USES}x`;
+    renderPartyStrip('battle-party-strip', true);
+
+    const myTurn = data.expectCharId === myId && !battleOver && h && h.hp > 0 && h.status.stun === 0;
+    if (myTurn) {
+        toggleBattleBtns(false);
+        updateSkillBtnsForHero(h);
+    } else {
+        toggleBattleBtns(true);
+    }
+}
+
+function syncProgressToRoom() {
+    if (!onlineSession || !onlineSession.isHost) return;
+    const mapVis = document.getElementById('phase-map').classList.contains('active');
+    const batVis = document.getElementById('phase-battle').classList.contains('active');
+    onlineSession.ref.child('progress').set({
+        mapIndex,
+        phase: batVis ? 'battle' : 'map',
+        inBattle: batVis
+    }).catch(e => console.error(e));
+}
+
+function cleanupOnlineSession() {
+    if (!onlineSession) return;
+    onlineSession.unsubs = unsubAll(onlineSession.unsubs);
+    if (onDisconnectRef) {
+        try { onDisconnectRef.cancel(); } catch (e) {}
+        onDisconnectRef = null;
+    }
+    onlineSession = null;
+}
+
+async function playerActionTeam(type) {
+    if (battleOver) return;
+    const h = party[activeHeroIdx];
+    if (!h || h.hp <= 0 || h.status.stun > 0) return;
+
+    if (onlineSession && !onlineSession.isHost) {
+        if (h.ownerCharId !== myId) return;
+        writeOnlineQueuedAction({ heroIndex: activeHeroIdx, kind: type === 'attack' ? 'attack' : 'defend' });
+        toggleBattleBtns(true);
+        return;
+    }
+
+    if (!waitingForPlayer) return;
+    waitingForPlayer = null;
+    toggleBattleBtns(true);
+
+    await performHeroAction(h, type === 'attack' ? 'attack' : 'defend', null);
+    updateBattleUI();
+    if (onlineSession && onlineSession.isHost) pushBattleStateToRoom();
+    resolveHeroDone();
+}
+
+async function playerSkillTeam(idx) {
+    if (battleOver) return;
+    const h = party[activeHeroIdx];
+    if (!h || h.hp <= 0 || h.status.stun > 0) return;
+    const s = h.classData.skills[idx];
+    if (h.mp < s.cost || h.cooldowns[idx] > 0) return;
+
+    if (onlineSession && !onlineSession.isHost) {
+        if (h.ownerCharId !== myId) return;
+        writeOnlineQueuedAction({ heroIndex: activeHeroIdx, kind: 'skill', skillIdx: idx });
+        toggleBattleBtns(true);
+        return;
+    }
+
+    if (!waitingForPlayer) return;
+    waitingForPlayer = null;
+    toggleBattleBtns(true);
+
+    await performHeroAction(h, 'skill', idx);
+    updateBattleUI();
+    if (onlineSession && onlineSession.isHost) pushBattleStateToRoom();
+    resolveHeroDone();
+}
+
+function resolveHeroDone() {
+    if (battleOver) return;
+    if (currentMonster.hp <= 0) {
+        if (currentMonster._canRevive) {
+            currentMonster._canRevive = false;
+            currentMonster.hp = 50;
+            addLog(`💫 A szörny feltámadt!`);
+            updateBattleUI();
+        } else {
+            endBattleNode(true);
+            return;
+        }
+    }
+    if (allHeroesDown()) {
+        endBattleNode(false);
+        return;
+    }
+    const cb = window.__heroTurnResolve;
+    if (typeof cb === 'function') cb();
+}
+
+function tickHeroCooldownsEndRound() {
+    party.forEach(h => {
+        h.cooldowns = h.cooldowns.map(c => (c > 0 ? c - 1 : 0));
+    });
+}
+
+async function monsterTurnTeam() {
+    if (onlineSession && !onlineSession.isHost) return;
+    document.getElementById('turn-display-team').innerText = 'ELLENSÉG KÖRE';
+    toggleBattleBtns(true);
+
+    if (monsterStatus.burn > 0) {
+        currentMonster.hp -= 4;
+        monsterStatus.burn--;
+        addLog(`🔥 Égés a szörnyön: -4`);
+        updateBattleUI();
+        if (currentMonster.hp <= 0) {
+            endBattleNode(true);
+            return;
+        }
+    }
+
+    party.forEach(h => {
+        if (h.hp > 0 && h.status.burn > 0) {
+            const ba = currentMonster.passiveLogic === 'burn_dot_5' ? 5 : 3;
+            h.hp -= ba;
+            h.status.burn--;
+            addLog(`🔥 ${h.name} égés: -${ba}`);
+        }
+    });
+    updateBattleUI();
+    if (allHeroesDown()) {
+        endBattleNode(false);
+        return;
+    }
+
+    const canUse = monsterAbilityCooldown === 0 && monsterAbilityUsedCount < MONSTER_ABILITY_MAX_USES && Math.random() < 0.28;
+    if (canUse) executeMonsterActiveAbility();
+    else if (Math.random() > 0.15) {
+        const t = randomAliveHeroIdx();
+        if (t >= 0) {
+            const result = CombatEngine.calculatePhysicalDamage(currentMonster, party[t]);
+            party[t].hp -= result.damage;
+            document.getElementById('dice-team').innerText = result.roll;
+            addLog(`👹 ${currentMonster.name} → ${party[t].name}: ${result.damage}`);
+            await playAttackAnim('e-img-team', 'p-img-team', result.damage, result.isCrit);
+        }
+    } else {
+        currentMonster.isDefending = true;
+        addLog(`🛡️ A szörny védekezik`);
+    }
+
+    if (monsterAbilityCooldown > 0) monsterAbilityCooldown--;
+    tickHeroCooldownsEndRound();
+    updateBattleUI();
+    if (onlineSession && onlineSession.isHost) pushBattleStateToRoom();
+
+    if (allHeroesDown()) {
+        endBattleNode(false);
+        return;
+    }
+
+    await runHeroesPhase();
+}
+
+async function runHeroesPhase() {
+    if (onlineSession && !onlineSession.isHost) return;
+    currentMonster.isDefending = false;
+    for (let i = 0; i < party.length; i++) {
+        if (battleOver) return;
+        activeHeroIdx = i;
+        const h = party[i];
+        if (h.hp <= 0) continue;
+
+        if (h.status.stun > 0) {
+            h.status.stun--;
+            addLog(`😵 ${h.name} kábult — kihagyja`);
+            updateBattleUI();
+            if (onlineSession && onlineSession.isHost) pushBattleStateToRoom();
+            if (currentMonster.hp <= 0) { endBattleNode(true); return; }
+            if (allHeroesDown()) { endBattleNode(false); return; }
+            continue;
+        }
+
+        document.getElementById('turn-display-team').innerText = `${h.name} következik`;
+        updateBattleUI();
+
+        await new Promise(resolve => {
+            window.__heroTurnResolve = resolve;
+            const needRemote = onlineSession && onlineSession.isHost && h.ownerCharId && h.ownerCharId !== myId;
+            if (needRemote) {
+                pushBattleStateToRoom({ expectCharId: h.ownerCharId });
+                onlineSession.ref.child('queuedAction').remove().catch(() => {});
+                const ref = onlineSession.ref.child('queuedAction');
+                const fn = ref.on('value', async snap => {
+                    const v = snap.val();
+                    if (!v || v.fromId !== h.ownerCharId || v.heroIndex !== i) return;
+                    ref.off('value', fn);
+                    try { await ref.remove(); } catch (e) {}
+                    waitingForPlayer = false;
+                    toggleBattleBtns(true);
+                    const kind = v.kind === 'skill' ? 'skill' : v.kind === 'attack' ? 'attack' : 'defend';
+                    await performHeroAction(h, kind, v.skillIdx != null ? v.skillIdx : null);
+                    updateBattleUI();
+                    pushBattleStateToRoom({ expectCharId: null });
+                    resolveHeroDone();
+                });
+                onlineSession.unsubs.push(() => { try { ref.off('value', fn); } catch (e) {} });
+            } else {
+                toggleBattleBtns(false);
+                waitingForPlayer = true;
+                if (onlineSession && onlineSession.isHost) {
+                    pushBattleStateToRoom({ expectCharId: h.ownerCharId === myId ? myId : null });
+                }
+            }
+        });
+        window.__heroTurnResolve = null;
+
+        if (battleOver) return;
+        if (currentMonster.hp <= 0 && !currentMonster._canRevive) {
+            endBattleNode(true);
+            return;
+        }
+        if (allHeroesDown()) {
+            endBattleNode(false);
+            return;
+        }
+    }
+
+    await monsterTurnTeam();
+}
+
+function startBattleInternal() {
+    battleOver = false;
+    document.getElementById('log-team').innerHTML = '';
+    document.getElementById('dice-team').innerText = '🎲';
+    monsterStatus = { burn: 0 };
+    monsterAbilityCooldown = 0;
+    monsterAbilityUsedCount = 0;
+    party.forEach(h => { h.isDefending = false; });
+    currentMonster.isDefending = false;
+
+    initBattleMonsterUI();
+    updateBattleUI();
+    roundActive = true;
+    if (onlineSession && onlineSession.isHost) {
+        syncProgressToRoom();
+        pushBattleStateToRoom();
+    }
+    runHeroesPhase().catch(e => console.error(e));
+}
+
+function endBattleNode(win) {
+    if (battleOver) return;
+    battleOver = true;
+    roundActive = false;
+    waitingForPlayer = null;
+    toggleBattleBtns(true);
+    const unblock = window.__heroTurnResolve;
+    window.__heroTurnResolve = null;
+    if (typeof unblock === 'function') try { unblock(); } catch (e) {}
+    if (onlineSession && onlineSession.isHost) pushBattleStateToRoom({ expectCharId: null });
+
+    if (win) {
+        const mult = 0.65 + party.filter(h => h.hp > 0).length * 0.12;
+        const xp = Math.floor(currentMonster.xp * mult);
+        const gold = Math.floor(currentMonster.gold * mult);
+        totalXpEarned += xp;
+        totalGoldEarned += gold;
+        addLog(`✅ Győzelem! +${xp} XP, +${gold} arany (főhősnek)`);
+
+        const node = RUN_MAP[mapIndex];
+        if (node.type === 'boss') {
+            showRunWinOverlay(true);
+            return;
+        }
+        mapIndex++;
+        document.getElementById('phase-battle').classList.remove('active');
+        document.getElementById('phase-battle').style.display = 'none';
+        document.getElementById('phase-map').classList.add('active');
+        document.getElementById('phase-map').style.display = 'flex';
+        renderMap();
+        document.getElementById('map-node-desc').innerHTML =
+            `<span style="color:var(--gold)">Szakasz teljesítve!</span> +${xp} XP, +${gold} arany (összesen a futam végén íródik jóvá a főhősnek).`;
+        if (onlineSession && onlineSession.isHost) {
+            syncProgressToRoom();
+            pushBattleStateToRoom();
+        }
+    } else {
+        showRunWinOverlay(false);
+    }
+}
+
+function showRunWinOverlay(fullWin) {
+    const ov = document.getElementById('win-screen-team');
+    ov.style.display = 'flex';
+    document.getElementById('win-title-team').innerText = fullWin ? 'A FUTAM GYŐZELME!' : 'VERESÉG';
+    document.getElementById('win-title-team').style.color = fullWin ? 'var(--gold)' : '#e74c3c';
+
+    if (onlineSession && onlineSession.isHost) {
+        const defeatXp = fullWin ? 0 : Math.floor((currentMonster && currentMonster.xp) ? currentMonster.xp / 5 : 0);
+        onlineSession.ref.child('runOutcome').set({
+            fullWin,
+            totalXpEarned,
+            totalGoldEarned,
+            defeatXp,
+            ts: Date.now()
+        }).catch(err => console.error(err));
+    }
+
+    const myHero = party.find(h => h.ownerCharId === myId);
+    if (fullWin && myHero) {
+        document.getElementById('win-sub-team').innerText = 'A csapat legyőzte a főellenséget. A saját karakteredhez íródik a jutalom.';
+        document.getElementById('reward-xp-team').innerText = `+${totalXpEarned} XP összesen`;
+        document.getElementById('reward-gold-team').innerText = `+${totalGoldEarned} arany`;
+        const fh = Math.max(1, Math.ceil(myHero.hp));
+        const fm = Math.max(0, Math.ceil(myHero.mp));
+        db.ref(`characters/${myId}`).update({
+            xp: (mainHeroSnapshot.xp || 0) + totalXpEarned,
+            gold: Math.max(0, (mainHeroSnapshot.gold || 0) + totalGoldEarned),
+            hp: fh,
+            mp: fm,
+            lastUpdate: Date.now()
+        }).catch(err => console.error(err));
+    } else if (!fullWin && myHero) {
+        const defeatXp = Math.floor((currentMonster && currentMonster.xp) ? currentMonster.xp / 5 : 0);
+        const xpTotal = (mainHeroSnapshot.xp || 0) + totalXpEarned + defeatXp;
+        const goldTotal = Math.max(0, (mainHeroSnapshot.gold || 0) + totalGoldEarned);
+        document.getElementById('win-sub-team').innerText = 'A csapat szétesett. HP/MP, az eddig szerzett arany és XP + vigaszdíj mentve a karakteredhez.';
+        document.getElementById('reward-xp-team').innerText = `XP: +${totalXpEarned} a futamon, +${defeatXp} vigaszdíj (összesen jóváírva)`;
+        document.getElementById('reward-gold-team').innerText = `Arany: +${totalGoldEarned} (megtartod)`;
+        const fh = Math.max(0, Math.ceil(myHero.hp));
+        const fm = Math.max(0, Math.ceil(myHero.mp));
+        db.ref(`characters/${myId}`).update({
+            xp: xpTotal,
+            gold: goldTotal,
+            hp: fh,
+            mp: fm,
+            lastUpdate: Date.now()
+        }).catch(err => console.error(err));
+    } else {
+        document.getElementById('win-sub-team').innerText = '';
+        document.getElementById('reward-xp-team').innerText = '';
+        document.getElementById('reward-gold-team').innerText = '';
+    }
+}
+
+function showRunWinOverlayFromHostPayload(o) {
+    const ov = document.getElementById('win-screen-team');
+    ov.style.display = 'flex';
+    const fullWin = !!o.fullWin;
+    document.getElementById('win-title-team').innerText = fullWin ? 'A FUTAM GYŐZELME!' : 'VERESÉG';
+    document.getElementById('win-title-team').style.color = fullWin ? 'var(--gold)' : '#e74c3c';
+    const myHero = party.find(h => h.ownerCharId === myId);
+    const txp = o.totalXpEarned || 0;
+    const tg = o.totalGoldEarned || 0;
+    const defeatXp = o.defeatXp || 0;
+    if (fullWin && myHero) {
+        document.getElementById('win-sub-team').innerText = 'A házigazda csapata győzött. A jutalom a te karakteredhez íródik.';
+        document.getElementById('reward-xp-team').innerText = `+${txp} XP összesen`;
+        document.getElementById('reward-gold-team').innerText = `+${tg} arany`;
+        const fh = Math.max(1, Math.ceil(myHero.hp));
+        const fm = Math.max(0, Math.ceil(myHero.mp));
+        db.ref(`characters/${myId}`).update({
+            xp: (mainHeroSnapshot.xp || 0) + txp,
+            gold: Math.max(0, (mainHeroSnapshot.gold || 0) + tg),
+            hp: fh,
+            mp: fm,
+            lastUpdate: Date.now()
+        }).catch(err => console.error(err));
+    } else if (!fullWin && myHero) {
+        const xpTotal = (mainHeroSnapshot.xp || 0) + txp + defeatXp;
+        const goldTotal = Math.max(0, (mainHeroSnapshot.gold || 0) + tg);
+        document.getElementById('win-sub-team').innerText = 'A futam véget ért. A jutalmak a te karakteredhez mentve.';
+        document.getElementById('reward-xp-team').innerText = `XP: +${txp} + ${defeatXp} vigaszdíj`;
+        document.getElementById('reward-gold-team').innerText = `Arany: +${tg}`;
+        const fh = Math.max(0, Math.ceil(myHero.hp));
+        const fm = Math.max(0, Math.ceil(myHero.mp));
+        db.ref(`characters/${myId}`).update({
+            xp: xpTotal,
+            gold: goldTotal,
+            hp: fh,
+            mp: fm,
+            lastUpdate: Date.now()
+        }).catch(err => console.error(err));
+    }
+}
+
+async function finishRunToCity() {
+    await tearDownOnlineRoom();
+    location.href = 'index.html';
+}
+
+async function tearDownOnlineRoom() {
+    if (onlineSession) {
+        try {
+            if (onlineSession.isHost) {
+                await onlineSession.ref.remove();
+            } else {
+                await onlineSession.ref.child('members').child(myId).remove();
+            }
+        } catch (e) { console.warn(e); }
+        cleanupOnlineSession();
+    }
+    lobbyRoomId = null;
+}
+
+function confirmAbortRun() {
+    if (!confirm('Biztosan feladod a csapat futamot?')) return;
+    tearDownOnlineRoom().finally(() => { location.href = 'index.html'; });
+}
+
+function renderMap() {
+    const guestMap = onlineSession && !onlineSession.isHost;
+    const track = document.getElementById('map-track');
+    track.innerHTML = RUN_MAP.map((n, i) => {
+        let cls = 'map-node';
+        if (n.type === 'boss') cls += ' boss';
+        if (n.type === 'camp') cls += ' camp';
+        if (i < mapIndex) cls += ' done';
+        if (i === mapIndex) cls += ' current';
+        const icon = n.type === 'camp' ? '🔥' : n.type === 'boss' ? '👹' : '⚔️';
+        return `<div class="${cls}"><div class="map-dot">${icon}</div><div class="map-label">${n.label}</div></div>`;
+    }).join('');
+
+    renderPartyStrip('map-party-strip', false);
+
+    const cur = RUN_MAP[mapIndex];
+    const desc = document.getElementById('map-node-desc');
+    const btn = document.getElementById('btn-enter-node');
+    if (!cur) {
+        desc.innerText = 'A térkép véget ért.';
+        btn.style.display = 'none';
+        return;
+    }
+    if (cur.type === 'camp') {
+        desc.innerText = `${cur.label}: a csapat pihen — mindenki tele HP és MP.`;
+        btn.innerText = 'Pihenés';
+    } else if (cur.type === 'boss') {
+        desc.innerText = `${cur.label}: itt vár a kampány egyik főbossa (véletlenszerű).`;
+        btn.innerText = 'Harc a főellenséggel';
+    } else {
+        desc.innerText = `${cur.label}: ${cur.tier === 'easy' ? 'gyenge' : cur.tier === 'medium' ? 'közepes' : 'erős'} szörnyek területe.`;
+        btn.innerText = 'Harc';
+    }
+    btn.style.display = 'inline-block';
+    if (guestMap) {
+        btn.disabled = true;
+        btn.style.opacity = '0.55';
+        btn.title = 'Csak a házigazda indíthatja a csomópontokat';
+        btn.onclick = null;
+    } else {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btn.title = '';
+        btn.onclick = () => enterMapNode(cur);
+    }
+    if (onlineSession && onlineSession.isHost) syncProgressToRoom();
+}
+
+function enterMapNode(node) {
+    if (onlineSession && !onlineSession.isHost) return;
+    if (node.type === 'camp') {
+        party.forEach(h => {
+            h.hp = h.maxHp;
+            h.mp = h.maxMp;
+            h.status = { burn: 0, stun: 0, weakened: 0 };
+            h.cooldowns = [0, 0, 0];
+        });
+        mapIndex++;
+        renderMap();
+        document.getElementById('map-node-desc').innerHTML = '<span style="color:#5dade2">Mindenki tele élet és mana.</span>';
+        if (onlineSession && onlineSession.isHost) syncProgressToRoom();
+        return;
+    }
+    const tier = node.type === 'boss' ? 'boss' : node.tier;
+    currentMonster = cloneMonsterForBattle(tier);
+    document.getElementById('phase-map').classList.remove('active');
+    document.getElementById('phase-map').style.display = 'none';
+    document.getElementById('phase-battle').classList.add('active');
+    document.getElementById('phase-battle').style.display = 'flex';
+    addLog(`⚔️ <span style="color:#f66">${currentMonster.name}</span> áll az útban!`);
+    startBattleInternal();
+}
+
+/* ——— Online váró / meccskeresés ——— */
+document.getElementById('tab-mode-local').addEventListener('click', () => {
+    document.getElementById('tab-mode-local').classList.add('active');
+    document.getElementById('tab-mode-online').classList.remove('active');
+    document.getElementById('block-local-setup').style.display = 'block';
+    document.getElementById('block-online-setup').style.display = 'none';
+});
+document.getElementById('tab-mode-online').addEventListener('click', () => {
+    document.getElementById('tab-mode-online').classList.add('active');
+    document.getElementById('tab-mode-local').classList.remove('active');
+    document.getElementById('block-local-setup').style.display = 'none';
+    document.getElementById('block-online-setup').style.display = 'block';
+});
+
+function showPhaseSetup() {
+    document.getElementById('phase-lobby').classList.remove('active');
+    document.getElementById('phase-lobby').style.display = 'none';
+    document.getElementById('phase-setup').classList.add('active');
+    document.getElementById('phase-setup').style.display = 'block';
+}
+
+function showPhaseLobby() {
+    document.getElementById('phase-setup').classList.remove('active');
+    document.getElementById('phase-setup').style.display = 'none';
+    document.getElementById('phase-lobby').classList.add('active');
+    document.getElementById('phase-lobby').style.display = 'flex';
+}
+
+function renderLobbyMembers(room) {
+    const ul = document.getElementById('lobby-member-list');
+    if (!room || !room.members) {
+        ul.innerHTML = '';
+        return;
+    }
+    const entries = Object.entries(room.members).sort((a, b) => (a[1].joinedAt || 0) - (b[1].joinedAt || 0));
+    ul.innerHTML = entries.map(([cid, m]) => {
+        const hostMark = cid === room.hostCharId ? ' 👑' : '';
+        const rd = m.ready ? '<span class="lobby-ready">Kész</span>' : '<span class="lobby-wait">Nem kész</span>';
+        return `<li><span>${(m.name || '?') + hostMark}</span> <span style="color:#888">${m.charClass || ''}</span> ${rd}</li>`;
+    }).join('');
+    document.getElementById('lobby-room-meta').innerText =
+        `Nehézség: ${room.difficulty || '—'} · Max ${room.maxPlayers || 4} fő · ${entries.length} a szobában`;
+    const isHost = room.hostCharId === myId;
+    const startBtn = document.getElementById('btn-lobby-start');
+    const n = entries.length;
+    const allReady = entries.length > 0 && entries.every(([, m]) => m.ready);
+    startBtn.style.display = isHost ? 'block' : 'none';
+    startBtn.disabled = !(n >= 2 && n <= (room.maxPlayers || 4) && allReady);
+}
+
+function bindLobbyRoomListener(roomRef) {
+    lobbyUnsubs = unsubAll(lobbyUnsubs);
+    let prevStatus = null;
+    const fn = roomRef.on('value', snap => {
+        const room = snap.val();
+        if (!room) {
+            alert('A szoba megszűnt.');
+            leaveLobby();
+            return;
+        }
+        renderLobbyMembers(room);
+        const st = room.status || 'lobby';
+        if (st === 'playing' && prevStatus !== 'playing') {
+            prevStatus = st;
+            lobbyUnsubs = unsubAll(lobbyUnsubs);
+            beginOnlineRunFromRoom(roomRef.key, room).catch(e => { console.error(e); alert(e.message); });
+        } else {
+            prevStatus = st;
+        }
+    });
+    lobbyUnsubs.push(() => { try { roomRef.off('value', fn); } catch (e) {} });
+}
+
+async function leaveLobby() {
+    lobbyUnsubs = unsubAll(lobbyUnsubs);
+    if (onDisconnectRef) { try { onDisconnectRef.cancel(); } catch (e) {} onDisconnectRef = null; }
+    if (lobbyRoomId) {
+        const ref = db.ref(`teamCampaignRooms/${lobbyRoomId}`);
+        try {
+            const snap = await ref.once('value');
+            const room = snap.val();
+            if (room && room.status === 'lobby' && room.hostCharId === myId) {
+                await ref.remove();
+            } else if (room && room.members && room.members[myId]) {
+                await ref.child(`members/${myId}`).remove();
+                const snap2 = await ref.once('value');
+                const r2 = snap2.val();
+                if (r2 && (!r2.members || Object.keys(r2.members).length === 0)) {
+                    await ref.remove();
+                }
+            }
+        } catch (e) { console.warn(e); }
+    }
+    lobbyRoomId = null;
+    showPhaseSetup();
+}
+
+document.getElementById('btn-lobby-leave').addEventListener('click', () => leaveLobby());
+
+document.getElementById('btn-lobby-ready').addEventListener('click', async () => {
+    if (!lobbyRoomId || !myId) return;
+    const rref = db.ref(`teamCampaignRooms/${lobbyRoomId}/members/${myId}/ready`);
+    const snap = await rref.once('value');
+    await rref.set(!snap.val());
+});
+
+document.getElementById('btn-lobby-start').addEventListener('click', async () => {
+    if (!lobbyRoomId) return;
+    const roomRef = db.ref(`teamCampaignRooms/${lobbyRoomId}`);
+    const snap = await roomRef.once('value');
+    const room = snap.val();
+    if (!room || room.hostCharId !== myId) return;
+    const entries = Object.entries(room.members || {});
+    if (entries.length < 2) return alert('Legalább két játékos kell.');
+    if (!entries.every(([, m]) => m.ready)) return alert('Minden játékos nyomja meg: Készen állok.');
+    await roomRef.update({ status: 'playing', startedAt: Date.now() });
+});
+
+async function createOnlineRoom(publicQueue) {
+    if (!myId) return alert('Nincs belépett karakter.');
+    const diff = document.getElementById('sel-online-difficulty').value;
+    const maxPlayers = parseInt(document.getElementById('sel-online-max').value, 10);
+    const mySnap = await db.ref(`characters/${myId}`).once('value');
+    const me = mySnap.val();
+    if (!me) return alert('Karakter nem található.');
+    let code = makeRoomCode();
+    for (let attempt = 0; attempt < 8; attempt++) {
+        const ref = db.ref(`teamCampaignRooms/${code}`);
+        const ex = await ref.once('value');
+        if (!ex.val()) break;
+        code = makeRoomCode();
+    }
+    const roomRef = db.ref(`teamCampaignRooms/${code}`);
+    await roomRef.set({
+        hostCharId: myId,
+        difficulty: diff,
+        maxPlayers,
+        status: 'lobby',
+        publicQueue: !!publicQueue,
+        createdAt: Date.now(),
+        members: {
+            [myId]: {
+                name: me.name,
+                charClass: me.charClass,
+                ready: false,
+                joinedAt: Date.now()
+            }
+        }
+    });
+    onDisconnectRef = roomRef.child(`members/${myId}`);
+    try {
+        await onDisconnectRef.onDisconnect().remove();
+    } catch (e) {}
+    lobbyRoomId = code;
+    document.getElementById('lobby-room-code').innerText = code;
+    showPhaseLobby();
+    bindLobbyRoomListener(roomRef);
+}
+
+async function joinOnlineRoomByCode(codeRaw) {
+    if (!myId) return alert('Nincs belépett karakter.');
+    const code = normRoomCode(codeRaw);
+    if (code.length < 4) return alert('Érvénytelen kód.');
+    const roomRef = db.ref(`teamCampaignRooms/${code}`);
+    const snap = await roomRef.once('value');
+    const room = snap.val();
+    if (!room || room.status !== 'lobby') return alert('Nem található nyitott szoba ezzel a kóddal.');
+    const n = room.members ? Object.keys(room.members).length : 0;
+    if (n >= room.maxPlayers) return alert('A szoba tele van.');
+    const mySnap = await db.ref(`characters/${myId}`).once('value');
+    const me = mySnap.val();
+    if (!me) return alert('Karakter nem található.');
+    if (room.members && room.members[myId]) {
+        /* már bent vagyunk */
+    } else {
+        await roomRef.child(`members/${myId}`).set({
+            name: me.name,
+            charClass: me.charClass,
+            ready: false,
+            joinedAt: Date.now()
+        });
+    }
+    onDisconnectRef = roomRef.child(`members/${myId}`);
+    try {
+        await onDisconnectRef.onDisconnect().remove();
+    } catch (e) {}
+    lobbyRoomId = code;
+    document.getElementById('lobby-room-code').innerText = code;
+    showPhaseLobby();
+    bindLobbyRoomListener(roomRef);
+}
+
+async function quickMatchOnline() {
+    if (!myId) return alert('Nincs belépett karakter.');
+    const diff = document.getElementById('sel-online-difficulty').value;
+    const maxPlayers = parseInt(document.getElementById('sel-online-max').value, 10);
+    const root = await db.ref('teamCampaignRooms').limitToFirst(100).once('value');
+    let pick = null;
+    root.forEach(child => {
+        const v = child.val();
+        if (!v || v.status !== 'lobby' || !v.publicQueue) return;
+        if (v.difficulty !== diff) return;
+        const n = v.members ? Object.keys(v.members).length : 0;
+        if (n >= (v.maxPlayers || 4)) return;
+        if (!pick || (v.createdAt || 0) < (pick.createdAt || 0)) pick = { key: child.key, v };
+    });
+    if (pick) {
+        await joinOnlineRoomByCode(pick.key);
+        return;
+    }
+    await createOnlineRoom(true);
+}
+
+document.getElementById('btn-create-room').addEventListener('click', () => createOnlineRoom(false).catch(e => alert(e.message)));
+document.getElementById('btn-join-code').addEventListener('click', () => {
+    joinOnlineRoomByCode(document.getElementById('inp-join-code').value).catch(e => alert(e.message));
+});
+document.getElementById('btn-quick-match').addEventListener('click', () => quickMatchOnline().catch(e => alert(e.message)));
+
+function attachGuestOnlineSync() {
+    if (!onlineSession || onlineSession.isHost) return;
+    const progFn = onlineSession.ref.child('progress').on('value', snap => {
+        const p = snap.val() || {};
+        if (typeof p.mapIndex === 'number' && p.mapIndex !== mapIndex) {
+            mapIndex = p.mapIndex;
+            renderMap();
+        }
+        if (p.inBattle) {
+            document.getElementById('phase-map').classList.remove('active');
+            document.getElementById('phase-map').style.display = 'none';
+            document.getElementById('phase-battle').classList.add('active');
+            document.getElementById('phase-battle').style.display = 'flex';
+        } else if (p.phase === 'map') {
+            document.getElementById('phase-battle').classList.remove('active');
+            document.getElementById('phase-battle').style.display = 'none';
+            document.getElementById('phase-map').classList.add('active');
+            document.getElementById('phase-map').style.display = 'flex';
+        }
+    });
+    const batFn = onlineSession.ref.child('battleState').on('value', snap => {
+        const d = snap.val();
+        if (d) applyGuestBattleView(d);
+    });
+    const outFn = onlineSession.ref.child('runOutcome').on('value', snap => {
+        const o = snap.val();
+        if (!o || runOutcomeHandled) return;
+        runOutcomeHandled = true;
+        showRunWinOverlayFromHostPayload(o);
+    });
+    onlineSession.unsubs.push(() => { try { onlineSession.ref.child('progress').off('value', progFn); } catch (e) {} });
+    onlineSession.unsubs.push(() => { try { onlineSession.ref.child('battleState').off('value', batFn); } catch (e) {} });
+    onlineSession.unsubs.push(() => { try { onlineSession.ref.child('runOutcome').off('value', outFn); } catch (e) {} });
+}
+
+async function beginOnlineRunFromRoom(roomId, room) {
+    if (joiningOnlineRun) return;
+    joiningOnlineRun = true;
+    try {
+        if (onDisconnectRef) {
+            try { onDisconnectRef.cancel(); } catch (e) {}
+            onDisconnectRef = null;
+        }
+        runOutcomeHandled = false;
+        runDifficulty = room.difficulty || 'medium';
+        diffScale = scaleDifficultyMult(runDifficulty);
+        totalXpEarned = 0;
+        totalGoldEarned = 0;
+        mapIndex = 0;
+        battleOver = false;
+
+        const entries = Object.entries(room.members || {}).sort((a, b) => (a[1].joinedAt || 0) - (b[1].joinedAt || 0));
+        const ids = entries.map(([id]) => id);
+        party = [];
+        for (let i = 0; i < ids.length; i++) {
+            const cid = ids[i];
+            const snap = await db.ref(`characters/${cid}`).once('value');
+            const raw = snap.val();
+            if (!raw) continue;
+            const h = normalizeHero(JSON.parse(JSON.stringify(raw)), false);
+            h.ownerCharId = cid;
+            party.push(h);
+        }
+        if (party.length < 2) {
+            alert('A csapat betöltése sikertelen.');
+            showPhaseSetup();
+            return;
+        }
+
+        const mySnap = await db.ref(`characters/${myId}`).once('value');
+        mainHeroSnapshot = JSON.parse(JSON.stringify(mySnap.val() || {}));
+
+        onlineSession = {
+            roomId,
+            ref: db.ref(`teamCampaignRooms/${roomId}`),
+            isHost: room.hostCharId === myId,
+            hostCharId: room.hostCharId,
+            unsubs: []
+        };
+
+        document.getElementById('phase-lobby').classList.remove('active');
+        document.getElementById('phase-lobby').style.display = 'none';
+        document.getElementById('phase-setup').style.display = 'none';
+        document.getElementById('phase-map').classList.add('active');
+        document.getElementById('phase-map').style.display = 'flex';
+        document.getElementById('map-run-title').innerText = `Online futam (${runDifficulty}) — ${party.length} játékos`;
+
+        if (!onlineSession.isHost) {
+            attachGuestOnlineSync();
+        } else {
+            syncProgressToRoom();
+        }
+
+        renderMap();
+    } catch (err) {
+        console.error(err);
+        alert(err.message || String(err));
+        showPhaseSetup();
+    } finally {
+        joiningOnlineRun = false;
+    }
+}
+
+document.getElementById('btn-start-run').addEventListener('click', async () => {
+    if (!myId) return alert('Nincs kiválasztott karakter.');
+    runDifficulty = document.getElementById('sel-difficulty').value;
+    diffScale = scaleDifficultyMult(runDifficulty);
+    const size = parseInt(document.getElementById('sel-party-size').value, 10);
+
+    try {
+        const snap = await db.ref(`characters/${myId}`).once('value');
+        const raw = snap.val();
+        if (!raw) return alert('Karakter nem található.');
+
+        mainHeroSnapshot = JSON.parse(JSON.stringify(raw));
+        const main = normalizeHero({ ...raw }, false);
+        main.ownerCharId = myId;
+        party = [main];
+
+        for (let g = 0; g < size - 1; g++) {
+            const nameEl = document.getElementById(`guest-name-${g}`);
+            const clsEl = document.getElementById(`guest-class-${g}`);
+            const nm = (nameEl && nameEl.value.trim()) || `Társ${g + 2}`;
+            const cl = clsEl ? clsEl.value : 'Harcos';
+            const base = TEAM_CLASS_BASE[cl];
+            const guest = normalizeHero({
+                name: nm.slice(0, 12),
+                charClass: cl,
+                hp: base.hp,
+                maxHp: base.hp,
+                mp: base.mp,
+                maxMp: base.mp,
+                atk: base.atk,
+                def: base.def,
+                gold: 0,
+                xp: 0,
+                bonusAtk: 0,
+                bonusDef: 0
+            }, true);
+            party.push(guest);
+        }
+
+        totalXpEarned = 0;
+        totalGoldEarned = 0;
+        mapIndex = 0;
+
+        document.getElementById('phase-setup').classList.remove('active');
+        document.getElementById('phase-setup').style.display = 'none';
+        document.getElementById('phase-map').classList.add('active');
+        document.getElementById('phase-map').style.display = 'flex';
+        document.getElementById('map-run-title').innerText = `Futam (${runDifficulty}) — ${party.length} hős`;
+        renderMap();
+    } catch (e) {
+        console.error(e);
+        alert('Hiba: ' + e.message);
+    }
+});
+</script>
 </body>
 </html>
