@@ -106,12 +106,18 @@
     const firebaseConfig = { apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU", authDomain: "dnd-tracker-4fe05.firebaseapp.com", projectId: "dnd-tracker-4fe05", databaseURL: "https://dnd-tracker-4fe05-default-rtdb.europe-west1.firebasedatabase.app" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    const myId = localStorage.getItem('selectedCharId');
+    const myId = typeof getSelectedCharId === 'function' ? getSelectedCharId() : localStorage.getItem('selectedCharId');
     
     let currentRoom = null, bRef = null, isFighting = false, rewarded = false, hasFled = false;
     let myCooldowns = [0, 0, 0], lastTurnOwner = "";
     let turnTimer = null, timeLeft = 15;
     let myClassData = null, myHero = null;
+    let lobbyPingInterval = null;
+
+    /** Ha a várakozó szoba lobbyPing-je ennyi ideje nem frissült, a host nincs jelen → szellem szoba. */
+    const LOBBY_STALE_MS = 90000;
+    const MATCH_RETRY_DELAY_MS = 180;
+    const MATCH_MAX_ATTEMPTS = 5;
 
     const HERO_IMGS = { 
         "Harcos":"https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png", 
@@ -192,27 +198,63 @@
         });
     }
 
+    function cleanupStaleBattles(rooms) {
+        const now = Date.now();
+        const staleIds = [];
+        if (!rooms) return Promise.resolve();
+        for (const id in rooms) {
+            const r = rooms[id];
+            if (!r || !r.p1) continue;
+            if (r.status !== "waiting" || !r.p2 || r.p2.id !== "waiting") continue;
+            const ping = typeof r.lobbyPing === "number" ? r.lobbyPing : (typeof r.createdAt === "number" ? r.createdAt : 0);
+            if (!ping) continue;
+            if (now - ping > LOBBY_STALE_MS) staleIds.push(id);
+        }
+        if (!staleIds.length) return Promise.resolve();
+        return Promise.all(staleIds.map(id => db.ref("battles/" + id).remove()));
+    }
+
+    function pickOpenRoom(rooms) {
+        if (!rooms) return null;
+        for (const id in rooms) {
+            const r = rooms[id];
+            if (r && r.status === "waiting" && r.p1 && r.p1.id !== myId && r.p2 && r.p2.id === "waiting") return id;
+        }
+        return null;
+    }
+
     function findMatch() {
         document.getElementById('ready-text').innerText = "Ellenfelet keresünk...";
-        db.ref('battles').once('value', snap => {
-            const rooms = snap.val(); 
-            let found = null;
-            if (rooms) {
-                for (let id in rooms) {
-                    if (rooms[id].status === "waiting" && rooms[id].p1.id !== myId) { found = id; break; }
-                }
+        findMatchAttempt(0);
+    }
+
+    function findMatchAttempt(attempt) {
+        db.ref('battles').once('value').then(snap => {
+            const rooms = snap.val();
+            return cleanupStaleBattles(rooms).then(() => db.ref('battles').once('value'));
+        }).then(snap => {
+            const found = pickOpenRoom(snap.val());
+            if (found) {
+                joinBattle(found);
+                return;
             }
-            found ? joinBattle(found) : createNewBattle();
-        });
+            if (attempt < MATCH_MAX_ATTEMPTS - 1) {
+                setTimeout(() => findMatchAttempt(attempt + 1), MATCH_RETRY_DELAY_MS + Math.random() * 220);
+                return;
+            }
+            createNewBattle();
+        }).catch(() => createNewBattle());
     }
 
     function createNewBattle() {
         currentRoom = "room_" + Math.random().toString(36).substr(2, 6);
         bRef = db.ref('battles/' + currentRoom);
+        const ts = firebase.database.ServerValue.TIMESTAMP;
         bRef.set({
             p1: { id: myId, name: myHero.name, hp: Number(myHero.hp), maxHp: Number(myHero.maxHp), mp: Number(myHero.mp || 0), maxMp: Number(myHero.maxMp || 100), class: myHero.charClass, atk: Number(myHero.atk), def: Number(myHero.def), ready: false, roll: 0 },
             p2: { id: "waiting", ready: false, roll: 0 },
-            status: "waiting", turn: "none", log: ["Várakozás ellenfélre..."], winner: "none", lastRoll: "?"
+            status: "waiting", turn: "none", log: ["Várakozás ellenfélre..."], winner: "none", lastRoll: "?",
+            createdAt: ts, lobbyPing: ts
         }).then(() => { 
             bRef.onDisconnect().remove();
             listen(); 
@@ -220,14 +262,22 @@
     }
 
     function joinBattle(id) {
-        currentRoom = id; bRef = db.ref('battles/' + currentRoom);
-        bRef.update({ 
-            "p2": { id: myId, name: myHero.name, hp: Number(myHero.hp), maxHp: Number(myHero.maxHp), mp: Number(myHero.mp || 0), maxMp: Number(myHero.maxMp || 100), class: myHero.charClass, atk: Number(myHero.atk), def: Number(myHero.def), ready: false, roll: 0 },
-            "status": "setup"
-        }).then(() => {
+        currentRoom = id;
+        bRef = db.ref('battles/' + currentRoom);
+        const p2data = { id: myId, name: myHero.name, hp: Number(myHero.hp), maxHp: Number(myHero.maxHp), mp: Number(myHero.mp || 0), maxMp: Number(myHero.maxMp || 100), class: myHero.charClass, atk: Number(myHero.atk), def: Number(myHero.def), ready: false, roll: 0 };
+        bRef.transaction(function(b) {
+            if (!b || !b.p1 || !b.p2) return undefined;
+            if (b.status !== "waiting" || b.p2.id !== "waiting") return undefined;
+            if (b.p1.id === myId) return undefined;
+            b.p2 = p2data;
+            b.status = "setup";
+            return b;
+        }, function(error, committed) {
+            if (error) { bRef = null; currentRoom = null; findMatchAttempt(0); return; }
+            if (!committed) { bRef = null; currentRoom = null; findMatchAttempt(0); return; }
             bRef.child('p2').onDisconnect().set({ id: "waiting", ready: false, roll: 0 });
             listen();
-        });
+        }, false);
     }
 
     function markReady() {
@@ -269,6 +319,17 @@
             const isP1 = b.p1.id === myId;
             const me = isP1 ? b.p1 : b.p2;
             const opp = isP1 ? b.p2 : b.p1;
+
+            if (isP1 && b.status === "waiting" && opp.id === "waiting") {
+                if (!lobbyPingInterval) {
+                    lobbyPingInterval = setInterval(function() {
+                        if (bRef) bRef.update({ lobbyPing: firebase.database.ServerValue.TIMESTAMP });
+                    }, 15000);
+                }
+            } else if (lobbyPingInterval) {
+                clearInterval(lobbyPingInterval);
+                lobbyPingInterval = null;
+            }
 
             if (opp.id === "waiting" && b.status !== "fighting") {
                 document.getElementById('ready-text').innerText = "Ellenfelet keresünk...";
