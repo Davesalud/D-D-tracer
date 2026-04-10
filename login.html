@@ -92,8 +92,8 @@
 
             <input type="password" id="login-pin" placeholder="PIN KÓD" maxlength="4" style="margin-bottom: 15px;">
             
-            <button class="btn btn-main" onclick="login()">Belépés</button>
-            <button class="btn btn-sub" onclick="location.href='creator.html'">Új Karakter Indítása</button>
+            <button type="button" class="btn btn-main" onclick="login()">Belépés</button>
+            <button type="button" class="btn btn-sub" onclick="location.href='creator.html'">Új Karakter Indítása</button>
         </div>
     </div>
 
@@ -111,9 +111,13 @@
 
         let chars = {};
         let selId = null;
+        let charsReady = false;
 
         // Karakterek és Krónikák betöltése
-        db.ref('characters').on('value', s => { chars = s.val() || {}; });
+        db.ref('characters').on('value', s => {
+            chars = s.val() || {};
+            charsReady = true;
+        });
         db.ref('settings/patchNotes').on('value', s => { 
             document.getElementById('patch-text').innerText = s.val() || "A birodalom békés."; 
         });
@@ -145,24 +149,50 @@
             list.style.display = list.childElementCount > 0 ? 'block' : 'none';
         });
 
+        function normalizeName(s) {
+            return (s || '').trim().replace(/\s+/g, ' ');
+        }
+
+        function resolveCharIdByName(nameInput) {
+            const want = normalizeName(nameInput).toLowerCase();
+            if (!want) return null;
+            return Object.keys(chars).find(id => {
+                const c = chars[id];
+                return c && normalizeName(c.name).toLowerCase() === want;
+            }) || null;
+        }
+
         // Belépés logika
         function login() {
-            const pin = document.getElementById('login-pin').value;
-            const nameInput = inp.value.trim();
+            if (!charsReady) {
+                alert("Még töltődnek a kalandorok az adatbázisból — várj egy másodpercet, és próbáld újra.");
+                return;
+            }
+            const pin = document.getElementById('login-pin').value.trim();
+            const nameInput = normalizeName(inp.value);
 
-            // Ha nem kattintott a listára, megkeressük név alapján
-            if (!selId) {
-                selId = Object.keys(chars).find(id => chars[id].name === nameInput);
+            let id = selId;
+            const selStillMatches = id && chars[id] && normalizeName(chars[id].name).toLowerCase() === nameInput.toLowerCase();
+            if (!id || !selStillMatches) {
+                id = resolveCharIdByName(nameInput);
             }
 
-            if (selId && chars[selId].pin && chars[selId].pin.toString() === pin) {
-                localStorage.setItem('selectedCharId', selId);
-                window.location.href = 'index.html'; // Ide jön a karakterlapod neve!
-            } else { 
-                alert("Hiba a névben vagy PIN kódban!"); 
+            const row = id ? chars[id] : null;
+            if (row && row.pin != null && String(row.pin) === pin) {
+                localStorage.setItem('selectedCharId', id);
+                window.location.href = 'index.html';
+            } else {
+                alert("Hiba a névben vagy PIN kódban!");
                 selId = null;
             }
         }
+
+        document.getElementById('login-pin').addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                login();
+            }
+        });
     </script>
 </body>
 </html>
