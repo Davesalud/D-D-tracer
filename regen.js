@@ -1,11 +1,11 @@
 // Karakterosztályok alapértelmezett regenerációs értékei (HP/perc, MP/perc)
 const REGEN_SETTINGS = {
-    "Harcos":     { hp: 7,  mp: 2 },
-    "Mágus":      { hp: 2,  mp: 10 },
-    "Lovag":      { hp: 9,  mp: 3 },
-    "Íjász":      { hp: 5,  mp: 5 },
-    "Bérgyilkos": { hp: 4,  mp: 6 },
-    "Nekromanta": { hp: 5,  mp: 8 }
+    "Harcos":     { hp: 10,  mp: 7 },
+    "Mágus":      { hp: 8,  mp: 14 },
+    "Lovag":      { hp: 12,  mp: 7 },
+    "Íjász":      { hp: 8,  mp: 8 },
+    "Bérgyilkos": { hp: 9,  mp: 9 },
+    "Nekromanta": { hp: 9,  mp: 8 }
 };
 
 /**
