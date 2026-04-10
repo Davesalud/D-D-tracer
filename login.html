@@ -47,7 +47,11 @@
             margin-bottom: 25px; text-transform: uppercase;
         }
         
-        .search-container { position: relative; width: 100%; margin-bottom: 15px; }
+        /* Csak az input és a lista kapjon kattintást — így nem „nyel el” eseményt a kártya más része felé */
+        .search-container { position: relative; width: 100%; margin-bottom: 15px; pointer-events: none; }
+        .search-container #hero-search,
+        .search-container .autocomplete-box,
+        .search-container .suggestion-item { pointer-events: auto; }
 
         input { 
             width: 100%; padding: 15px; background: rgba(255,255,255,0.95); 
@@ -58,7 +62,7 @@
         .autocomplete-box {
             position: absolute; bottom: 100%; left: 0; width: 100%; 
             background: #111; border: 1px solid var(--gold); 
-            max-height: 180px; overflow-y: auto; display: none; z-index: 999;
+            max-height: 180px; overflow-y: auto; display: none; z-index: 5;
         }
 
         .suggestion-item { padding: 12px; color: var(--gold); font-size: 18px; cursor: pointer; text-align: left; }
@@ -69,24 +73,26 @@
             text-transform: uppercase; font-family: 'MedievalSharp'; 
             font-weight: bold; border: none; font-size: 22px; transition: 0.3s;
         }
-        /* A két gomb egymás alatt van a DOM-ban: a második alapból „ráfest” az elsőre. Ha bármi miatt átfedés van, a Belépés legyen felül (hit-test). */
         .login-actions {
-            display: flex; flex-direction: column; gap: 14px; margin-top: 4px;
-            position: relative; z-index: 30;
+            margin-top: 4px;
+            position: relative;
+            z-index: 50;
+            isolation: isolate;
         }
         .btn-main {
             background: var(--accent); color: white; margin: 0; min-height: 52px;
-            position: relative; z-index: 2;
+            width: 100%;
             touch-action: manipulation;
         }
         .btn-main:hover { background: #b00000; filter: brightness(1.05); }
-        .btn-sub {
-            background: transparent; color: var(--gold); border: 1px solid rgba(197, 160, 89, 0.4);
-            font-size: 15px; opacity: 0.8; margin: 0;
-            position: relative; z-index: 1;
-            touch-action: manipulation;
+        /* Nem gomb: külön link, hogy soha ne keveredjen a Belépés hit-tesztjével */
+        .link-new-char {
+            display: block; margin-top: 18px; padding: 10px;
+            font-size: 15px; font-family: 'MedievalSharp', serif;
+            color: rgba(197, 160, 89, 0.85); text-decoration: underline;
+            text-transform: none; font-weight: normal;
         }
-        .btn-sub:hover { opacity: 1; border-color: var(--gold); }
+        .link-new-char:hover { color: var(--gold); }
     </style>
 </head>
 <body>
@@ -109,7 +115,7 @@
 
             <div class="login-actions">
                 <button type="button" class="btn btn-main" id="btn-login">Belépés</button>
-                <button type="button" class="btn btn-sub" id="btn-new-char">Új Karakter Indítása</button>
+                <a href="creator.html" class="link-new-char" id="link-new-char">Új karakter indítása</a>
             </div>
         </div>
     </div>
@@ -142,9 +148,11 @@
             e.stopPropagation();
             login();
         });
-        document.getElementById('btn-new-char').addEventListener('click', function (e) {
-            e.stopPropagation();
-            window.location.href = 'creator.html';
+        document.getElementById('login-pin').addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                login();
+            }
         });
 
         // Kereső logika
