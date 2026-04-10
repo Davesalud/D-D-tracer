@@ -1,274 +1,62 @@
-<!DOCTYPE html>
-<html lang="hu">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Death's Armada - Új kalandor létrehozása</title>
-    <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Crimson+Text:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-    <style>
-        :root { --gold: #c5a059; --bg: #050507; --accent: #8b0000; --glass: rgba(15, 15, 18, 0.95); }
-        body { 
-            font-family: 'MedievalSharp', cursive; 
-            background-color: var(--bg); 
-            color: white; 
-            margin: 0; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            min-height: 100vh; 
-        }
-        
-        .master-bg { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.9)), url('https://i.ibb.co/PvWryRcS/Gemini-Generated-Image-7rk5117rk5117rk5.png'); 
-            background-size: cover; background-position: center; z-index: -1; 
-        }
+(function (global) {
+    var DM_PIN = '446944-';
 
-        .main-card { 
-            display: flex; 
-            background: var(--glass); 
-            border: 2px solid var(--gold); 
-            border-radius: 4px; 
-            width: 95%; 
-            max-width: 900px; 
-            box-shadow: 0 0 60px black; 
-            backdrop-filter: blur(15px); 
-            overflow: hidden;
-        }
-
-        .form-side { 
-            flex: 1; 
-            padding: 40px; 
-            text-align: left; 
-            display: flex; 
-            flex-direction: column; 
-            justify-content: center;
-        }
-
-        .portrait-side { 
-            width: 400px; 
-            background: rgba(0,0,0,0.4); 
-            border-left: 1px solid var(--gold); 
-            position: relative; 
-            display: flex; 
-            align-items: flex-end; 
-            overflow: hidden;
-        }
-
-        .hero-image {
-            width: 100%;
-            height: 100%;
-            background-size: cover;
-            background-position: center;
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.3s;
-        }
-
-        .pop-effect { transform: scale(1.1); filter: brightness(1.5) contrast(1.2); }
-
-        h1 { color: var(--gold); text-transform: uppercase; letter-spacing: 2px; margin-top: 0; font-size: 1.8em; }
-        
-        input, select { 
-            width: 100%; padding: 14px; margin-bottom: 15px; 
-            background: rgba(0,0,0,0.8); border: 1px solid #444; 
-            color: var(--gold); font-family: 'MedievalSharp'; font-size: 1.1em; 
-            box-sizing: border-box; 
-        }
-        
-        .class-info-box { 
-            background: rgba(139, 0, 0, 0.1); 
-            border: 1px dashed var(--gold); 
-            padding: 15px; margin-bottom: 25px; 
-        }
-        .stats-row { display: flex; gap: 15px; color: var(--gold); margin-bottom: 10px; font-weight: bold; flex-wrap: wrap; }
-        .desc-text { font-family: 'Crimson Text', serif; font-style: italic; color: #ccc; line-height: 1.4; }
-
-        .btn-create { 
-            padding: 18px; 
-            background: var(--accent); 
-            color: white; 
-            border: 2px solid var(--gold);
-            cursor: pointer; 
-            font-family: 'MedievalSharp'; 
-            font-size: 1.3em; 
-            text-transform: uppercase; 
-            transition: 0.3s; 
-            width: 100%;
-            letter-spacing: 1px;
-            box-shadow: 0 0 15px rgba(197, 160, 89, 0.5);
-            animation: pulseGold 2s infinite;
-        }
-
-        @keyframes pulseGold {
-            0% { box-shadow: 0 0 15px rgba(197, 160, 89, 0.5); }
-            50% { box-shadow: 0 0 30px rgba(197, 160, 89, 0.8); }
-            100% { box-shadow: 0 0 15px rgba(197, 160, 89, 0.5); }
-        }
-
-        .btn-create:hover { 
-            background: #b00000; 
-            box-shadow: 0 0 40px rgba(197, 160, 89, 1);
-            transform: translateY(-2px);
-            animation: none;
-        }
-
-        @media (max-width: 800px) {
-            .main-card { flex-direction: column-reverse; max-width: 450px; }
-            .portrait-side { width: 100%; height: 350px; border-left: none; border-bottom: 1px solid var(--gold); }
-        }
-    </style>
-</head>
-<body>
-<div class="master-bg"></div>
-
-<div class="main-card">
-    <div class="form-side">
-        <h1>Új kalandor létrehozása</h1>
-        
-        <input type="text" id="hero-name" placeholder="A kalandor neve..." maxlength="12">
-        <input type="password" id="hero-pin" placeholder="PIN (4 számjegy)" maxlength="4">
-        
-        <label style="color:var(--gold); font-size: 0.8em; margin-bottom: 5px; display:block;">VÁLASSZ KASZTOT:</label>
-        <select id="class-select" onchange="updateClass()">
-            <option value="Harcos">Harcos</option>
-            <option value="Mágus">Mágus</option>
-            <option value="Lovag">Lovag</option>
-            <option value="Íjász">Íjász</option>
-            <option value="Bérgyilkos">Bérgyilkos</option>
-            <option value="Nekromanta">Nekromanta</option>
-        </select>
-
-        <div class="class-info-box">
-            <div class="stats-row">
-                <span id="hp-val">❤️ -</span>
-                <span id="mp-val">💧 -</span>
-                <span id="atk-val">⚔️ -</span>
-                <span id="def-val">🛡️ -</span>
-            </div>
-            <div class="desc-text" id="class-desc">-</div>
-            <div style="color:#ff4d4d; margin-top:10px; font-size:0.9em; font-weight: bold;" id="class-spec">✨ -</div>
-        </div>
-
-        <button class="btn-create" onclick="createHero()">Új kalandor létrehozása</button>
-        <a href="login.html" style="color:var(--gold); text-align:center; display:block; margin-top:15px; text-decoration:none; font-size:0.8em; opacity:0.6;">← Vissza a kapuhoz</a>
-    </div>
-
-    <div class="portrait-side">
-        <div id="hero-img" class="hero-image"></div>
-    </div>
-</div>
-
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script>
-    const firebaseConfig = { 
-        apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU", 
-        authDomain: "dnd-tracker-4fe05.firebaseapp.com", 
-        projectId: "dnd-tracker-4fe05", 
-        databaseURL: "https://dnd-tracker-4fe05-default-rtdb.europe-west1.firebasedatabase.app" 
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-    // STATOK ÉS KÉPESSÉGEK INTEGRÁLVA
-    const CLASS_DATA = {
-        "Harcos": { 
-            img: "https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png", 
-            desc: "Közelharci specialista. Szívós és bátor.", 
-            hp: 132, mp: 55, atk: 12, def: 8,
-            spec: "Ultimate: Birodalmi Roham (Nagy sebzés + Kábítás)"
-        },
-        "Mágus": { 
-            img: "https://i.ibb.co/yFz5bcXv/Copilot-20260403-033651.png", 
-            desc: "A misztikus tanok mestere. Pusztító erejű mágia.", 
-            hp: 88, mp: 165, atk: 15, def: 4,
-            spec: "Ultimate: Apokalipszis (Hatalmas területsebzés)"
-        },
-        "Lovag": { 
-            img: "https://i.ibb.co/Fk3n339M/Copilot-20260403-034043.png", 
-            desc: "A becsület bajnoka. Szent védelem és gyógyítás.", 
-            hp: 165, mp: 66, atk: 10, def: 12,
-            spec: "Ultimate: Égi Ítélet (Sebzés + Full Heal)"
-        },
-        "Íjász": { 
-            img: "https://i.ibb.co/whd2jNpB/Copilot-20260403-034402.png", 
-            desc: "Messziről sújt le. Gyors, pontos és halálos.", 
-            hp: 99, mp: 77, atk: 14, def: 6,
-            spec: "Ultimate: Nyíleső (Sorozat sebzés + Lassítás)"
-        },
-        "Bérgyilkos": { 
-            img: "https://i.ibb.co/b525CsLg/Copilot-20260403-032807.png", 
-            desc: "Az árnyékok közt vadászik. Kritikus csapások mestere.", 
-            hp: 94, mp: 88, atk: 16, def: 5,
-            spec: "Ultimate: Halálos Tánc (Kivégzés alacsony HP-n)"
-        },
-        "Nekromanta": { 
-            img: "https://i.ibb.co/NnCwwCbR/Copilot-20260403-033301.png", 
-            desc: "A holtak ura. Sötét mágia és életelszívás.", 
-            hp: 110, mp: 132, atk: 13, def: 7,
-            spec: "Ultimate: Holtak Serege (Sebzés felezés átok)"
-        }
-    };
-
-    function updateClass() {
-        const val = document.getElementById('class-select').value;
-        const data = CLASS_DATA[val];
-        const imgEl = document.getElementById('hero-img');
-        
-        imgEl.classList.add('pop-effect');
-        setTimeout(() => imgEl.classList.remove('pop-effect'), 400);
-        
-        imgEl.style.backgroundImage = `url('${data.img}')`;
-        document.getElementById('hp-val').innerText = "❤️ " + data.hp;
-        document.getElementById('mp-val').innerText = "💧 " + data.mp;
-        document.getElementById('atk-val').innerText = "⚔️ " + data.atk;
-        document.getElementById('def-val').innerText = "🛡️ " + data.def;
-        document.getElementById('class-desc').innerText = data.desc;
-        document.getElementById('class-spec').innerText = "✨ " + data.spec;
+    function getOverlay() {
+        return document.getElementById('dm-pin-overlay');
     }
 
-    function createHero() {
-        const name = document.getElementById('hero-name').value;
-        const pin = document.getElementById('hero-pin').value;
-        const charClass = document.getElementById('class-select').value;
-        
-        if(name.length < 3 || pin.length !== 4) {
-            alert("A rituálé sikertelen! Kérlek adj meg nevet (min. 3 karakter) és 4 számjegyű PIN kódot.");
+    global.openDmPanel = function () {
+        var overlay = getOverlay();
+        if (!overlay) {
+            if (typeof global.prompt === 'function' && global.prompt('DM PIN:') === DM_PIN) {
+                try {
+                    sessionStorage.setItem('dmGate', '1');
+                } catch (e) {}
+                global.location.href = 'dm.html';
+            }
             return;
         }
+        overlay.style.display = 'flex';
+        var input = document.getElementById('dm-pin-input');
+        if (input) {
+            input.value = '';
+            setTimeout(function () {
+                try {
+                    input.focus();
+                } catch (e) {}
+            }, 0);
+        }
+    };
 
-        const stats = CLASS_DATA[charClass];
-        const newId = db.ref('characters').push().key;
+    global.closeDmPinOverlay = function () {
+        var overlay = getOverlay();
+        if (overlay) overlay.style.display = 'none';
+    };
 
-        db.ref('characters/' + newId).set({
-            id: newId, 
-            name: name, 
-            pin: pin, 
-            charClass: charClass,
-            level: 1, 
-            gold: 50, 
-            xp: 0, 
-            nextLvlXp: 100,
-            hp: Number(stats.hp), 
-            maxHp: Number(stats.hp),
-            mp: Number(stats.mp), // MANA INTEGRÁCIÓ
-            maxMp: Number(stats.mp), // MAX MANA INTEGRÁCIÓ
-            atk: Number(stats.atk), 
-            def: Number(stats.def),
-            bonusAtk: 0,
-            bonusDef: 0,
-            status: "offline", 
-            lastUpdate: Date.now()
-        }).then(() => {
-            alert("Az új kalandor megérkezett a birodalomba!");
-            window.location.href = 'login.html';
-        }).catch(error => {
-            console.error("Hiba a mentés során:", error);
-            alert("Hiba történt az adatbázis mentésekor!");
-        });
-    }
-    
-    // Alaphelyzetbe állítás induláskor
-    updateClass();
-</script>
-</body>
-</html>
+    global.submitDmPin = function () {
+        var input = document.getElementById('dm-pin-input');
+        if (!input) return;
+        if (input.value === DM_PIN) {
+            try {
+                sessionStorage.setItem('dmGate', '1');
+            } catch (e) {}
+            global.location.href = 'dm.html';
+        } else {
+            alert('Hibás PIN.');
+            input.value = '';
+            try {
+                input.focus();
+            } catch (e) {}
+        }
+    };
+
+    global.requireDmGate = function () {
+        try {
+            if (sessionStorage.getItem('dmGate') !== '1') {
+                global.location.replace('index.html');
+            }
+        } catch (e) {
+            global.location.replace('index.html');
+        }
+    };
+})(typeof window !== 'undefined' ? window : this);
