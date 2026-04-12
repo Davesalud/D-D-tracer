@@ -136,11 +136,6 @@
         .player-mini-card { background: rgba(255,255,255,0.03); padding: 3px 6px; margin-bottom: 3px; border-left: 2px solid var(--gold); }
         .logout-corner { position: fixed; top: 20px; right: 20px; z-index: 1000; }
         .btn-logout { background: rgba(139, 0, 0, 0.3); color: #ff4444; border: 1px solid #8b0000; padding: 8px 15px; font-family: 'MedievalSharp'; cursor: pointer; border-radius: 4px; }
-        .backup-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(197, 160, 89, 0.25); }
-        .backup-label { font-family: 'MedievalSharp'; font-size: 0.75em; color: #888; width: 100%; text-align: center; text-transform: uppercase; letter-spacing: 1px; }
-        .backup-btn { background: rgba(0,0,0,0.5); color: var(--gold); border: 1px solid rgba(197, 160, 89, 0.4); padding: 6px 10px; font-family: 'MedievalSharp'; font-size: 0.72em; cursor: pointer; border-radius: 4px; }
-        .backup-btn:hover { background: rgba(197, 160, 89, 0.15); }
-        .backup-hint { font-size: 0.65em; color: #666; margin: 8px 0 0; line-height: 1.35; text-align: center; }
         .dm-key-btn { position: fixed; bottom: 20px; right: 20px; width: 40px; height: 40px; background: rgba(0,0,0,0.8); border: 2px solid var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 1000; color: var(--gold); }
 
         #lvl-up-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
@@ -240,15 +235,6 @@
             <div class="stat-item">🛡️ <b id="lobby-def">0</b></div>
         </div>
 
-        <div class="backup-bar">
-            <span class="backup-label">Karaktermentés</span>
-            <button type="button" class="backup-btn" onclick="downloadCharacterBackup()">Letöltés (JSON)</button>
-            <button type="button" class="backup-btn" onclick="document.getElementById('backup-file-input').click()">Visszaállítás fájlból</button>
-            <button type="button" class="backup-btn" onclick="restoreFromLocalBackup()">Helyi visszaállítás</button>
-            <input type="file" id="backup-file-input" accept="application/json,.json" style="display:none" onchange="handleBackupFile(event)">
-        </div>
-        <p class="backup-hint">A fájl checksumja a véletlen sérülés ellen véd; a PIN a mentésben is benne van — tartsd biztonságos helyen.</p>
-        
         <div class="online-grid">
             <div class="status-container">
                 <div class="status-header">Hősök ●</div>
@@ -391,69 +377,6 @@
         if (myId && chars[myId] && now - lastLocalBackupTs > 45000) {
             lastLocalBackupTs = now;
             DeathBackup.saveLocalSnapshot(myId, chars[myId]);
-        }
-    }
-
-    function downloadCharacterBackup() {
-        if (!myId || !chars[myId]) {
-            alert('Nincs betöltött karakter.');
-            return;
-        }
-        const obj = DeathBackup.buildExportObject(chars[myId], myId);
-        const blob = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'death-armada-karakter-' + String(myId).slice(-10) + '.json';
-        a.click();
-        setTimeout(function () { URL.revokeObjectURL(a.href); }, 2500);
-    }
-
-    function handleBackupFile(ev) {
-        const f = ev.target.files && ev.target.files[0];
-        ev.target.value = '';
-        if (!f) return;
-        const reader = new FileReader();
-        reader.onload = function () {
-            try {
-                const parsed = DeathBackup.parseImportText(reader.result);
-                const sanitized = DeathBackup.sanitizeCharacter(parsed.data, myId);
-                if (!sanitized) {
-                    alert('A mentés nem ehhez a karakterhez tartozik, vagy nem érvényes.');
-                    return;
-                }
-                if (!confirm('A karaktered adatai felülírásra kerülnek a mentésből. Biztosan folytatod?')) return;
-                db.ref('characters/' + myId).set(sanitized).then(function () {
-                    alert('Visszaállítás kész.');
-                }).catch(function (err) {
-                    alert('Firebase hiba: ' + (err && err.message ? err.message : 'ismeretlen'));
-                });
-            } catch (e) {
-                alert(e.message || 'Hiba a fájl feldolgozásakor.');
-            }
-        };
-        reader.readAsText(f);
-    }
-
-    function restoreFromLocalBackup() {
-        const parsed = DeathBackup.loadLocalSnapshot(myId);
-        if (!parsed) {
-            alert('Nincs érvényes helyi másolat ehhez a karakterhez.');
-            return;
-        }
-        try {
-            const sanitized = DeathBackup.sanitizeCharacter(parsed.data, myId);
-            if (!sanitized) {
-                alert('A helyi mentés nem érvényes ehhez a karakterhez.');
-                return;
-            }
-            if (!confirm('A Firebase-beli karakter felülírása a legutóbbi helyi másolattal?')) return;
-            db.ref('characters/' + myId).set(sanitized).then(function () {
-                alert('Visszaállítás a helyi mentésből kész.');
-            }).catch(function (err) {
-                alert('Firebase hiba: ' + (err && err.message ? err.message : 'ismeretlen'));
-            });
-        } catch (e) {
-            alert(e.message || 'Hiba');
         }
     }
 
