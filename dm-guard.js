@@ -1,4 +1,5 @@
 (function (global) {
+    /* DM PIN: kliensoldali akadály; a forráskód mindig kiolvasható. Igazi védelem: Firebase Rules + auth. */
     var DM_PIN = '446944-';
 
     function getOverlay() {
