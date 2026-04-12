@@ -5,12 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="auth-guard.js"></script>
     <script src="dm-guard.js"></script>
+    <script src="client-guard.js"></script>
+    <script src="backup-guard.js"></script>
     <title>Death's Armada - Lobby</title>
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,600;1,700&family=MedievalSharp&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
     <style>
+        :root { --gold: #c5a059; --bg: #050507; --card: rgba(15, 15, 18, 0.95); --accent: #8b0000; --text: #e0e0e0; }
         * { box-sizing: border-box; -webkit-user-select: none; user-select: none; outline: none; }
-.lobby-wrapper {
+        
+        body { 
+            font-family: 'Crimson Text', serif; 
+            background-color: var(--bg); 
+            color: var(--text); 
+            margin: 0; 
+            min-height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center;
+            overflow-x: hidden;
+            overflow-y: auto; 
+        }
+        
+        .master-bg { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.8)), url('https://i.ibb.co/5XNkZKLq/fantasy-group-adventurers.jpg'); 
+            background-size: cover; background-position: center; z-index: -1; 
+        }
+
+        .lobby-wrapper {
             position: relative;
             display: flex;
             align-items: flex-end;
@@ -70,14 +93,20 @@
             filter: brightness(1.2);
         }
 
-        
+        .card { 
+            background: var(--card); border: 1px solid var(--gold); 
+            padding: 25px; border-radius: 4px; width: 420px; 
+            text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,1); 
+            backdrop-filter: blur(15px); position: relative; z-index: 5;
+        }
         
         .lobby-hero-portrait { width: 100%; aspect-ratio: 1/1; border: 2px solid var(--gold); margin: 15px 0; background-size: cover; background-position: center 20%; border-radius: 4px; }
-.bar-fill { height: 100%; transition: width 0.5s ease; background: linear-gradient(90deg, #600, #b00); width: 0%; }
+        .bar-container { height: 20px; background: #000; border: 1px solid #333; position: relative; margin-top: 8px; border-radius: 3px; overflow: hidden; }
+        .bar-fill { height: 100%; transition: width 0.5s ease; background: linear-gradient(90deg, #600, #b00); width: 0%; }
         .mana-fill { height: 100%; transition: width 0.5s ease; background: linear-gradient(90deg, #004cff, #00d4ff); width: 0%; }
         .hp-count-text { font-size: 13px; color: #ccc; margin-top: 2px; font-family: 'MedievalSharp'; }
-        .xp-container { height: 6px; background: #111; border: 1px solid #333; margin-top: 8px; border-radius: 4px; }
-        .xp-fill { height: 100%; background: var(--gold); width: 0%; transition: width 1s ease; }
+        .xp-container { height: 6px; background: #111; border: 1px solid #333; margin-top: 8px; border-radius: 4px; overflow: hidden; }
+        .xp-fill { height: 100%; background: var(--gold); width: 0%; max-width: 100%; box-sizing: border-box; transition: width 1.35s cubic-bezier(0.22, 1, 0.36, 1); }
         .nav-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0; }
         
         .img-btn { 
@@ -107,6 +136,11 @@
         .player-mini-card { background: rgba(255,255,255,0.03); padding: 3px 6px; margin-bottom: 3px; border-left: 2px solid var(--gold); }
         .logout-corner { position: fixed; top: 20px; right: 20px; z-index: 1000; }
         .btn-logout { background: rgba(139, 0, 0, 0.3); color: #ff4444; border: 1px solid #8b0000; padding: 8px 15px; font-family: 'MedievalSharp'; cursor: pointer; border-radius: 4px; }
+        .backup-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(197, 160, 89, 0.25); }
+        .backup-label { font-family: 'MedievalSharp'; font-size: 0.75em; color: #888; width: 100%; text-align: center; text-transform: uppercase; letter-spacing: 1px; }
+        .backup-btn { background: rgba(0,0,0,0.5); color: var(--gold); border: 1px solid rgba(197, 160, 89, 0.4); padding: 6px 10px; font-family: 'MedievalSharp'; font-size: 0.72em; cursor: pointer; border-radius: 4px; }
+        .backup-btn:hover { background: rgba(197, 160, 89, 0.15); }
+        .backup-hint { font-size: 0.65em; color: #666; margin: 8px 0 0; line-height: 1.35; text-align: center; }
         .dm-key-btn { position: fixed; bottom: 20px; right: 20px; width: 40px; height: 40px; background: rgba(0,0,0,0.8); border: 2px solid var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 1000; color: var(--gold); }
 
         #lvl-up-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
@@ -125,7 +159,7 @@
             .side-group { width: 95vw; justify-content: center; margin: 5px 0 !important; }
             .side-action-btn { width: 48%; height: 80px; flex-direction: row; align-items: center; }
             .side-action-btn span { border-top: none; border-left: 1px solid var(--gold); width: auto; height: 100%; display: flex; align-items: center; padding: 0 10px; font-size: 0.7em; }
-            
+            .card { width: 95vw; margin: 10px 0; }
         }
 
         #chat-widget { position: fixed; bottom: 20px; right: 70px; width: 300px; z-index: 500; font-family: 'MedievalSharp'; }
@@ -144,7 +178,7 @@
         #chat-send:hover { background: #b00; }
     </style>
 </head>
-<body class="page-index">
+<body>
 <div class="master-bg"></div>
 
 <div id="lvl-up-overlay">
@@ -177,7 +211,7 @@
         <a href="teamcampaign.html" id="btn-side-teamkampany" class="side-action-btn"><span>⚔️ Csapat Kampány</span></a>
     </div>
 
-    <div class="card card-lobby">
+    <div class="card">
         <div style="display:flex; justify-content: space-between; align-items: center;">
             <h1 id="lobby-name" style="font-family:'MedievalSharp'; color:var(--gold); margin:0; font-size: 1.5em;">...</h1>
             <span id="lobby-lvl" style="color: var(--gold); font-family:'MedievalSharp'; border: 1px solid var(--gold); padding: 2px 8px;">LVL -</span>
@@ -205,6 +239,15 @@
             <div class="stat-item">⚔️ <b id="lobby-atk">0</b></div>
             <div class="stat-item">🛡️ <b id="lobby-def">0</b></div>
         </div>
+
+        <div class="backup-bar">
+            <span class="backup-label">Karaktermentés</span>
+            <button type="button" class="backup-btn" onclick="downloadCharacterBackup()">Letöltés (JSON)</button>
+            <button type="button" class="backup-btn" onclick="document.getElementById('backup-file-input').click()">Visszaállítás fájlból</button>
+            <button type="button" class="backup-btn" onclick="restoreFromLocalBackup()">Helyi visszaállítás</button>
+            <input type="file" id="backup-file-input" accept="application/json,.json" style="display:none" onchange="handleBackupFile(event)">
+        </div>
+        <p class="backup-hint">A fájl checksumja a véletlen sérülés ellen véd; a PIN a mentésben is benne van — tartsd biztonságos helyen.</p>
         
         <div class="online-grid">
             <div class="status-container">
@@ -242,14 +285,16 @@
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-credentials.js"></script>
 <script src="regen.js"></script>
 
 <script>
-    const db = window.initFirebaseDb();
+    const firebaseConfig = { apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU", authDomain: "dnd-tracker-4fe05.firebaseapp.com", projectId: "dnd-tracker-4fe05", databaseURL: "https://dnd-tracker-4fe05-default-rtdb.europe-west1.firebasedatabase.app" };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
     
     let chars = {}, myId = typeof getSelectedCharId === 'function' ? getSelectedCharId() : localStorage.getItem('selectedCharId');
     let isLeveling = false;
+    let lastLocalBackupTs = 0;
 
     const HERO_IMAGES = { "Harcos": "https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png", "Mágus": "https://i.ibb.co/yFz5bcXv/Copilot-20260403-033651.png", "Lovag": "https://i.ibb.co/Fk3n339M/Copilot-20260403-034043.png", "Íjász": "https://i.ibb.co/whd2jNpB/Copilot-20260403-034402.png", "Bérgyilkos": "https://i.ibb.co/b525CsLg/Copilot-20260403-032807.png", "Nekromanta": "https://i.ibb.co/NnCwwCbR/Copilot-20260403-033301.png" };
 
@@ -325,8 +370,11 @@
         document.getElementById('lobby-mp-fill').style.width = Math.min(100, Math.max(0, mpPercent)) + "%";
         document.getElementById('lobby-mp-val').innerText = `${Math.ceil(currentMp)} / ${maxMp} MP`;
         
-        document.getElementById('lobby-xp-fill').style.width = (Number(c.xp)/Number(c.nextLvlXp)*100) + "%";
-        document.getElementById('xp-text').innerText = `XP: ${c.xp} / ${c.nextLvlXp}`;
+        const nextXp = Math.max(1, Number(c.nextLvlXp) || 100);
+        const curXp = Number(c.xp) || 0;
+        const xpPct = Math.min(100, (curXp / nextXp) * 100);
+        document.getElementById('lobby-xp-fill').style.width = xpPct + "%";
+        document.getElementById('xp-text').innerText = `XP: ${curXp} / ${nextXp}`;
         
         const listOnline = document.getElementById('list-online');
         const listArena = document.getElementById('list-arena');
@@ -334,11 +382,79 @@
         Object.keys(chars).forEach(id => {
             const p = chars[id];
             if ((now - (p.lastUpdate || 0) < 300000) && p.name && id !== myId) {
-                const item = `<div class="player-mini-card"><span>${p.name}</span></div>`;
+                const item = `<div class="player-mini-card"><span>${escapeHtml(p.name)}</span></div>`;
                 if (p.status === "searching" || p.status === "fighting") listArena.innerHTML += item;
                 else if (p.status === "online") listOnline.innerHTML += item;
             }
         });
+
+        if (myId && chars[myId] && now - lastLocalBackupTs > 45000) {
+            lastLocalBackupTs = now;
+            DeathBackup.saveLocalSnapshot(myId, chars[myId]);
+        }
+    }
+
+    function downloadCharacterBackup() {
+        if (!myId || !chars[myId]) {
+            alert('Nincs betöltött karakter.');
+            return;
+        }
+        const obj = DeathBackup.buildExportObject(chars[myId], myId);
+        const blob = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'death-armada-karakter-' + String(myId).slice(-10) + '.json';
+        a.click();
+        setTimeout(function () { URL.revokeObjectURL(a.href); }, 2500);
+    }
+
+    function handleBackupFile(ev) {
+        const f = ev.target.files && ev.target.files[0];
+        ev.target.value = '';
+        if (!f) return;
+        const reader = new FileReader();
+        reader.onload = function () {
+            try {
+                const parsed = DeathBackup.parseImportText(reader.result);
+                const sanitized = DeathBackup.sanitizeCharacter(parsed.data, myId);
+                if (!sanitized) {
+                    alert('A mentés nem ehhez a karakterhez tartozik, vagy nem érvényes.');
+                    return;
+                }
+                if (!confirm('A karaktered adatai felülírásra kerülnek a mentésből. Biztosan folytatod?')) return;
+                db.ref('characters/' + myId).set(sanitized).then(function () {
+                    alert('Visszaállítás kész.');
+                }).catch(function (err) {
+                    alert('Firebase hiba: ' + (err && err.message ? err.message : 'ismeretlen'));
+                });
+            } catch (e) {
+                alert(e.message || 'Hiba a fájl feldolgozásakor.');
+            }
+        };
+        reader.readAsText(f);
+    }
+
+    function restoreFromLocalBackup() {
+        const parsed = DeathBackup.loadLocalSnapshot(myId);
+        if (!parsed) {
+            alert('Nincs érvényes helyi másolat ehhez a karakterhez.');
+            return;
+        }
+        try {
+            const sanitized = DeathBackup.sanitizeCharacter(parsed.data, myId);
+            if (!sanitized) {
+                alert('A helyi mentés nem érvényes ehhez a karakterhez.');
+                return;
+            }
+            if (!confirm('A Firebase-beli karakter felülírása a legutóbbi helyi másolattal?')) return;
+            db.ref('characters/' + myId).set(sanitized).then(function () {
+                alert('Visszaállítás a helyi mentésből kész.');
+            }).catch(function (err) {
+                alert('Firebase hiba: ' + (err && err.message ? err.message : 'ismeretlen'));
+            });
+        } catch (e) {
+            alert(e.message || 'Hiba');
+        }
     }
 
     setInterval(() => {
@@ -370,7 +486,7 @@
         const box = document.getElementById('chat-messages');
         const div = document.createElement('div');
         div.className = 'chat-msg';
-        div.innerHTML = `<span class="msg-name">${msg.name}</span><span class="msg-time">${formatTime(msg.ts)}</span><br>${msg.text}`;
+        div.innerHTML = `<span class="msg-name">${escapeHtml(msg.name)}</span><span class="msg-time">${escapeHtml(formatTime(msg.ts))}</span><br>${escapeHtml(msg.text)}`;
         box.appendChild(div);
         while (box.children.length > 15) box.removeChild(box.firstChild);
         if (chatOpen) scrollChatDown();
