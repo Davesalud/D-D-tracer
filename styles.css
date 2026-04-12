@@ -92,8 +92,11 @@ body {
     background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.9)), url("https://i.ibb.co/qFhK4jhF/Copilot-20260409-020526.png");
     background-size: cover;
     background-position: center;
-    height: 100vh;
-    overflow: hidden;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .page-arena {
@@ -101,8 +104,11 @@ body {
     background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.9)), url("https://i.ibb.co/JjJy8Qry/Copilot-20260407-160524.png");
     background-size: cover;
     background-position: center;
-    height: 100vh;
-    overflow: hidden;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .page-inventory {

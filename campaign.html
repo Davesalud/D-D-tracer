@@ -2,7 +2,7 @@
 <html lang="hu">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
     <script src="auth-guard.js"></script>
     <script src="combat.js"></script>
@@ -10,9 +10,11 @@
     <title>Death's Armada - KAMPÁNY ⚔️</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="responsive.css">
     <style>
 #campaign-menu { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 20px; position: relative; z-index: 10; }
-        #menu-image { max-width: 600px; border: 3px solid var(--gold); border-radius: 15px; box-shadow: 0 0 20px rgba(197,160,89,0.5); }
+        /* Banner: eredeti max 600px, 65%-kal kisebb = 35%-os méret */
+        #menu-image { max-width: 210px; width: 100%; height: auto; border: 3px solid var(--gold); border-radius: 15px; box-shadow: 0 0 20px rgba(197,160,89,0.5); }
 .hero-portrait.anim-attack-player { transform: translateX(55px) scale(1.04); }
         .hero-portrait.anim-attack-monster { transform: translateX(-55px) scale(1.04); }
         .hero-portrait.anim-hit-normal { filter: brightness(2.5) sepia(1) saturate(8) hue-rotate(300deg); box-shadow: 0 0 30px rgba(255,0,0,0.9); }
@@ -33,11 +35,18 @@
         .ability-flash { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,150,0,0.3); border-radius: 12px; pointer-events: none; opacity: 0; transition: opacity 0.1s; }
         .ability-flash.show { opacity: 1; }
 
-        #status-effects { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin: 6px 0; min-height: 28px; }
-        .status-badge { font-size: 0.78em; padding: 3px 8px; border-radius: 10px; border: 1px solid; font-family: 'MedievalSharp'; box-shadow: 0 0 6px rgba(0,0,0,0.5); }
-        .status-burn  { background: rgba(255,80,0,0.25);  border-color: #ff5000; color: #ff9060; }
-        .status-stun  { background: rgba(255,220,0,0.2);  border-color: #ffdd00; color: #ffee80; }
-        .status-weak  { background: rgba(180,0,255,0.2);  border-color: #aa00ff; color: #cc80ff; }
+        .status-icon-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; min-height: 34px; margin: 0 0 8px; align-items: center; }
+        .status-ico {
+            width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+            font-size: 1em; border: 2px solid #555; background: rgba(10,10,14,0.85); position: relative;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.45); line-height: 1;
+        }
+        .status-ico .status-ico-num { position: absolute; bottom: -5px; right: -5px; font-size: 0.58em; background: #1a1a1f; border: 1px solid #444; border-radius: 6px; padding: 1px 4px; color: #eee; font-family: 'MedievalSharp', cursive; }
+        .status-ico.burn { border-color: #e67e22; background: rgba(230,126,34,0.22); }
+        .status-ico.stun { border-color: #f1c40f; background: rgba(241,196,15,0.18); }
+        .status-ico.defdown { border-color: #9b59b6; color: #e8daef; font-size: 0.72em; font-weight: bold; }
+        .status-ico.buff { border-color: #27ae60; background: rgba(39,174,96,0.2); }
+        .status-ico.debuff-armor { border-color: #c0392b; color: #f5b7b1; font-size: 0.65em; font-weight: bold; }
 
         #win-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; }
         #hardcore-modal, #equip-prompt-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.92); display: none; align-items: center; justify-content: center; z-index: 3000; padding: 16px; }
@@ -45,6 +54,40 @@
         .modal-box p { color: #ccc; line-height: 1.5; margin: 12px 0; }
         .modal-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
         #challenge-hud { display: none; color: #e74c3c; font-size: 0.85em; font-weight: bold; text-shadow: 0 0 8px rgba(0,0,0,0.8); }
+        #challenge-lineup-wrap { display: none; width: 100%; }
+        .challenge-map-scroll { overflow-x: auto; padding: 12px; background: rgba(0,0,0,0.5); border-bottom: 2px solid var(--gold); }
+        .challenge-map-track { display: flex; align-items: center; gap: 0; min-width: min-content; padding: 6px 16px 12px; }
+        .challenge-map-node {
+            display: flex; flex-direction: column; align-items: center; min-width: 88px;
+            position: relative;
+        }
+        .challenge-map-node::after {
+            content: ""; position: absolute; top: 24px; left: 100%; width: 28px; height: 3px;
+            background: linear-gradient(90deg, var(--gold), rgba(197,160,89,0.25)); z-index: 0;
+        }
+        .challenge-map-node:last-child::after { display: none; }
+        .challenge-map-dot {
+            width: 48px; height: 48px; border-radius: 50%; border: 3px solid #555; background: #1a1a1f;
+            display: flex; align-items: center; justify-content: center; font-size: 1.2em; z-index: 1;
+            transition: 0.25s;
+        }
+        .challenge-map-node.done .challenge-map-dot { border-color: #27ae60; background: rgba(39,174,96,0.22); }
+        .challenge-map-node.current .challenge-map-dot { border-color: var(--gold); box-shadow: 0 0 16px rgba(197,160,89,0.65); transform: scale(1.06); }
+        .challenge-map-node.boss .challenge-map-dot { border-color: #c0392b; background: rgba(192,57,43,0.3); }
+        .challenge-map-node.camp .challenge-map-dot { border-color: #2980b9; }
+        .challenge-map-label { font-size: 0.68em; text-align: center; margin-top: 5px; max-width: 92px; color: #aaa; line-height: 1.15; }
+        .lineup-bar { padding: 10px 14px 12px; background: rgba(0,0,0,0.5); border-bottom: 1px solid rgba(197,160,89,0.22); }
+        .lineup-title { font-size: 0.68em; color: var(--gold); letter-spacing: 0.14em; text-transform: uppercase; margin: 0 0 8px; font-weight: bold; }
+        .lineup-dots-row { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 6px; }
+        .lineup-dot {
+            position: relative; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 0.72em; border: 2px solid #444; background: #14141a; color: #888; flex-shrink: 0; transition: 0.2s;
+        }
+        .lineup-dot.is-done { border-color: #1e6b3a; background: rgba(39,174,96,0.18); color: #a8e6c0; }
+        .lineup-dot.is-current { border-color: var(--gold); box-shadow: 0 0 12px rgba(197,160,89,0.55); color: var(--gold); font-weight: bold; transform: scale(1.08); }
+        .lineup-dot.is-future { opacity: 0.42; }
+        .lineup-pip { position: absolute; top: -6px; right: -6px; font-size: 0.62em; color: #5dade2; line-height: 1; text-shadow: 0 0 4px #000; pointer-events: none; }
+        .lineup-caption { margin: 10px 0 0; font-size: 0.74em; color: #9a9a9a; text-align: center; line-height: 1.35; }
     </style>
 </head>
 <body class="page-campaign">
@@ -92,11 +135,22 @@
     <div style="width:100px;"></div>
 </div>
 
+<div id="challenge-lineup-wrap">
+    <div class="lineup-bar">
+        <div class="lineup-title">Lineup</div>
+        <div class="lineup-dots-row" id="challenge-lineup-dots"></div>
+        <p class="lineup-caption" id="challenge-lineup-caption"></p>
+    </div>
+    <div class="challenge-map-scroll">
+        <div class="challenge-map-track" id="challenge-map-track"></div>
+    </div>
+</div>
+
 <div class="battlefield" id="battlefield">
     <div class="fighter-card">
         <h3 id="p-name" style="color:var(--gold); margin:0;">Hősöm</h3>
+        <div class="status-icon-row" id="p-status-icons"></div>
         <div id="p-img" class="hero-portrait"></div>
-        <div id="status-effects"></div>
         <div class="bar-container"><div id="p-hp-fill" class="hp-fill"></div><div class="bar-text" id="p-hp-val">100/100 HP</div></div>
         <div class="bar-container"><div id="p-mp-fill" class="mp-fill"></div><div class="bar-text" id="p-mp-val">50/50 MP</div></div>
         <div style="display:flex; justify-content:center; margin:10px 0;">
@@ -116,6 +170,7 @@
     <div class="fighter-card" style="position:relative;">
         <div class="ability-flash" id="ability-flash"></div>
         <h3 id="e-name" style="color:#ff4444; margin:0;">Ellenfél</h3>
+        <div class="status-icon-row" id="e-status-icons"></div>
         <div id="e-img" class="hero-portrait"></div>
         <div class="bar-container"><div id="e-hp-fill" class="hp-fill"></div><div class="bar-text" id="e-hp-val">HP:---</div></div>
         <div id="monster-ability-box">
@@ -157,6 +212,7 @@ let myHero = null, currentMonster = null, isMyTurn = true;
 let myCooldowns = [0, 0, 0], myClassData = null;
 let playerStatus = { burn: 0, stun: 0, weakened: 0 };
 let monsterStatus = { burn: 0 };
+let campaignPlayerBaseDef = 0;
 let monsterAbilityCooldown = 0, monsterAbilityUsedCount = 0;
 const MONSTER_ABILITY_MAX_USES = 3;
 
@@ -166,6 +222,21 @@ let challengeStartGold = 0, challengeStartXp = 0;
 let soloStartGold = 0, soloStartXp = 0;
 let winScreenMode = 'solo';
 const CHALLENGE_KEY = 'challengeRun_v1';
+const CHALLENGE_TOTAL = 10;
+/** Ugyanaz a 10 szakasz mint a csapat kampány térkép első fele — kihívás vizuál */
+const CHALLENGE_LINEUP_NODES = [
+    { type: 'fight', tier: 'easy', label: 'Vészkút erdeje' },
+    { type: 'fight', tier: 'easy', label: 'Mohos ösvény' },
+    { type: 'fight', tier: 'easy', label: 'Törött kapu' },
+    { type: 'camp', label: 'Biztos tábor' },
+    { type: 'fight', tier: 'medium', label: 'Ködfolt szoros' },
+    { type: 'fight', tier: 'medium', label: 'Kőbe vésett út' },
+    { type: 'fight', tier: 'medium', label: 'Vámszedő bástya' },
+    { type: 'camp', label: 'Forrásvidék' },
+    { type: 'fight', tier: 'hard', label: 'Sötét síkság' },
+    { type: 'fight', tier: 'hard', label: 'Átok szélén' }
+];
+let challengeBestLevelReached = 0;
 
 const HERO_IMGS = {
     "Harcos":"https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png",
@@ -241,6 +312,7 @@ async function startChallengeRun() {
         challengeLevel = 1;
         challengeStartGold = Number(myHero.gold) || 0;
         challengeStartXp = Number(myHero.xp) || 0;
+        challengeBestLevelReached = Math.max(0, Math.min(CHALLENGE_TOTAL, Number(myHero.challengeBestLevel) || 0));
 
         myClassData = SKILLS_DATA[myHero.charClass];
         applyHeroHpMpFromDb(myHero);
@@ -253,6 +325,7 @@ async function startChallengeRun() {
 
         document.getElementById('campaign-menu').style.display = 'none';
         document.getElementById('arena-header').style.display = 'flex';
+        document.getElementById('challenge-lineup-wrap').style.display = 'block';
         document.getElementById('battlefield').style.display = 'flex';
 
         beginChallengeBattle();
@@ -264,15 +337,69 @@ async function startChallengeRun() {
 
 function persistChallengeState() {
     try {
-        sessionStorage.setItem(CHALLENGE_KEY, JSON.stringify({
+        const payload = {
             nextLevel: challengeLevel,
             startGold: challengeStartGold,
             startXp: challengeStartXp,
             runGold: myHero ? (Number(myHero.gold) || 0) : null,
             runXp: myHero ? (Number(myHero.xp) || 0) : null,
             ts: Date.now()
-        }));
+        };
+        if (myHero && campaignMode === 'challenge') {
+            payload.runHp = Math.max(1, Math.ceil(Number(myHero.hp) || 1));
+            payload.runMp = Math.max(0, Math.ceil(Number(myHero.mp) || 0));
+        }
+        sessionStorage.setItem(CHALLENGE_KEY, JSON.stringify(payload));
     } catch (e) {}
+}
+
+function syncChallengeBest() {
+    if (!myId || campaignMode !== 'challenge') return;
+    const cur = Math.min(CHALLENGE_TOTAL, challengeLevel);
+    const next = Math.max(challengeBestLevelReached || 0, cur);
+    if (next <= challengeBestLevelReached) return;
+    challengeBestLevelReached = next;
+    db.ref(`characters/${myId}`).update({ challengeBestLevel: next, lastUpdate: Date.now() }).catch(() => {});
+}
+
+function renderChallengeLineup() {
+    if (campaignMode !== 'challenge') return;
+    const dots = document.getElementById('challenge-lineup-dots');
+    const cap = document.getElementById('challenge-lineup-caption');
+    const track = document.getElementById('challenge-map-track');
+    if (!dots || !cap || !track) return;
+
+    const allClear = challengeLevel > CHALLENGE_TOTAL;
+    const dl = Math.min(CHALLENGE_TOTAL, challengeLevel);
+    const curIdx = allClear ? -1 : (dl - 1);
+    const bestIdx = (challengeBestLevelReached > 0) ? (challengeBestLevelReached - 1) : -1;
+
+    let dotsHtml = '';
+    for (let i = 0; i < CHALLENGE_TOTAL; i++) {
+        let cls = 'lineup-dot';
+        if (allClear || i < curIdx) cls += ' is-done';
+        else if (i === curIdx) cls += ' is-current';
+        else cls += ' is-future';
+        const pip = (bestIdx >= 0 && i === bestIdx) ? '<span class="lineup-pip" title="Legmesszebb elért szakasz">✓</span>' : '';
+        const lab = CHALLENGE_LINEUP_NODES[i].label;
+        dotsHtml += `<div class="${cls}" title="${String(lab).replace(/"/g, '&quot;')}"><span>${i + 1}</span>${pip}</div>`;
+    }
+    dots.innerHTML = dotsHtml;
+
+    const curNum = allClear ? CHALLENGE_TOTAL : dl;
+    cap.textContent = `${curNum} / ${CHALLENGE_TOTAL} szakasz · Legmesszebb elérve: ${challengeBestLevelReached}. (a kék ✓)`;
+
+    let trackHtml = '';
+    CHALLENGE_LINEUP_NODES.forEach((n, i) => {
+        let cls = 'challenge-map-node';
+        if (n.type === 'camp') cls += ' camp';
+        if (i === CHALLENGE_TOTAL - 1) cls += ' boss';
+        if (allClear || i < curIdx) cls += ' done';
+        if (!allClear && i === curIdx) cls += ' current';
+        const icon = n.type === 'camp' ? '🔥' : (i === CHALLENGE_TOTAL - 1 ? '👹' : '⚔️');
+        trackHtml += `<div class="${cls}"><div class="challenge-map-dot">${icon}</div><div class="challenge-map-label">${n.label}</div></div>`;
+    });
+    track.innerHTML = trackHtml;
 }
 
 function difficultyForChallengeStage(level) {
@@ -307,6 +434,8 @@ function beginChallengeBattle() {
     monsterStatus = { burn: 0 };
 
     initBattleUI();
+    syncChallengeBest();
+    renderChallengeLineup();
     addLog(`🔥 <span style="color:#e74c3c">Kihívás ${challengeLevel}/10</span> — <span style="color:#ff4444">${currentMonster.name}</span>!`);
 }
 
@@ -316,12 +445,31 @@ function handleCampaignBack() {
         challengeAbortToLobby();
         return;
     }
+    if (campaignMode === 'solo') {
+        if (!confirm('Biztosan feladod a harchát? A szörny jutalma nem jár; arany és XP a harc előtti állapotra áll, az aktuális HP és MP megmarad.')) return;
+        soloAbortToLobby();
+        return;
+    }
     location.href = 'index.html';
+}
+
+function soloAbortToLobby() {
+    if (!myId || !myHero) {
+        location.href = 'index.html';
+        return;
+    }
+    db.ref(`characters/${myId}`).update({
+        hp: Math.max(1, Math.ceil(myHero.hp)),
+        mp: Math.max(0, Math.ceil(myHero.mp)),
+        gold: soloStartGold,
+        xp: soloStartXp,
+        lastUpdate: Date.now()
+    }).finally(() => { location.href = 'index.html'; });
 }
 
 function challengeAbortToLobby() {
     db.ref(`characters/${myId}`).update({
-        hp: 1,
+        hp: Math.max(1, Math.ceil(myHero.hp)),
         mp: Math.max(0, Math.ceil(myHero.mp)),
         gold: challengeStartGold,
         xp: challengeStartXp,
@@ -336,7 +484,17 @@ function goToInventoryFromChallenge() {
     persistChallengeState();
     try { sessionStorage.setItem('challengeReturn', '1'); } catch (e) {}
     document.getElementById('equip-prompt-modal').style.display = 'none';
-    location.href = 'inventory.html';
+    if (!myId || !myHero) {
+        location.href = 'inventory.html';
+        return;
+    }
+    const hp = Math.max(1, Math.ceil(myHero.hp));
+    const mp = Math.max(0, Math.ceil(myHero.mp));
+    db.ref(`characters/${myId}`).update({
+        hp,
+        mp,
+        lastUpdate: Date.now()
+    }).finally(() => { location.href = 'inventory.html'; });
 }
 
 function dismissEquipPromptContinue() {
@@ -353,6 +511,7 @@ async function startCampaign(difficulty) {
 
         campaignMode = 'solo';
         document.getElementById('challenge-hud').style.display = 'none';
+        document.getElementById('challenge-lineup-wrap').style.display = 'none';
 
         myClassData = SKILLS_DATA[myHero.charClass];
         applyHeroHpMpFromDb(myHero);
@@ -411,9 +570,51 @@ function initBattleUI() {
         btn.innerHTML = '';
         btn.title = `${s.name} (${s.cost} MP)`;
     });
+    campaignPlayerBaseDef = myHero.def;
+    isMyTurn = true;
+    document.getElementById('turn-display').innerText = 'TE KÖVETKEZEL!';
     updateBars();
     updateStatusBadges();
     toggleBtns(false);
+}
+
+function escAttr(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
+function renderPlayerStatusIcons() {
+    const el = document.getElementById('p-status-icons');
+    if (!el || !myHero) return;
+    const parts = [];
+    if (playerStatus.burn > 0) {
+        parts.push(`<span class="status-ico burn" title="${escAttr('Égés — ' + playerStatus.burn + ' kör')}">🔥<span class="status-ico-num">${playerStatus.burn}</span></span>`);
+    }
+    if (playerStatus.stun > 0) {
+        parts.push(`<span class="status-ico stun" title="${escAttr('Kábítva / némítva — ' + playerStatus.stun + ' kör')}">😵<span class="status-ico-num">${playerStatus.stun}</span></span>`);
+    }
+    if (playerStatus.weakened > 0) {
+        parts.push(`<span class="status-ico defdown" title="${escAttr('Átok — a sebzéseid feleződnek (' + playerStatus.weakened + ' ütés)')}">−2</span>`);
+    }
+    if (myHero.isDefending) {
+        parts.push(`<span class="status-ico buff" title="${escAttr('Védekezel — erősebb védelem a következő találat ellen')}">🛡</span>`);
+    }
+    if (campaignPlayerBaseDef > 0 && myHero.def === 0) {
+        parts.push(`<span class="status-ico debuff-armor" title="${escAttr('Pajzs széttörve — védelem nulla')}">DEF↓</span>`);
+    }
+    el.innerHTML = parts.join('');
+}
+
+function renderEnemyStatusIcons() {
+    const el = document.getElementById('e-status-icons');
+    if (!el || !currentMonster) return;
+    const parts = [];
+    if (monsterStatus.burn > 0) {
+        parts.push(`<span class="status-ico burn" title="${escAttr('Égés a szörnyön — ' + monsterStatus.burn + ' kör')}">🔥<span class="status-ico-num">${monsterStatus.burn}</span></span>`);
+    }
+    if (currentMonster.isDefending) {
+        parts.push(`<span class="status-ico buff" title="${escAttr('A szörny védekezik')}">🛡</span>`);
+    }
+    el.innerHTML = parts.join('');
 }
 
 function getMonsterActiveAbilityInfo(logic) {
@@ -577,6 +778,8 @@ function updateBars() {
     document.getElementById('p-mp-val').innerText = `${Math.ceil(myHero.mp)} / ${myHero.maxMp} MP`;
     document.getElementById('e-hp-fill').style.width = Math.max(0, currentMonster.hp/currentMonster.maxHp*100)+"%";
     document.getElementById('e-hp-val').innerText = `${Math.max(0,Math.ceil(currentMonster.hp))} / ${currentMonster.maxHp} HP`;
+    renderPlayerStatusIcons();
+    renderEnemyStatusIcons();
 }
 
 function updateSkillBtns() {
@@ -589,10 +792,8 @@ function updateSkillBtns() {
 }
 
 function updateStatusBadges() {
-    const el = document.getElementById('status-effects'); el.innerHTML = '';
-    if (playerStatus.burn > 0) el.innerHTML += `<span class="status-badge status-burn">🔥 Égés ${playerStatus.burn}</span>`;
-    if (playerStatus.stun > 0) el.innerHTML += `<span class="status-badge status-stun">😵 Kábult ${playerStatus.stun}</span>`;
-    if (playerStatus.weakened > 0) el.innerHTML += `<span class="status-badge status-weak">☠️ Gyengült ${playerStatus.weakened}</span>`;
+    renderPlayerStatusIcons();
+    renderEnemyStatusIcons();
 }
 
 function toggleBtns(disable) {
@@ -631,6 +832,7 @@ function showChallengeStepUI() {
     document.getElementById('reward-hp').innerText = `HP: ${Math.ceil(myHero.hp)} / ${myHero.maxHp} · Következő szint: ${next}/10`;
     setWinScreenButtons('Tovább a következő szintre', true);
     document.getElementById('win-screen-secondary-btn').innerText = 'Kilépés jutalommal (város)';
+    renderChallengeLineup();
 }
 
 function afterChallengeWin(xpGain, goldGain) {
@@ -640,6 +842,8 @@ function afterChallengeWin(xpGain, goldGain) {
     const justCompleted = challengeLevel;
     challengeLevel++;
     persistChallengeState();
+    syncChallengeBest();
+    renderChallengeLineup();
     if (justCompleted >= 10) {
         finishChallengeFullSuccess();
         return;
@@ -654,11 +858,13 @@ function afterChallengeWin(xpGain, goldGain) {
 function finishChallengeFullSuccess() {
     const finalHp = Math.max(1, Math.ceil(myHero.hp));
     const finalMp = Math.max(0, Math.ceil(myHero.mp));
+    challengeBestLevelReached = Math.max(challengeBestLevelReached || 0, CHALLENGE_TOTAL);
     db.ref(`characters/${myId}`).update({
         xp: Math.max(0, Math.ceil(myHero.xp)),
         gold: Math.max(0, Math.ceil(myHero.gold)),
         hp: finalHp,
         mp: finalMp,
+        challengeBestLevel: CHALLENGE_TOTAL,
         lastUpdate: Date.now()
     }).then(() => {
         try { sessionStorage.removeItem(CHALLENGE_KEY); } catch (e) {}
@@ -795,10 +1001,18 @@ function endBattle(win) {
             if (!myHero) return;
             myClassData = SKILLS_DATA[myHero.charClass];
             applyHeroHpMpFromDb(myHero);
+            if (data.runHp != null && data.runMp != null) {
+                const rh = Number(data.runHp);
+                const rm = Number(data.runMp);
+                if (!Number.isNaN(rh)) myHero.hp = Math.min(myHero.maxHp, Math.max(1, rh));
+                if (!Number.isNaN(rm)) myHero.mp = Math.min(myHero.maxMp, Math.max(0, rm));
+            }
             if (data.runGold != null) myHero.gold = data.runGold;
             if (data.runXp != null) myHero.xp = data.runXp;
+            challengeBestLevelReached = Math.max(0, Math.min(CHALLENGE_TOTAL, Number(myHero.challengeBestLevel) || 0));
             document.getElementById('campaign-menu').style.display = 'none';
             document.getElementById('arena-header').style.display = 'flex';
+            document.getElementById('challenge-lineup-wrap').style.display = 'block';
             document.getElementById('battlefield').style.display = 'flex';
             document.getElementById('challenge-hud').style.display = 'block';
             document.getElementById('challenge-lvl-num').innerText = String(challengeLevel);

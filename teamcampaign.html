@@ -2,12 +2,13 @@
 <html lang="hu">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <script src="auth-guard.js"></script>
     <script src="combat.js"></script>
     <title>Death's Armada — Csapat kampány</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="responsive.css">
     <style>
         body.page-teamcampaign {
             display: flex;
@@ -56,7 +57,8 @@
         .map-label { font-size: 0.72em; text-align: center; margin-top: 6px; max-width: 100px; color: #bbb; line-height: 1.2; }
         .party-strip { display: flex; gap: 8px; flex-wrap: wrap; padding: 8px 12px; background: rgba(0,0,0,0.65); border-bottom: 1px solid #333; }
         .mini-hero {
-            display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 8px;
+            position: relative;
+            display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 8px;
             border: 2px solid #444; background: rgba(30,30,35,0.95); cursor: default; font-size: 0.75em;
         }
         .mini-hero.active { border-color: var(--gold); box-shadow: 0 0 10px rgba(197,160,89,0.4); }
@@ -74,19 +76,82 @@
         .skill-slot:disabled { opacity: 0.4; cursor: not-allowed; }
         .cd-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.65); display: flex; align-items: center; justify-content: center; color: #f44; font-size: 1.1em; border-radius: 4px; }
         #monster-ability-box { font-size: 0.78em; color: #ddd; text-align: center; padding: 8px; background: rgba(0,0,0,0.5); border-radius: 4px; min-height: 72px; margin-top: 8px; border: 1px solid #444; }
-        .status-effects-mini { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; min-height: 22px; margin: 4px 0; }
-        .status-badge { font-size: 0.72em; padding: 2px 6px; border-radius: 8px; border: 1px solid; }
-        .status-burn { background: rgba(255,80,0,0.25); border-color: #ff5000; color: #ff9060; }
-        .status-stun { background: rgba(255,220,0,0.2); border-color: #ffdd00; color: #ffee80; }
-        .status-weak { background: rgba(180,0,255,0.2); border-color: #aa00ff; color: #cc80ff; }
+        .status-icon-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; min-height: 34px; margin: 0 0 8px; align-items: center; }
+        .status-ico {
+            width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+            font-size: 1em; border: 2px solid #555; background: rgba(10,10,14,0.85); position: relative;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.45); line-height: 1;
+        }
+        .status-ico .status-ico-num { position: absolute; bottom: -5px; right: -5px; font-size: 0.58em; background: #1a1a1f; border: 1px solid #444; border-radius: 6px; padding: 1px 4px; color: #eee; font-family: 'MedievalSharp', cursive; }
+        .status-ico.burn { border-color: #e67e22; background: rgba(230,126,34,0.22); }
+        .status-ico.stun { border-color: #f1c40f; background: rgba(241,196,15,0.18); }
+        .status-ico.defdown { border-color: #9b59b6; color: #e8daef; font-size: 0.72em; font-weight: bold; }
+        .status-ico.buff { border-color: #27ae60; background: rgba(39,174,96,0.2); }
+        .status-ico.debuff-armor { border-color: #c0392b; color: #f5b7b1; font-size: 0.62em; font-weight: bold; }
+        .mini-hero-status { width: 100%; flex-basis: 100%; font-size: 0.62em; text-align: center; line-height: 1.2; margin-bottom: 2px; letter-spacing: 0.06em; color: #bbb; order: -1; }
         .ability-flash { position: absolute; inset: 0; background: rgba(255,150,0,0.3); border-radius: 12px; pointer-events: none; opacity: 0; transition: opacity 0.1s; }
         .ability-flash.show { opacity: 1; }
         #win-screen-team { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; padding: 20px; text-align: center; }
         .btn:disabled { opacity: 0.4; cursor: not-allowed; }
         .map-hud { padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; background: rgba(0,0,0,0.6); }
-        .mode-tabs { display: flex; gap: 8px; margin-bottom: 16px; justify-content: center; flex-wrap: wrap; }
-        .mode-tabs button { flex: 1; min-width: 120px; padding: 10px; border: 2px solid #444; background: #1a1a1f; color: #888; font-family: inherit; cursor: pointer; border-radius: 6px; }
-        .mode-tabs button.active { border-color: var(--gold); color: var(--gold); background: rgba(197,160,89,0.12); }
+        .lineup-bar {
+            padding: 10px 14px 12px;
+            background: rgba(0,0,0,0.5);
+            border-bottom: 1px solid rgba(197,160,89,0.22);
+        }
+        .lineup-title {
+            font-size: 0.68em;
+            color: var(--gold);
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            margin: 0 0 8px;
+            font-weight: bold;
+        }
+        .lineup-dots-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .lineup-dot {
+            position: relative;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.72em;
+            border: 2px solid #444;
+            background: #14141a;
+            color: #888;
+            flex-shrink: 0;
+            transition: 0.2s;
+        }
+        .lineup-dot.is-done { border-color: #1e6b3a; background: rgba(39,174,96,0.18); color: #a8e6c0; }
+        .lineup-dot.is-current {
+            border-color: var(--gold);
+            box-shadow: 0 0 12px rgba(197,160,89,0.55);
+            color: var(--gold);
+            font-weight: bold;
+            transform: scale(1.08);
+        }
+        .lineup-dot.is-future { opacity: 0.42; }
+        .lineup-pip {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            font-size: 0.62em;
+            color: #5dade2;
+            line-height: 1;
+            text-shadow: 0 0 4px #000;
+            pointer-events: none;
+        }
+        .lineup-caption { margin: 10px 0 0; font-size: 0.74em; color: #9a9a9a; text-align: center; line-height: 1.35; }
+        .lineup-bar-compact { padding: 6px 10px 8px; }
+        .lineup-bar-compact .lineup-dot { width: 26px; height: 26px; font-size: 0.65em; }
+        .lineup-bar-compact .lineup-caption { margin-top: 6px; font-size: 0.68em; }
         .lobby-panel { max-width: 520px; margin: 0 auto 20px; padding: 16px; background: rgba(0,0,0,0.45); border: 1px solid #444; border-radius: 10px; }
         .lobby-code { font-size: 1.8em; letter-spacing: 0.2em; color: var(--gold); text-align: center; margin: 10px 0; font-weight: bold; }
         .lobby-list { list-style: none; padding: 0; margin: 12px 0; }
@@ -102,34 +167,9 @@
 
 <div id="phase-setup" class="active setup-wrap">
     <h1>Csapat szörnyvadászat</h1>
-    <p style="text-align:center;color:#aaa;font-size:0.9em;">2–4 hős, lineáris útvonal, a <strong>kampány szörnyei</strong> ellen. A végén egy <strong>főellenség</strong> vár.</p>
-    <div class="mode-tabs">
-        <button type="button" class="active" id="tab-mode-local">Helyi (egy gép)</button>
-        <button type="button" id="tab-mode-online">Online váró</button>
-    </div>
-    <div id="block-local-setup">
-    <div class="party-row">
-        <label>Nehézség</label>
-        <select id="sel-difficulty">
-            <option value="easy">Könnyű</option>
-            <option value="medium" selected>Közepes</option>
-            <option value="hard">Nehéz</option>
-        </select>
-    </div>
-    <div class="party-row">
-        <label>Csapat méret</label>
-        <select id="sel-party-size">
-            <option value="2">2 hős</option>
-            <option value="3" selected>3 hős</option>
-            <option value="4">4 hős</option>
-        </select>
-    </div>
-    <p style="color:var(--gold);font-size:0.85em;">1. hős: a belépett karaktered (Firebase). További helyek: vendég hősök (nem mentődnek).</p>
-    <div id="guest-slots"></div>
-    <button type="button" class="btn" style="width:100%;margin-top:16px;" id="btn-start-run">Útra kelünk</button>
-    </div>
-    <div id="block-online-setup" style="display:none;">
-        <p style="text-align:center;color:#bbb;font-size:0.9em;">Valódi játékosok csatlakoznak Firebase szobába. A <strong>házigazda</strong> indítja a futamot; a harc szinkronban fut (távoli körök).</p>
+    <p style="text-align:center;color:#aaa;font-size:0.9em;">2–4 játékos, Firebase szoba, lineáris útvonal a <strong>kampány szörnyei</strong> ellen. A végén egy <strong>főellenség</strong> vár. A <strong>házigazda</strong> indítja a futamot.</p>
+    <div id="block-online-setup">
+        <p style="text-align:center;color:#bbb;font-size:0.9em;">Csatlakozz egy szobához vagy hozz létre kódot. A harc szinkronban fut (távoli körök).</p>
         <div class="party-row">
             <label>Nehézség</label>
             <select id="sel-online-difficulty">
@@ -178,6 +218,11 @@
         <span id="map-run-title" style="color:var(--gold);font-weight:bold;">Útvonal</span>
         <button type="button" class="btn" style="padding:8px 14px;background:#444;" onclick="confirmAbortRun()">Feladás</button>
     </div>
+    <div class="lineup-bar" id="lineup-bar-map">
+        <div class="lineup-title">Lineup</div>
+        <div class="lineup-dots-row" id="lineup-dots-map"></div>
+        <p class="lineup-caption" id="lineup-caption-map"></p>
+    </div>
     <div class="map-scroll">
         <div class="map-track" id="map-track"></div>
     </div>
@@ -194,12 +239,17 @@
         <h2 id="turn-display-team" style="color:var(--gold);margin:0;font-size:1em;">—</h2>
         <div style="width:80px;"></div>
     </div>
+    <div class="lineup-bar lineup-bar-compact" id="lineup-bar-battle">
+        <div class="lineup-title">Lineup</div>
+        <div class="lineup-dots-row" id="lineup-dots-battle"></div>
+        <p class="lineup-caption" id="lineup-caption-battle"></p>
+    </div>
     <div class="party-strip" id="battle-party-strip"></div>
     <div class="battlefield-team" id="battlefield-team">
         <div class="fighter-card fighter-card-team">
             <h3 id="p-name-team" style="color:var(--gold);margin:0 0 6px;">—</h3>
+            <div class="status-icon-row" id="p-status-icons-team"></div>
             <div id="p-img-team" class="hero-portrait" style="height:240px;"></div>
-            <div class="status-effects-mini" id="status-effects-team"></div>
             <div class="bar-container"><div id="p-hp-fill-team" class="hp-fill"></div><div class="bar-text" id="p-hp-val-team">—</div></div>
             <div class="bar-container"><div id="p-mp-fill-team" class="mp-fill"></div><div class="bar-text" id="p-mp-val-team">—</div></div>
             <div style="display:flex;justify-content:center;margin:8px 0;flex-wrap:wrap;">
@@ -217,6 +267,7 @@
         <div class="fighter-card fighter-card-team" style="position:relative;">
             <div class="ability-flash" id="ability-flash-team"></div>
             <h3 id="e-name-team" style="color:#ff4444;margin:0;">—</h3>
+            <div class="status-icon-row" id="e-status-icons-team"></div>
             <div id="e-img-team" class="hero-portrait" style="height:240px;"></div>
             <div class="bar-container"><div id="e-hp-fill-team" class="hp-fill"></div><div class="bar-text" id="e-hp-val-team">—</div></div>
             <div id="monster-ability-box">
@@ -262,15 +313,6 @@ const HERO_IMGS = {
     "Íjász":"https://i.ibb.co/whd2jNpB/Copilot-20260403-034402.png"
 };
 
-const TEAM_CLASS_BASE = {
-    "Harcos": { hp: 132, mp: 55, atk: 12, def: 8 },
-    "Mágus": { hp: 88, mp: 165, atk: 15, def: 4 },
-    "Lovag": { hp: 165, mp: 66, atk: 10, def: 12 },
-    "Íjász": { hp: 99, mp: 77, atk: 14, def: 6 },
-    "Bérgyilkos": { hp: 94, mp: 88, atk: 16, def: 5 },
-    "Nekromanta": { hp: 110, mp: 132, atk: 13, def: 7 }
-};
-
 const RUN_MAP = [
     { type: 'fight', tier: 'easy', label: 'Vészkút erdeje' },
     { type: 'fight', tier: 'easy', label: 'Mohos ösvény' },
@@ -304,6 +346,8 @@ let totalXpEarned = 0;
 let totalGoldEarned = 0;
 let runOutcomeHandled = false;
 let joiningOnlineRun = false;
+/** Legmesszebbi elért szakasz index (0…RUN_MAP.length-1), Firebase: teamCampaignBestMapIndex */
+let teamCampaignBestMapIndex = 0;
 
 /** @type {{ roomId: string, ref: any, isHost: boolean, hostCharId: string, unsubs: (()=>void)[] } | null} */
 let onlineSession = null;
@@ -364,27 +408,6 @@ function getMonsterActiveAbilityInfo(logic) {
     };
     return map[logic] || { name: "⚡ Vad csapás", cd: 4 };
 }
-
-function buildGuestSlots() {
-    const n = parseInt(document.getElementById('sel-party-size').value, 10) - 1;
-    const host = document.getElementById('guest-slots');
-    host.innerHTML = '';
-    for (let i = 0; i < n; i++) {
-        const row = document.createElement('div');
-        row.className = 'party-row';
-        row.innerHTML = `
-            <label>Társ ${i + 2}</label>
-            <input type="text" id="guest-name-${i}" placeholder="Név" maxlength="12" value="Társ${i + 2}">
-            <select id="guest-class-${i}">
-                <option>Harcos</option><option>Mágus</option><option>Lovag</option>
-                <option>Íjász</option><option>Bérgyilkos</option><option>Nekromanta</option>
-            </select>`;
-        host.appendChild(row);
-    }
-}
-
-document.getElementById('sel-party-size').addEventListener('change', buildGuestSlots);
-buildGuestSlots();
 
 function scaleDifficultyMult(d) {
     if (d === 'easy') return 0.88;
@@ -710,6 +733,10 @@ function updateBattleUI() {
     const h = party[activeHeroIdx];
     if (!h || h.hp <= 0) {
         document.getElementById('p-name-team').innerText = '—';
+        const psi = document.getElementById('p-status-icons-team');
+        if (psi) psi.innerHTML = '';
+        renderMonsterStatusIconsTeam();
+        renderLineupMini();
         return;
     }
     document.getElementById('p-name-team').innerText = h.name + (h.isGuest ? ' (vendég)' : '');
@@ -721,14 +748,63 @@ function updateBattleUI() {
     document.getElementById('e-hp-fill-team').style.width = Math.max(0, currentMonster.hp / currentMonster.maxHp * 100) + '%';
     document.getElementById('e-hp-val-team').innerText = `${Math.max(0, Math.ceil(currentMonster.hp))} / ${currentMonster.maxHp} HP`;
 
-    const st = document.getElementById('status-effects-team');
-    st.innerHTML = '';
-    if (h.status.burn > 0) st.innerHTML += `<span class="status-badge status-burn">🔥 ${h.status.burn}</span>`;
-    if (h.status.stun > 0) st.innerHTML += `<span class="status-badge status-stun">😵 ${h.status.stun}</span>`;
-    if (h.status.weakened > 0) st.innerHTML += `<span class="status-badge status-weak">☠️ ${h.status.weakened}</span>`;
+    const psi = document.getElementById('p-status-icons-team');
+    if (psi) psi.innerHTML = buildHeroStatusIconsHtml(h);
+    renderMonsterStatusIconsTeam();
 
     renderPartyStrip('battle-party-strip', true);
     updateSkillBtnsForHero(h);
+    renderLineupMini();
+}
+
+function escAttrTeam(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
+function buildHeroStatusIconsHtml(h) {
+    if (!h || h.hp <= 0) return '';
+    const parts = [];
+    if (h.status.burn > 0) {
+        parts.push(`<span class="status-ico burn" title="${escAttrTeam('Égés — ' + h.status.burn + ' kör')}">🔥<span class="status-ico-num">${h.status.burn}</span></span>`);
+    }
+    if (h.status.stun > 0) {
+        parts.push(`<span class="status-ico stun" title="${escAttrTeam('Kábítva / némítva — ' + h.status.stun + ' kör')}">😵<span class="status-ico-num">${h.status.stun}</span></span>`);
+    }
+    if (h.status.weakened > 0) {
+        parts.push(`<span class="status-ico defdown" title="${escAttrTeam('Átok — felezett sebzés (' + h.status.weakened + ' ütés)')}">−2</span>`);
+    }
+    if (h.isDefending) {
+        parts.push(`<span class="status-ico buff" title="${escAttrTeam('Védekezik — erősebb védelem')}">🛡</span>`);
+    }
+    if (h._shieldBreakRestore != null && h.def === 0) {
+        parts.push(`<span class="status-ico debuff-armor" title="${escAttrTeam('Pajzs széttörve — védelem nulla')}">DEF↓</span>`);
+    }
+    return parts.join('');
+}
+
+function miniHeroStatusEmojis(h) {
+    if (!h || h.hp <= 0) return '';
+    const t = [];
+    if (h.status.burn > 0) t.push('🔥');
+    if (h.status.stun > 0) t.push('😵');
+    if (h.status.weakened > 0) t.push('−2');
+    if (h.isDefending) t.push('🛡');
+    if (h._shieldBreakRestore != null && h.def === 0) t.push('⬇');
+    if (!t.length) return '';
+    return `<div class="mini-hero-status" title="Státusz">${t.join(' ')}</div>`;
+}
+
+function renderMonsterStatusIconsTeam() {
+    const el = document.getElementById('e-status-icons-team');
+    if (!el || !currentMonster) return;
+    const parts = [];
+    if (monsterStatus.burn > 0) {
+        parts.push(`<span class="status-ico burn" title="${escAttrTeam('Égés — ' + monsterStatus.burn + ' kör')}">🔥<span class="status-ico-num">${monsterStatus.burn}</span></span>`);
+    }
+    if (currentMonster.isDefending) {
+        parts.push(`<span class="status-ico buff" title="${escAttrTeam('A szörny védekezik')}">🛡</span>`);
+    }
+    el.innerHTML = parts.join('');
 }
 
 function renderPartyStrip(id, highlightActive) {
@@ -736,7 +812,8 @@ function renderPartyStrip(id, highlightActive) {
     el.innerHTML = party.map((h, i) => {
         const pct = h.maxHp > 0 ? Math.max(0, h.hp / h.maxHp * 100) : 0;
         const cls = (h.hp <= 0 ? 'dead ' : '') + (highlightActive && i === activeHeroIdx && h.hp > 0 ? 'active' : '');
-        return `<div class="mini-hero ${cls}"><span>${h.name}</span><div class="mh-p"><i style="width:${pct}%"></i></div></div>`;
+        const mini = miniHeroStatusEmojis(h);
+        return `<div class="mini-hero ${cls}">${mini}<span>${h.name}</span><div class="mh-p"><i style="width:${pct}%"></i></div></div>`;
     }).join('');
 }
 
@@ -828,7 +905,8 @@ function partyLiteForSync() {
         status: { ...h.status },
         isDefending: h.isDefending,
         atk: h.atk,
-        def: h.def
+        def: h.def,
+        shieldBroken: h._shieldBreakRestore != null
     }));
 }
 
@@ -847,7 +925,8 @@ function monsterLiteForSync() {
         mana: currentMonster.mana,
         maxMana: currentMonster.maxMana,
         _canRevive: !!currentMonster._canRevive,
-        _mirrorNext: !!currentMonster._mirrorNext
+        _mirrorNext: !!currentMonster._mirrorNext,
+        isDefending: !!currentMonster.isDefending
     };
 }
 
@@ -888,7 +967,8 @@ function applyGuestBattleView(data) {
         mana: m.mana,
         maxMana: m.maxMana,
         _canRevive: !!m._canRevive,
-        _mirrorNext: !!m._mirrorNext
+        _mirrorNext: !!m._mirrorNext,
+        isDefending: !!m.isDefending
     });
     data.party.forEach((row, i) => {
         if (!party[i]) return;
@@ -897,6 +977,12 @@ function applyGuestBattleView(data) {
         party[i].cooldowns = row.cooldowns || [0, 0, 0];
         party[i].status = row.status || { burn: 0, stun: 0, weakened: 0 };
         party[i].isDefending = !!row.isDefending;
+        party[i].def = row.def != null ? row.def : party[i].def;
+        if (row.shieldBroken === true) {
+            party[i]._shieldBreakRestore = party[i]._shieldBreakRestore || 1;
+        } else if (row.shieldBroken === false) {
+            party[i]._shieldBreakRestore = null;
+        }
     });
     activeHeroIdx = data.activeHeroIdx || 0;
     monsterAbilityCooldown = data.monsterAbilityCooldown || 0;
@@ -916,11 +1002,11 @@ function applyGuestBattleView(data) {
         document.getElementById('p-hp-val-team').innerText = `${Math.max(0, Math.ceil(h.hp))} / ${h.maxHp} HP`;
         document.getElementById('p-mp-fill-team').style.width = (h.mp / h.maxMp * 100) + '%';
         document.getElementById('p-mp-val-team').innerText = `${Math.ceil(h.mp)} / ${h.maxMp} MP`;
-        const st = document.getElementById('status-effects-team');
-        st.innerHTML = '';
-        if (h.status.burn > 0) st.innerHTML += `<span class="status-badge status-burn">🔥 ${h.status.burn}</span>`;
-        if (h.status.stun > 0) st.innerHTML += `<span class="status-badge status-stun">😵 ${h.status.stun}</span>`;
-        if (h.status.weakened > 0) st.innerHTML += `<span class="status-badge status-weak">☠️ ${h.status.weakened}</span>`;
+        const psi = document.getElementById('p-status-icons-team');
+        if (psi) psi.innerHTML = buildHeroStatusIconsHtml(h);
+    } else {
+        const psi = document.getElementById('p-status-icons-team');
+        if (psi) psi.innerHTML = '';
     }
     document.getElementById('e-name-team').innerText = currentMonster.name;
     document.getElementById('monster-passive-name-team').innerText = currentMonster.passiveName;
@@ -934,6 +1020,7 @@ function applyGuestBattleView(data) {
     const activeInfo = getMonsterActiveAbilityInfo(currentMonster.passiveLogic);
     document.getElementById('monster-active-name-team').innerText = activeInfo.name;
     document.getElementById('monster-active-cd-team').innerText = `CD: ${activeInfo.cd} kör | max ${MONSTER_ABILITY_MAX_USES}x`;
+    renderMonsterStatusIconsTeam();
     renderPartyStrip('battle-party-strip', true);
 
     const myTurn = data.expectCharId === myId && !battleOver && h && h.hp > 0 && h.status.stun === 0;
@@ -954,6 +1041,47 @@ function syncProgressToRoom() {
         phase: batVis ? 'battle' : 'map',
         inBattle: batVis
     }).catch(e => console.error(e));
+}
+
+function syncTeamCampaignBest() {
+    if (!myId) return;
+    const cap = Math.max(0, RUN_MAP.length - 1);
+    const idx = Math.min(Math.max(0, mapIndex), cap);
+    const prev = teamCampaignBestMapIndex || 0;
+    const next = Math.max(prev, idx);
+    if (next <= prev) return;
+    teamCampaignBestMapIndex = next;
+    if (mainHeroSnapshot && typeof mainHeroSnapshot === 'object') {
+        mainHeroSnapshot.teamCampaignBestMapIndex = next;
+    }
+    db.ref(`characters/${myId}`).update({
+        teamCampaignBestMapIndex: next,
+        lastUpdate: Date.now()
+    }).catch(() => {});
+}
+
+function renderLineupMini() {
+    const total = RUN_MAP.length;
+    const curNum = Math.min(mapIndex + 1, total);
+    const recNum = Math.min((teamCampaignBestMapIndex || 0) + 1, total);
+    const dotsHtml = RUN_MAP.map((n, i) => {
+        let cls = 'lineup-dot';
+        if (i < mapIndex) cls += ' is-done';
+        else if (i === mapIndex) cls += ' is-current';
+        else cls += ' is-future';
+        const pip = (i === teamCampaignBestMapIndex) ? '<span class="lineup-pip" title="Legmesszebb elért szakasz">✓</span>' : '';
+        const safe = String(n.label).replace(/"/g, '&quot;');
+        return `<div class="${cls}" title="${safe}"><span class="lineup-num">${i + 1}</span>${pip}</div>`;
+    }).join('');
+    const cap = `${curNum} / ${total} szakasz · Legmesszebb elérve: ${recNum}. (a kék ✓)`;
+    ['lineup-dots-map', 'lineup-dots-battle'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = dotsHtml;
+    });
+    ['lineup-caption-map', 'lineup-caption-battle'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = cap;
+    });
 }
 
 function cleanupOnlineSession() {
@@ -1167,12 +1295,17 @@ async function runHeroesPhase() {
 
 function startBattleInternal() {
     battleOver = false;
+    waitingForPlayer = false;
+    window.__heroTurnResolve = null;
     document.getElementById('log-team').innerHTML = '';
     document.getElementById('dice-team').innerText = '🎲';
     monsterStatus = { burn: 0 };
     monsterAbilityCooldown = 0;
     monsterAbilityUsedCount = 0;
-    party.forEach(h => { h.isDefending = false; });
+    party.forEach(h => {
+        h.isDefending = false;
+        h.status = { burn: 0, stun: 0, weakened: 0 };
+    });
     currentMonster.isDefending = false;
 
     initBattleMonsterUI();
@@ -1206,10 +1339,19 @@ function endBattleNode(win) {
 
         const node = RUN_MAP[mapIndex];
         if (node.type === 'boss') {
+            syncTeamCampaignBest();
             showRunWinOverlay(true);
             return;
         }
         mapIndex++;
+        const selfHero = party.find(h => h.ownerCharId === myId);
+        if (selfHero && myId) {
+            db.ref(`characters/${myId}`).update({
+                hp: Math.max(1, Math.ceil(selfHero.hp)),
+                mp: Math.max(0, Math.ceil(selfHero.mp)),
+                lastUpdate: Date.now()
+            }).catch(() => {});
+        }
         document.getElementById('phase-battle').classList.remove('active');
         document.getElementById('phase-battle').style.display = 'none';
         document.getElementById('phase-map').classList.add('active');
@@ -1385,6 +1527,8 @@ function renderMap() {
         btn.title = '';
         btn.onclick = () => enterMapNode(cur);
     }
+    syncTeamCampaignBest();
+    renderLineupMini();
     if (onlineSession && onlineSession.isHost) syncProgressToRoom();
 }
 
@@ -1414,18 +1558,6 @@ function enterMapNode(node) {
 }
 
 /* ——— Online váró / meccskeresés ——— */
-document.getElementById('tab-mode-local').addEventListener('click', () => {
-    document.getElementById('tab-mode-local').classList.add('active');
-    document.getElementById('tab-mode-online').classList.remove('active');
-    document.getElementById('block-local-setup').style.display = 'block';
-    document.getElementById('block-online-setup').style.display = 'none';
-});
-document.getElementById('tab-mode-online').addEventListener('click', () => {
-    document.getElementById('tab-mode-online').classList.add('active');
-    document.getElementById('tab-mode-local').classList.remove('active');
-    document.getElementById('block-local-setup').style.display = 'none';
-    document.getElementById('block-online-setup').style.display = 'block';
-});
 
 function showPhaseSetup() {
     document.getElementById('phase-lobby').classList.remove('active');
@@ -1651,6 +1783,7 @@ function attachGuestOnlineSync() {
             document.getElementById('phase-map').classList.add('active');
             document.getElementById('phase-map').style.display = 'flex';
         }
+        renderLineupMini();
     });
     const batFn = onlineSession.ref.child('battleState').on('value', snap => {
         const d = snap.val();
@@ -1703,6 +1836,7 @@ async function beginOnlineRunFromRoom(roomId, room) {
 
         const mySnap = await db.ref(`characters/${myId}`).once('value');
         mainHeroSnapshot = JSON.parse(JSON.stringify(mySnap.val() || {}));
+        teamCampaignBestMapIndex = Math.max(0, Number(mainHeroSnapshot.teamCampaignBestMapIndex) || 0);
 
         onlineSession = {
             roomId,
@@ -1735,60 +1869,6 @@ async function beginOnlineRunFromRoom(roomId, room) {
     }
 }
 
-document.getElementById('btn-start-run').addEventListener('click', async () => {
-    if (!myId) return alert('Nincs kiválasztott karakter.');
-    runDifficulty = document.getElementById('sel-difficulty').value;
-    diffScale = scaleDifficultyMult(runDifficulty);
-    const size = parseInt(document.getElementById('sel-party-size').value, 10);
-
-    try {
-        const snap = await db.ref(`characters/${myId}`).once('value');
-        const raw = snap.val();
-        if (!raw) return alert('Karakter nem található.');
-
-        mainHeroSnapshot = JSON.parse(JSON.stringify(raw));
-        const main = normalizeHero({ ...raw }, false);
-        main.ownerCharId = myId;
-        party = [main];
-
-        for (let g = 0; g < size - 1; g++) {
-            const nameEl = document.getElementById(`guest-name-${g}`);
-            const clsEl = document.getElementById(`guest-class-${g}`);
-            const nm = (nameEl && nameEl.value.trim()) || `Társ${g + 2}`;
-            const cl = clsEl ? clsEl.value : 'Harcos';
-            const base = TEAM_CLASS_BASE[cl];
-            const guest = normalizeHero({
-                name: nm.slice(0, 12),
-                charClass: cl,
-                hp: base.hp,
-                maxHp: base.hp,
-                mp: base.mp,
-                maxMp: base.mp,
-                atk: base.atk,
-                def: base.def,
-                gold: 0,
-                xp: 0,
-                bonusAtk: 0,
-                bonusDef: 0
-            }, true);
-            party.push(guest);
-        }
-
-        totalXpEarned = 0;
-        totalGoldEarned = 0;
-        mapIndex = 0;
-
-        document.getElementById('phase-setup').classList.remove('active');
-        document.getElementById('phase-setup').style.display = 'none';
-        document.getElementById('phase-map').classList.add('active');
-        document.getElementById('phase-map').style.display = 'flex';
-        document.getElementById('map-run-title').innerText = `Futam (${runDifficulty}) — ${party.length} hős`;
-        renderMap();
-    } catch (e) {
-        console.error(e);
-        alert('Hiba: ' + e.message);
-    }
-});
 </script>
 </body>
 </html>

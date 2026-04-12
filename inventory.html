@@ -2,11 +2,12 @@
 <html lang="hu">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <script src="auth-guard.js"></script>
     <title>Hős Leltár - Death's Armada</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="responsive.css">
     <style>
         
         .header { 
@@ -88,6 +89,7 @@
 </div>
 
 <div class="main-container">
+    <div class="inventory-char-wrap">
     <div class="char-view">
         <img id="hero-img" src="" alt="">
         <div class="slot" data-slot="sisak" onclick="handleSlotClick('sisak')">SISAK</div>
@@ -96,6 +98,7 @@
         <div class="slot" data-slot="pajzs" onclick="handleSlotClick('pajzs')">PAJZS</div>
         <div class="slot" data-slot="lábvért" onclick="handleSlotClick('lábvért')">LÁBVÉRT</div>
         <div class="slot" data-slot="cipő" onclick="handleSlotClick('cipő')">CIPŐ</div>
+    </div>
     </div>
 
     <div class="bag-container">

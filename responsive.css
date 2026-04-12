@@ -1,0 +1,324 @@
+/**
+ * Death's Armada — reszponzív: mobil + asztali
+ * Töltsd a styles.css UTÁN.
+ */
+
+:root {
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-right: env(safe-area-inset-right, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-left: env(safe-area-inset-left, 0px);
+    --touch-min: 44px;
+}
+
+html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
+/* --- Kampány / Aréna: ne vágja le mobilon a tartalmat --- */
+.page-campaign,
+.page-arena {
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.page-teamcampaign {
+    min-height: 100vh;
+    min-height: 100dvh;
+}
+
+/* --- Harctér: keskeny képernyőn egymás alá --- */
+.battlefield {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: center;
+    padding-left: max(10px, var(--safe-left));
+    padding-right: max(10px, var(--safe-right));
+    padding-bottom: max(12px, var(--safe-bottom));
+    box-sizing: border-box;
+}
+
+@media (max-width: 900px) {
+    .battlefield {
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .fighter-card {
+        max-width: min(340px, calc(100vw - 24px));
+        width: 100%;
+    }
+
+    .hero-portrait {
+        height: min(320px, 42vh);
+        min-height: 200px;
+    }
+
+    .battle-log {
+        max-width: min(280px, 92vw);
+        width: 100%;
+        max-height: min(150px, 28vh);
+    }
+
+    .skill-slot {
+        width: min(56px, 20vw);
+        height: min(56px, 20vw);
+        min-width: var(--touch-min);
+        min-height: var(--touch-min);
+    }
+
+    .btn {
+        min-height: var(--touch-min);
+        touch-action: manipulation;
+    }
+
+    .dice-box {
+        width: min(70px, 18vw);
+        height: min(70px, 18vw);
+        min-width: 52px;
+        min-height: 52px;
+    }
+}
+
+/* Fejléc harc közben */
+.arena-header {
+    flex-wrap: wrap;
+    gap: 8px;
+    row-gap: 4px;
+    padding-left: max(8px, var(--safe-left));
+    padding-right: max(8px, var(--safe-right));
+    padding-top: max(8px, var(--safe-top));
+    box-sizing: border-box;
+}
+
+@media (max-width: 640px) {
+    .arena-header > div[style*="flex:1"] {
+        flex: 1 1 100%;
+        order: 0;
+    }
+
+    .arena-header .btn {
+        min-height: var(--touch-min);
+    }
+
+    #turn-display,
+    #turn-display-team {
+        font-size: clamp(0.85rem, 3.5vw, 1.1rem) !important;
+    }
+}
+
+/* Aréna időzítő */
+#timer-box {
+    top: max(56px, calc(var(--safe-top) + 44px)) !important;
+    font-size: clamp(1rem, 4.2vw, 1.75rem) !important;
+    padding: 4px 12px !important;
+    max-width: calc(100vw - 24px);
+    text-align: center;
+}
+
+/* Csapat kampány harctér */
+.battlefield-team {
+    padding-left: max(8px, var(--safe-left));
+    padding-right: max(8px, var(--safe-right));
+    padding-bottom: max(12px, var(--safe-bottom));
+    box-sizing: border-box;
+}
+
+@media (max-width: 900px) {
+    .battlefield-team {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .fighter-card-team {
+        max-width: min(400px, calc(100vw - 20px));
+        min-width: unset !important;
+        width: 100%;
+    }
+
+    .hero-portrait {
+        height: min(300px, 38vh);
+    }
+}
+
+/* Győzelem / overlay képernyők */
+#win-screen,
+#win-screen-team,
+#ready-overlay,
+#flee-screen,
+#hardcore-modal,
+#equip-prompt-modal {
+    padding-left: max(12px, var(--safe-left));
+    padding-right: max(12px, var(--safe-right));
+    padding-top: max(12px, var(--safe-top));
+    padding-bottom: max(12px, var(--safe-bottom));
+    box-sizing: border-box;
+}
+
+#win-screen h1,
+#win-title-team {
+    font-size: clamp(1.5rem, 7vw, 3rem) !important;
+}
+
+/* --- Lobby (index): fix elemek + csevegő --- */
+.logout-corner {
+    top: max(12px, var(--safe-top));
+    right: max(12px, var(--safe-right));
+}
+
+.dm-key-btn {
+    bottom: max(12px, var(--safe-bottom));
+    right: max(12px, var(--safe-right));
+    width: var(--touch-min);
+    height: var(--touch-min);
+    min-width: var(--touch-min);
+    min-height: var(--touch-min);
+}
+
+@media (max-width: 640px) {
+    #chat-widget {
+        left: max(8px, var(--safe-left));
+        right: max(8px, var(--safe-right));
+        width: auto !important;
+        bottom: max(10px, var(--safe-bottom));
+    }
+
+    .stat-bar-clone {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 12px;
+    }
+
+    .lobby-wrapper {
+        margin-top: max(48px, calc(var(--safe-top) + 36px));
+        margin-bottom: 24px;
+    }
+}
+
+/* --- Leltár: karakterpanel skálázása keskenyen --- */
+.inventory-char-wrap {
+    width: 300px;
+    max-width: 100%;
+    margin: 0 auto;
+    flex-shrink: 0;
+}
+
+@media (max-width: 380px) {
+    .inventory-char-wrap {
+        width: calc(100vw - 24px);
+        height: calc((100vw - 24px) * 480 / 300);
+        overflow: hidden;
+        border-radius: 8px;
+    }
+
+    .inventory-char-wrap .char-view {
+        transform: scale(calc((100vw - 24px) / 300));
+        transform-origin: top center;
+    }
+}
+
+.page-inventory .main-container {
+    padding-left: max(10px, var(--safe-left));
+    padding-right: max(10px, var(--safe-right));
+    padding-bottom: max(20px, var(--safe-bottom));
+    justify-content: center;
+}
+
+.page-inventory .bag-container {
+    max-width: min(320px, 100%);
+}
+
+.page-inventory .grid {
+    gap: 6px;
+}
+
+@media (max-width: 480px) {
+    .page-inventory .bar-container.inline {
+        width: min(120px, 32vw) !important;
+    }
+}
+
+/* --- Bolt: oszlopok egymás alá --- */
+.page-shop .trade-layout {
+    flex-wrap: wrap;
+    justify-content: center;
+    padding-left: max(12px, var(--safe-left));
+    padding-right: max(12px, var(--safe-right));
+}
+
+@media (max-width: 780px) {
+    .page-shop .trade-layout {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .page-shop .panel {
+        width: min(340px, calc(100vw - 24px));
+    }
+}
+
+.page-shop .shop-header {
+    padding-left: max(12px, var(--safe-left));
+    padding-right: max(12px, var(--safe-right));
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+/* --- DM panel --- */
+.page-dm {
+    padding-left: max(12px, var(--safe-left));
+    padding-right: max(12px, var(--safe-right));
+    padding-bottom: max(80px, var(--safe-bottom));
+}
+
+/* --- Kártyák általános --- */
+.card-lobby,
+.card {
+    max-width: min(420px, calc(100vw - 24px));
+}
+
+/* Csökkentett mozgás: ne ugráljon a hover mobilon */
+@media (hover: none) and (pointer: coarse) {
+    .side-action-btn:hover,
+    .img-btn:hover {
+        transform: none;
+    }
+}
+
+/* --- Ranglista / készítő / login: biztonságos margók --- */
+.page-ranklist,
+.page-creator,
+.page-login {
+    padding-left: max(0px, var(--safe-left));
+    padding-right: max(0px, var(--safe-right));
+    padding-bottom: max(16px, var(--safe-bottom));
+    box-sizing: border-box;
+}
+
+@media (max-width: 720px) {
+    .page-login .patch-notes {
+        position: relative;
+        top: auto;
+        right: auto;
+        width: 100%;
+        max-width: min(320px, calc(100vw - 32px));
+        margin: 0 auto 16px;
+    }
+}
+
+.page-dm .bottom-nav {
+    padding-bottom: max(15px, var(--safe-bottom));
+    padding-left: max(15px, var(--safe-left));
+    padding-right: max(15px, var(--safe-right));
+}
+
+@media (max-width: 640px) {
+    .page-creator .main-card {
+        flex-direction: column;
+    }
+}
