@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <title>DM Master Control - Death's Armada</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
     <style>
+        :root { --gold: #c5a059; --accent: #8b0000; --bg: #050507; --card: rgba(20, 20, 25, 0.9); --blue: #0088ff; --hp: #e74c3c; --mp: #3498db; }
+        body { background: var(--bg); color: var(--gold); font-family: 'Segoe UI', sans-serif; padding: 20px; margin: 0; padding-bottom: 80px; }
         
         .header-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent); padding: 10px 20px; margin-bottom: 20px; }
         h1 { font-family: 'MedievalSharp'; margin: 0; }
@@ -24,7 +25,9 @@
 
         .btn-top { padding: 8px 15px; font-family: 'MedievalSharp'; cursor: pointer; border: none; background: var(--accent); color: white; font-size: 0.9em; border-radius: 4px; }
         .btn-blue { background: var(--blue); }
-.char-card { background: var(--card); border: 1px solid #444; padding: 15px; border-radius: 5px; display: flex; flex-direction: column; box-shadow: 0 4px 15px rgba(0,0,0,0.5); position: relative; }
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; padding: 0 20px; }
+        .char-card { background: var(--card); border: 1px solid #444; padding: 15px; border-radius: 5px; display: flex; flex-direction: column; box-shadow: 0 4px 15px rgba(0,0,0,0.5); position: relative; }
         
         select, input, button { background: #1a1a1a; color: white; border: 1px solid #444; padding: 8px; margin: 5px 0; width: 100%; cursor: pointer; font-family: 'MedievalSharp'; box-sizing: border-box; }
         button:hover { background: var(--gold); color: black; }
@@ -52,9 +55,17 @@
         .stat-line { display: flex; justify-content: space-between; font-weight: bold; border-bottom: 1px solid var(--accent); padding-bottom: 5px; margin-bottom: 5px; font-family: 'MedievalSharp'; }
         .equip-box { background: rgba(139, 0, 0, 0.1); border: 1px solid rgba(197, 160, 89, 0.2); padding: 8px; border-radius: 4px; margin-bottom: 10px; }
         .value-control { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 2px; }
+
+        .backup-panel { background: rgba(197, 160, 89, 0.06); border: 1px solid rgba(197, 160, 89, 0.35); padding: 15px; margin: 0 20px 20px 20px; border-radius: 8px; }
+        .backup-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; margin-top: 10px; }
+        .backup-label { font-family: 'MedievalSharp'; font-size: 0.75em; color: #888; width: 100%; text-align: center; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 4px; }
+        .backup-btn { background: rgba(0,0,0,0.5); color: var(--gold); border: 1px solid rgba(197, 160, 89, 0.4); padding: 6px 10px; font-family: 'MedievalSharp'; font-size: 0.72em; cursor: pointer; border-radius: 4px; width: auto; margin: 0; }
+        .backup-btn:hover { background: rgba(197, 160, 89, 0.15); color: var(--gold); }
+        .backup-hint { font-size: 0.65em; color: #666; margin: 10px 0 0; line-height: 1.35; text-align: center; }
+        #backup-char-select { margin-top: 8px; }
     </style>
 </head>
-<body class="page-dm">
+<body>
     <script src="dm-guard.js"></script>
     <script>requireDmGate();</script>
 
@@ -69,6 +80,19 @@
             <textarea id="patch-input" placeholder="Írd ide az új híreket..."></textarea>
             <button onclick="savePatchNotes()" style="width: auto; padding: 5px 20px;">Hirdetmény Közzététele</button>
         </div>
+    </div>
+
+    <div class="backup-panel">
+        <span class="backup-label">Karaktermentés</span>
+        <span class="label" style="margin-top:0;">Cél karakter</span>
+        <select id="backup-char-select"></select>
+        <div class="backup-bar">
+            <button type="button" class="backup-btn" onclick="downloadCharacterBackupDm()">Letöltés (JSON)</button>
+            <button type="button" class="backup-btn" onclick="document.getElementById('backup-file-input').click()">Visszaállítás fájlból</button>
+            <button type="button" class="backup-btn" onclick="restoreFromLocalBackupDm()">Helyi visszaállítás</button>
+            <input type="file" id="backup-file-input" accept="application/json,.json" style="display:none" onchange="handleBackupFileDm(event)">
+        </div>
+        <p class="backup-hint">A fájl checksumja a véletlen sérülés ellen véd; a PIN a mentésben is benne van — tartsd biztonságos helyen.</p>
     </div>
 
     <div class="arena-monitor">
@@ -87,10 +111,108 @@
 
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-    <script src="firebase-credentials.js"></script>
+    <script src="backup-guard.js"></script>
     <script src="items.js"></script>
     <script>
-        const db = window.initFirebaseDb();
+        const firebaseConfig = { apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU", authDomain: "dnd-tracker-4fe05.firebaseapp.com", projectId: "dnd-tracker-4fe05", databaseURL: "https://dnd-tracker-4fe05-default-rtdb.europe-west1.firebasedatabase.app" };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        let dmChars = {};
+
+        function getBackupTargetId() {
+            const sel = document.getElementById('backup-char-select');
+            return sel && sel.value ? sel.value : null;
+        }
+
+        function populateBackupCharSelect(chars) {
+            const sel = document.getElementById('backup-char-select');
+            if (!sel) return;
+            const prev = sel.value;
+            sel.innerHTML = '';
+            if (!chars) return;
+            for (const id in chars) {
+                const opt = document.createElement('option');
+                opt.value = id;
+                const name = chars[id].name || 'Névtelen';
+                opt.textContent = name + ' (' + String(id).slice(-8) + ')';
+                sel.appendChild(opt);
+            }
+            if (prev && chars[prev]) sel.value = prev;
+        }
+
+        function downloadCharacterBackupDm() {
+            const id = getBackupTargetId();
+            if (!id || !dmChars[id]) {
+                alert('Válassz karaktert.');
+                return;
+            }
+            const obj = DeathBackup.buildExportObject(dmChars[id], id);
+            const blob = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'death-armada-karakter-' + String(id).slice(-10) + '.json';
+            a.click();
+            setTimeout(function () { URL.revokeObjectURL(a.href); }, 2500);
+        }
+
+        function handleBackupFileDm(ev) {
+            const id = getBackupTargetId();
+            const f = ev.target.files && ev.target.files[0];
+            ev.target.value = '';
+            if (!f) return;
+            if (!id || !dmChars[id]) {
+                alert('Válassz karaktert.');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function () {
+                try {
+                    const parsed = DeathBackup.parseImportText(reader.result);
+                    const sanitized = DeathBackup.sanitizeCharacter(parsed.data, id);
+                    if (!sanitized) {
+                        alert('A mentés nem ehhez a karakterhez tartozik, vagy nem érvényes.');
+                        return;
+                    }
+                    if (!confirm('A kiválasztott karakter adatai felülírásra kerülnek a mentésből. Biztosan folytatod?')) return;
+                    db.ref('characters/' + id).set(sanitized).then(function () {
+                        alert('Visszaállítás kész.');
+                    }).catch(function (err) {
+                        alert('Firebase hiba: ' + (err && err.message ? err.message : 'ismeretlen'));
+                    });
+                } catch (e) {
+                    alert(e.message || 'Hiba a fájl feldolgozásakor.');
+                }
+            };
+            reader.readAsText(f);
+        }
+
+        function restoreFromLocalBackupDm() {
+            const id = getBackupTargetId();
+            if (!id || !dmChars[id]) {
+                alert('Válassz karaktert.');
+                return;
+            }
+            const parsed = DeathBackup.loadLocalSnapshot(id);
+            if (!parsed) {
+                alert('Nincs érvényes helyi másolat ehhez a karakterhez (a játékos kliensnek kellett volna mentenie).');
+                return;
+            }
+            try {
+                const sanitized = DeathBackup.sanitizeCharacter(parsed.data, id);
+                if (!sanitized) {
+                    alert('A helyi mentés nem érvényes ehhez a karakterhez.');
+                    return;
+                }
+                if (!confirm('A Firebase-beli karakter felülírása a legutóbbi helyi másolattal?')) return;
+                db.ref('characters/' + id).set(sanitized).then(function () {
+                    alert('Visszaállítás a helyi mentésből kész.');
+                }).catch(function (err) {
+                    alert('Firebase hiba: ' + (err && err.message ? err.message : 'ismeretlen'));
+                });
+            } catch (e) {
+                alert(e.message || 'Hiba');
+            }
+        }
 
         db.ref('settings/patchNotes').on('value', snap => {
             if(snap.val()) document.getElementById('patch-input').value = snap.val();
@@ -143,6 +265,8 @@
 
         db.ref('characters').on('value', snap => {
             const chars = snap.val();
+            dmChars = chars || {};
+            populateBackupCharSelect(dmChars);
             const list = document.getElementById('char-list');
             list.innerHTML = '';
             if(!chars) return;
