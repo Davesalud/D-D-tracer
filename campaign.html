@@ -40,6 +40,11 @@
         .status-weak  { background: rgba(180,0,255,0.2);  border-color: #aa00ff; color: #cc80ff; }
 
         #win-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; }
+        #hardcore-modal, #equip-prompt-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.92); display: none; align-items: center; justify-content: center; z-index: 3000; padding: 16px; }
+        .modal-box { max-width: 420px; background: #121218; border: 2px solid var(--gold); border-radius: 12px; padding: 24px; text-align: center; }
+        .modal-box p { color: #ccc; line-height: 1.5; margin: 12px 0; }
+        .modal-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
+        #challenge-hud { display: none; color: #e74c3c; font-size: 0.85em; font-weight: bold; text-shadow: 0 0 8px rgba(0,0,0,0.8); }
     </style>
 </head>
 <body class="page-campaign">
@@ -47,17 +52,43 @@
 <div id="campaign-menu">
     <img id="menu-image" src="https://i.ibb.co/GfFbXvNH/Copilot-20260409-011839.png" alt="Banner">
     <h1 style="color:var(--gold); text-shadow: 2px 2px 5px black;">Válassz nehézséget!</h1>
-    <div style="display:flex; gap:20px;">
+    <div style="display:flex; gap:20px; flex-wrap:wrap; justify-content:center;">
         <button class="btn" style="width:150px; background:#27ae60;" onclick="startCampaign('easy')">KÖNNYŰ</button>
         <button class="btn" style="width:150px; background:#2980b9;" onclick="startCampaign('medium')">KÖZEPES</button>
         <button class="btn" style="width:150px; background:#c0392b;" onclick="startCampaign('hard')">NEHÉZ</button>
     </div>
+    <button class="btn" style="width:280px; margin-top:14px; background:#6c1a3d; border:2px solid #c0392b;" type="button" onclick="openHardcoreModal()">🔥 KIHÍVÁS (1–10)</button>
     <button class="btn" style="background:#444; margin-top:20px;" onclick="location.href='index.html'">VISSZA A VÁROSBA</button>
 </div>
 
+<div id="hardcore-modal" onclick="if(event.target===this) closeHardcoreModal()">
+    <div class="modal-box" onclick="event.stopPropagation()">
+        <h2 style="color:var(--gold); margin-top:0;">Hardcore kihívás</h2>
+        <p>Ez a kihívás Hardcore játékosoknak van fenntartva.</p>
+        <div class="modal-actions">
+            <button type="button" class="btn" onclick="confirmHardcoreStart()">Rendben</button>
+            <button type="button" class="btn" style="background:#444;" onclick="closeHardcoreModal()">Inkább kihagyom</button>
+        </div>
+    </div>
+</div>
+
+<div id="equip-prompt-modal" onclick="if(event.target===this) {}">
+    <div class="modal-box" onclick="event.stopPropagation()">
+        <h2 style="color:var(--gold); margin-top:0;">Felszerelés szünet</h2>
+        <p id="equip-prompt-text">Szeretnéd módosítani a felszerelésedet, vagy folytatod?</p>
+        <div class="modal-actions">
+            <button type="button" class="btn" style="background:#2980b9;" onclick="goToInventoryFromChallenge()">Felszerelés (leltár)</button>
+            <button type="button" class="btn" onclick="dismissEquipPromptContinue()">Tovább a következő szintre</button>
+        </div>
+    </div>
+</div>
+
 <div class="arena-header" id="arena-header">
-    <button class="btn" style="padding:5px 15px; background:#444;" onclick="location.href='index.html'">🏰 VISSZA</button>
-    <h2 id="turn-display" style="color:var(--gold)">TE KÖVETKEZEL!</h2>
+    <button class="btn" style="padding:5px 15px; background:#444;" id="btn-arena-back" onclick="handleCampaignBack()">🏰 VISSZA</button>
+    <div style="flex:1; text-align:center;">
+        <div id="challenge-hud">KIHÍVÁS — Szint <span id="challenge-lvl-num">1</span> / 10</div>
+        <h2 id="turn-display" style="color:var(--gold); margin:4px 0 0;">TE KÖVETKEZEL!</h2>
+    </div>
     <div style="width:100px;"></div>
 </div>
 
@@ -106,7 +137,10 @@
         <p id="reward-gold" style="font-size:1.4em; color:gold;"></p>
         <p id="reward-hp" style="color:#ff6666; font-size:1em; margin-top:5px;"></p>
     </div>
-    <button class="btn" style="width:250px" onclick="location.href='index.html'">🏰 VISSZA A VÁROSBA</button>
+    <div style="display:flex; flex-direction:column; gap:10px; align-items:center;">
+        <button class="btn" style="width:250px" id="win-screen-primary-btn" onclick="handleWinScreenPrimary()">🏰 VISSZA A VÁROSBA</button>
+        <button class="btn" style="width:250px; display:none; background:#2c3e50;" id="win-screen-secondary-btn" onclick="handleWinScreenSecondary()">Kilépés jutalommal</button>
+    </div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -125,6 +159,13 @@ let playerStatus = { burn: 0, stun: 0, weakened: 0 };
 let monsterStatus = { burn: 0 };
 let monsterAbilityCooldown = 0, monsterAbilityUsedCount = 0;
 const MONSTER_ABILITY_MAX_USES = 3;
+
+let campaignMode = 'solo';
+let challengeLevel = 1;
+let challengeStartGold = 0, challengeStartXp = 0;
+let soloStartGold = 0, soloStartXp = 0;
+let winScreenMode = 'solo';
+const CHALLENGE_KEY = 'challengeRun_v1';
 
 const HERO_IMGS = {
     "Harcos":"https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png",
@@ -164,6 +205,145 @@ function flashMonsterAbility() {
     setTimeout(() => el.classList.remove('show'), 400);
 }
 
+function applyHeroHpMpFromDb(raw) {
+    const maxHp = Number(raw.maxHp) || 100;
+    const maxMp = Number(raw.maxMp) || 100;
+    raw.maxHp = maxHp;
+    raw.maxMp = maxMp;
+    let hp = raw.hp !== undefined && raw.hp !== null ? Number(raw.hp) : maxHp;
+    let mp = raw.mp !== undefined && raw.mp !== null ? Number(raw.mp) : maxMp;
+    if (hp <= 0) hp = 1;
+    hp = Math.min(maxHp, Math.max(1, hp));
+    mp = Math.min(maxMp, Math.max(0, mp));
+    raw.hp = hp;
+    raw.mp = mp;
+}
+
+function openHardcoreModal() {
+    document.getElementById('hardcore-modal').style.display = 'flex';
+}
+function closeHardcoreModal() {
+    document.getElementById('hardcore-modal').style.display = 'none';
+}
+function confirmHardcoreStart() {
+    closeHardcoreModal();
+    startChallengeRun();
+}
+
+async function startChallengeRun() {
+    if (!myId) return alert("Hiba: Nincs karakter kiválasztva!");
+    try {
+        const snap = await db.ref(`characters/${myId}`).once('value');
+        myHero = snap.val();
+        if (!myHero) return alert("Hiba: Karakter nem található!");
+
+        campaignMode = 'challenge';
+        challengeLevel = 1;
+        challengeStartGold = Number(myHero.gold) || 0;
+        challengeStartXp = Number(myHero.xp) || 0;
+
+        myClassData = SKILLS_DATA[myHero.charClass];
+        applyHeroHpMpFromDb(myHero);
+        myHero.isDefending = false;
+
+        persistChallengeState();
+
+        document.getElementById('challenge-hud').style.display = 'block';
+        document.getElementById('challenge-lvl-num').innerText = '1';
+
+        document.getElementById('campaign-menu').style.display = 'none';
+        document.getElementById('arena-header').style.display = 'flex';
+        document.getElementById('battlefield').style.display = 'flex';
+
+        beginChallengeBattle();
+    } catch (e) {
+        console.error(e);
+        alert("Hiba történt: " + e.message);
+    }
+}
+
+function persistChallengeState() {
+    try {
+        sessionStorage.setItem(CHALLENGE_KEY, JSON.stringify({
+            nextLevel: challengeLevel,
+            startGold: challengeStartGold,
+            startXp: challengeStartXp,
+            runGold: myHero ? (Number(myHero.gold) || 0) : null,
+            runXp: myHero ? (Number(myHero.xp) || 0) : null,
+            ts: Date.now()
+        }));
+    } catch (e) {}
+}
+
+function difficultyForChallengeStage(level) {
+    if (level <= 3) return 'easy';
+    if (level <= 6) return 'medium';
+    if (level <= 9) return 'hard';
+    return 'boss';
+}
+
+function rollMonsterForChallengeLevel(level) {
+    const tier = difficultyForChallengeStage(level);
+    if (tier === 'boss') {
+        const list = MONSTERS.boss;
+        const raw = list[Math.floor(Math.random() * list.length)];
+        return JSON.parse(JSON.stringify(raw));
+    }
+    return rollMonsterWithChances(tier);
+}
+
+function beginChallengeBattle() {
+    document.getElementById('battlefield').style.display = 'flex';
+    document.getElementById('challenge-lvl-num').innerText = String(challengeLevel);
+    document.getElementById('win-screen').style.display = 'none';
+    currentMonster = rollMonsterForChallengeLevel(challengeLevel);
+    currentMonster.isDefending = false;
+    currentMonster.isMonster = true;
+
+    myCooldowns = [0, 0, 0];
+    monsterAbilityCooldown = 0;
+    monsterAbilityUsedCount = 0;
+    playerStatus = { burn: 0, stun: 0, weakened: 0 };
+    monsterStatus = { burn: 0 };
+
+    initBattleUI();
+    addLog(`🔥 <span style="color:#e74c3c">Kihívás ${challengeLevel}/10</span> — <span style="color:#ff4444">${currentMonster.name}</span>!`);
+}
+
+function handleCampaignBack() {
+    if (campaignMode === 'challenge') {
+        if (!confirm('Biztosan feladod a kihívást? Az eddig megszerzett kihívás-jutalom elvész.')) return;
+        challengeAbortToLobby();
+        return;
+    }
+    location.href = 'index.html';
+}
+
+function challengeAbortToLobby() {
+    db.ref(`characters/${myId}`).update({
+        hp: 1,
+        mp: Math.max(0, Math.ceil(myHero.mp)),
+        gold: challengeStartGold,
+        xp: challengeStartXp,
+        lastUpdate: Date.now()
+    }).finally(() => {
+        try { sessionStorage.removeItem(CHALLENGE_KEY); } catch (e) {}
+        location.href = 'index.html';
+    });
+}
+
+function goToInventoryFromChallenge() {
+    persistChallengeState();
+    try { sessionStorage.setItem('challengeReturn', '1'); } catch (e) {}
+    document.getElementById('equip-prompt-modal').style.display = 'none';
+    location.href = 'inventory.html';
+}
+
+function dismissEquipPromptContinue() {
+    document.getElementById('equip-prompt-modal').style.display = 'none';
+    challengeContinueAfterVictory();
+}
+
 async function startCampaign(difficulty) {
     if (!myId) return alert("Hiba: Nincs karakter kiválasztva!");
     try {
@@ -171,10 +351,13 @@ async function startCampaign(difficulty) {
         myHero = snap.val();
         if (!myHero) return alert("Hiba: Karakter nem található!");
 
+        campaignMode = 'solo';
+        document.getElementById('challenge-hud').style.display = 'none';
+
         myClassData = SKILLS_DATA[myHero.charClass];
-        myHero.maxMp = myHero.maxMp || 100;
-        myHero.mp = myHero.mp !== undefined ? myHero.mp : myHero.maxMp;
-        myHero.hp = (myHero.hp !== undefined && myHero.hp > 0) ? myHero.hp : myHero.maxHp;
+        applyHeroHpMpFromDb(myHero);
+        soloStartGold = Number(myHero.gold) || 0;
+        soloStartXp = Number(myHero.xp) || 0;
         myHero.isDefending = false;
 
         currentMonster = rollMonsterWithChances(difficulty);
@@ -427,34 +610,202 @@ function addLog(msg) {
 }
 
 // =====================================================
-// JAVÍTOTT HARC VÉGE - HP ÉS MP MENTÉSSEL
+// HARC VÉGE — kampány / kihívás
 // =====================================================
-function endBattle(win) {
-    toggleBtns(true);
+function setWinScreenButtons(primaryText, showSecondary) {
+    document.getElementById('win-screen-primary-btn').innerText = primaryText;
+    document.getElementById('win-screen-secondary-btn').style.display = showSecondary ? 'block' : 'none';
+}
+
+function showChallengeStepUI() {
+    document.getElementById('battlefield').style.display = 'none';
+    winScreenMode = 'challenge_step';
     document.getElementById('win-screen').style.display = 'flex';
-    document.getElementById('win-title').innerText = win ? "GYŐZELEM!" : "VERESÉG!";
-    document.getElementById('win-title').style.color = win ? "var(--gold)" : "#ff4444";
+    document.getElementById('win-title').innerText = 'Szakasz kész';
+    document.getElementById('win-title').style.color = 'var(--gold)';
+    const gainedXp = Math.max(0, Math.floor((Number(myHero.xp) || 0) - challengeStartXp));
+    const gainedG = Math.max(0, Math.floor((Number(myHero.gold) || 0) - challengeStartGold));
+    document.getElementById('reward-xp').innerText = `Futamban összesen: +${gainedXp} XP`;
+    document.getElementById('reward-gold').innerText = `Futamban összesen: +${gainedG} arany`;
+    const next = Math.min(10, challengeLevel);
+    document.getElementById('reward-hp').innerText = `HP: ${Math.ceil(myHero.hp)} / ${myHero.maxHp} · Következő szint: ${next}/10`;
+    setWinScreenButtons('Tovább a következő szintre', true);
+    document.getElementById('win-screen-secondary-btn').innerText = 'Kilépés jutalommal (város)';
+}
 
-    const xp = win ? currentMonster.xp : Math.floor(currentMonster.xp / 5);
-    const gold = win ? currentMonster.gold : 0;
-    
-    // Aktuális értékek mentése (legalább 1 HP, ha nyert)
-    const finalHp = Math.max(win ? 1 : 0, Math.ceil(myHero.hp));
+function afterChallengeWin(xpGain, goldGain) {
+    document.getElementById('battlefield').style.display = 'none';
+    myHero.xp = (Number(myHero.xp) || 0) + xpGain;
+    myHero.gold = (Number(myHero.gold) || 0) + goldGain;
+    const justCompleted = challengeLevel;
+    challengeLevel++;
+    persistChallengeState();
+    if (justCompleted >= 10) {
+        finishChallengeFullSuccess();
+        return;
+    }
+    if ([2, 4, 6, 8].includes(justCompleted)) {
+        document.getElementById('equip-prompt-modal').style.display = 'flex';
+        return;
+    }
+    showChallengeStepUI();
+}
+
+function finishChallengeFullSuccess() {
+    const finalHp = Math.max(1, Math.ceil(myHero.hp));
     const finalMp = Math.max(0, Math.ceil(myHero.mp));
-
-    document.getElementById('reward-xp').innerText = `+${xp} XP`;
-    document.getElementById('reward-gold').innerText = `+${gold} Arany`;
-    document.getElementById('reward-hp').innerText = `Maradék HP: ${finalHp}`;
-
-    // FIREBASE FRISSÍTÉS: Minden érték mentésre kerül (Hozzáadva a vessző a finalMp után)
     db.ref(`characters/${myId}`).update({
-        xp: (myHero.xp || 0) + xp,
-        gold: Math.max(0, (myHero.gold || 0) + gold),
+        xp: Math.max(0, Math.ceil(myHero.xp)),
+        gold: Math.max(0, Math.ceil(myHero.gold)),
         hp: finalHp,
         mp: finalMp,
         lastUpdate: Date.now()
+    }).then(() => {
+        try { sessionStorage.removeItem(CHALLENGE_KEY); } catch (e) {}
+        winScreenMode = 'challenge_done';
+        document.getElementById('win-screen').style.display = 'flex';
+        document.getElementById('win-title').innerText = 'KIHÍVÁS TELJESÍTVE!';
+        document.getElementById('win-title').style.color = 'var(--gold)';
+        const gainedXp = Math.max(0, Math.floor((Number(myHero.xp) || 0) - challengeStartXp));
+        const gainedG = Math.max(0, Math.floor((Number(myHero.gold) || 0) - challengeStartGold));
+        document.getElementById('reward-xp').innerText = `+${gainedXp} XP`;
+        document.getElementById('reward-gold').innerText = `+${gainedG} arany`;
+        document.getElementById('reward-hp').innerText = `Maradék HP: ${finalHp} · MP: ${finalMp}`;
+        setWinScreenButtons('🏰 Vissza a városba', false);
+    }).catch(err => console.error(err));
+}
+
+function challengeCashOutAndExit() {
+    db.ref(`characters/${myId}`).update({
+        xp: Math.max(0, Math.ceil(myHero.xp)),
+        gold: Math.max(0, Math.ceil(myHero.gold)),
+        hp: Math.max(1, Math.ceil(myHero.hp)),
+        mp: Math.max(0, Math.ceil(myHero.mp)),
+        lastUpdate: Date.now()
+    }).finally(() => {
+        try { sessionStorage.removeItem(CHALLENGE_KEY); } catch (e) {}
+        location.href = 'index.html';
     });
 }
+
+function challengeContinueAfterVictory() {
+    showChallengeStepUI();
+}
+
+function handleWinScreenPrimary() {
+    if (winScreenMode === 'challenge_step') {
+        document.getElementById('win-screen').style.display = 'none';
+        beginChallengeBattle();
+        return;
+    }
+    location.href = 'index.html';
+}
+
+function handleWinScreenSecondary() {
+    if (winScreenMode === 'challenge_step') {
+        challengeCashOutAndExit();
+    }
+}
+
+function endBattle(win) {
+    toggleBtns(true);
+
+    if (campaignMode === 'challenge') {
+        if (win) {
+            const xpGain = Number(currentMonster.xp) || 0;
+            const goldGain = Number(currentMonster.gold) || 0;
+            document.getElementById('win-screen').style.display = 'none';
+            document.getElementById('equip-prompt-modal').style.display = 'none';
+            afterChallengeWin(xpGain, goldGain);
+            return;
+        }
+        const finalMp = Math.max(0, Math.ceil(myHero.mp));
+        db.ref(`characters/${myId}`).update({
+            hp: 1,
+            mp: finalMp,
+            gold: challengeStartGold,
+            xp: challengeStartXp,
+            lastUpdate: Date.now()
+        }).then(() => {
+            try { sessionStorage.removeItem(CHALLENGE_KEY); } catch (e) {}
+            winScreenMode = 'solo';
+            document.getElementById('win-screen').style.display = 'flex';
+            document.getElementById('win-title').innerText = 'VERESÉG!';
+            document.getElementById('win-title').style.color = '#ff4444';
+            document.getElementById('reward-xp').innerText = '0 XP (kihívás elbukva)';
+            document.getElementById('reward-gold').innerText = '0 arany';
+            document.getElementById('reward-hp').innerText = 'A városban 1 HP-val ébredsz.';
+            setWinScreenButtons('🏰 Vissza a városba', false);
+        });
+        return;
+    }
+
+    document.getElementById('win-screen').style.display = 'flex';
+    document.getElementById('win-title').innerText = win ? 'GYŐZELEM!' : 'VERESÉG!';
+    document.getElementById('win-title').style.color = win ? 'var(--gold)' : '#ff4444';
+    winScreenMode = 'solo';
+
+    if (win) {
+        const xp = currentMonster.xp;
+        const gold = currentMonster.gold;
+        const finalHp = Math.max(1, Math.ceil(myHero.hp));
+        const finalMp = Math.max(0, Math.ceil(myHero.mp));
+        document.getElementById('reward-xp').innerText = `+${xp} XP`;
+        document.getElementById('reward-gold').innerText = `+${gold} Arany`;
+        document.getElementById('reward-hp').innerText = `Maradék HP: ${finalHp}`;
+        setWinScreenButtons('🏰 Vissza a városba', false);
+        db.ref(`characters/${myId}`).update({
+            xp: (Number(myHero.xp) || 0) + xp,
+            gold: Math.max(0, (Number(myHero.gold) || 0) + gold),
+            hp: finalHp,
+            mp: finalMp,
+            lastUpdate: Date.now()
+        });
+        return;
+    }
+
+    const finalMpLoss = Math.max(0, Math.ceil(myHero.mp));
+    document.getElementById('reward-xp').innerText = '0 XP';
+    document.getElementById('reward-gold').innerText = '0 arany';
+    document.getElementById('reward-hp').innerText = 'A városban 1 HP-val ébredsz.';
+    setWinScreenButtons('🏰 Vissza a városba', false);
+    db.ref(`characters/${myId}`).update({
+        xp: soloStartXp,
+        gold: soloStartGold,
+        hp: 1,
+        mp: finalMpLoss,
+        lastUpdate: Date.now()
+    });
+}
+
+(function initChallengeResume() {
+    try {
+        if (sessionStorage.getItem('challengeReturn') !== '1') return;
+        sessionStorage.removeItem('challengeReturn');
+        const raw = sessionStorage.getItem(CHALLENGE_KEY);
+        if (!raw || !myId) return;
+        const data = JSON.parse(raw);
+        if (!data || !data.nextLevel) return;
+        campaignMode = 'challenge';
+        challengeLevel = data.nextLevel;
+        challengeStartGold = data.startGold;
+        challengeStartXp = data.startXp;
+        db.ref(`characters/${myId}`).once('value').then(snap => {
+            myHero = snap.val();
+            if (!myHero) return;
+            myClassData = SKILLS_DATA[myHero.charClass];
+            applyHeroHpMpFromDb(myHero);
+            if (data.runGold != null) myHero.gold = data.runGold;
+            if (data.runXp != null) myHero.xp = data.runXp;
+            document.getElementById('campaign-menu').style.display = 'none';
+            document.getElementById('arena-header').style.display = 'flex';
+            document.getElementById('battlefield').style.display = 'flex';
+            document.getElementById('challenge-hud').style.display = 'block';
+            document.getElementById('challenge-lvl-num').innerText = String(challengeLevel);
+            showChallengeStepUI();
+        });
+    } catch (e) { console.warn(e); }
+})();
 </script>
 </body>
 </html>

@@ -104,7 +104,8 @@
     </div>
 </div>
 
-<a href="index.html" class="btn-back">🏰 VISSZA A VÁRBA</a>
+<a href="index.html" class="btn-back" id="inv-back-default" onclick="try{sessionStorage.removeItem('challengeReturn');}catch(e){}">🏰 VISSZA A VÁRBA</a>
+    <a href="campaign.html" class="btn-back" id="inv-back-challenge" style="display:none; margin-top:8px; border-color:#c0392b;">🔥 VISSZA A KIHÍVÁSHOZ</a>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -114,6 +115,18 @@
 <script>
     const db = window.initFirebaseDb();
     const myId = localStorage.getItem('selectedCharId');
+
+    (function setupChallengeBackLink() {
+        try {
+            if (sessionStorage.getItem('challengeReturn') === '1') {
+                const ch = document.getElementById('inv-back-challenge');
+                const df = document.getElementById('inv-back-default');
+                if (ch && df) {
+                    ch.style.display = 'inline-block';
+                }
+            }
+        } catch (e) {}
+    })();
 
     let isProcessing = false;
     let currentCharData = null;

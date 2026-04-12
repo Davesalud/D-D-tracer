@@ -424,7 +424,9 @@ function normalizeHero(h, isGuest) {
     if (h.ownerCharId === undefined) h.ownerCharId = null;
     h.maxMp = h.maxMp || h.mp || 100;
     h.mp = h.mp !== undefined ? h.mp : h.maxMp;
-    h.hp = (h.hp !== undefined && h.hp > 0) ? h.hp : h.maxHp;
+    if (h.hp === undefined || h.hp === null) h.hp = h.maxHp;
+    else if (h.hp <= 0) h.hp = 1;
+    else h.hp = Math.min(h.maxHp, h.hp);
     h.isDefending = false;
     h.isGuest = !!isGuest;
     h.cooldowns = [0, 0, 0];
@@ -1256,17 +1258,14 @@ function showRunWinOverlay(fullWin) {
             lastUpdate: Date.now()
         }).catch(err => console.error(err));
     } else if (!fullWin && myHero) {
-        const defeatXp = Math.floor((currentMonster && currentMonster.xp) ? currentMonster.xp / 5 : 0);
-        const xpTotal = (mainHeroSnapshot.xp || 0) + totalXpEarned + defeatXp;
-        const goldTotal = Math.max(0, (mainHeroSnapshot.gold || 0) + totalGoldEarned);
-        document.getElementById('win-sub-team').innerText = 'A csapat szétesett. HP/MP, az eddig szerzett arany és XP + vigaszdíj mentve a karakteredhez.';
-        document.getElementById('reward-xp-team').innerText = `XP: +${totalXpEarned} a futamon, +${defeatXp} vigaszdíj (összesen jóváírva)`;
-        document.getElementById('reward-gold-team').innerText = `Arany: +${totalGoldEarned} (megtartod)`;
-        const fh = Math.max(0, Math.ceil(myHero.hp));
+        document.getElementById('win-sub-team').innerText = 'A csapat szétesett. Nem kapsz XP-t és aranyat; a városban 1 HP-val ébredsz.';
+        document.getElementById('reward-xp-team').innerText = '0 XP';
+        document.getElementById('reward-gold-team').innerText = '0 arany';
+        const fh = 1;
         const fm = Math.max(0, Math.ceil(myHero.mp));
         db.ref(`characters/${myId}`).update({
-            xp: xpTotal,
-            gold: goldTotal,
+            xp: mainHeroSnapshot.xp || 0,
+            gold: Math.max(0, mainHeroSnapshot.gold || 0),
             hp: fh,
             mp: fm,
             lastUpdate: Date.now()
@@ -1302,16 +1301,14 @@ function showRunWinOverlayFromHostPayload(o) {
             lastUpdate: Date.now()
         }).catch(err => console.error(err));
     } else if (!fullWin && myHero) {
-        const xpTotal = (mainHeroSnapshot.xp || 0) + txp + defeatXp;
-        const goldTotal = Math.max(0, (mainHeroSnapshot.gold || 0) + tg);
-        document.getElementById('win-sub-team').innerText = 'A futam véget ért. A jutalmak a te karakteredhez mentve.';
-        document.getElementById('reward-xp-team').innerText = `XP: +${txp} + ${defeatXp} vigaszdíj`;
-        document.getElementById('reward-gold-team').innerText = `Arany: +${tg}`;
-        const fh = Math.max(0, Math.ceil(myHero.hp));
+        document.getElementById('win-sub-team').innerText = 'A futam véget ért. Nem kapsz XP-t és aranyat; a városban 1 HP-val ébredsz.';
+        document.getElementById('reward-xp-team').innerText = '0 XP';
+        document.getElementById('reward-gold-team').innerText = '0 arany';
+        const fh = 1;
         const fm = Math.max(0, Math.ceil(myHero.mp));
         db.ref(`characters/${myId}`).update({
-            xp: xpTotal,
-            gold: goldTotal,
+            xp: mainHeroSnapshot.xp || 0,
+            gold: Math.max(0, mainHeroSnapshot.gold || 0),
             hp: fh,
             mp: fm,
             lastUpdate: Date.now()

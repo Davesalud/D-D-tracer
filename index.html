@@ -202,8 +202,8 @@
 
 <div class="lobby-wrapper">
     <div class="side-group side-group-left">
-        <a href="campaign.html" id="btn-side-kampany" class="side-action-btn"><span>📜 Solo Kampány</span></a>
-        <a href="teamcampaign.html" id="btn-side-teamkampany" class="side-action-btn"><span>⚔️ Csapat Kampány</span></a>
+        <a href="campaign.html" id="btn-side-kampany" class="side-action-btn" onclick="return lobbyGateLowHp(event)"><span>📜 Solo Kampány</span></a>
+        <a href="teamcampaign.html" id="btn-side-teamkampany" class="side-action-btn" onclick="return lobbyGateLowHp(event)"><span>⚔️ Csapat Kampány</span></a>
     </div>
 
     <div class="card">
@@ -301,7 +301,25 @@
         if (myId && chars[myId]) updateLobbyUI(); 
     });
 
+    function lobbyGateLowHp(ev) {
+        const el = ev.currentTarget;
+        if (el && el.dataset && el.dataset.lowHpBlock === '1') {
+            ev.preventDefault();
+            return false;
+        }
+        return true;
+    }
+
     function enterArena() {
+        const c = chars[myId];
+        if (c) {
+            const maxHp = Number(c.maxHp) || 100;
+            const hp = Number(c.hp) || 0;
+            if (maxHp > 0 && hp / maxHp <= 0.3) {
+                alert('Legalább 30% HP szükséges az arénához.');
+                return;
+            }
+        }
         db.ref(`characters/${myId}`).update({ status: "searching", lastUpdate: Date.now() }).then(() => {
             window.location.href = 'arena.html';
         });
@@ -361,6 +379,24 @@
         const xpPct = Math.min(100, (curXp / nextXp) * 100);
         document.getElementById('lobby-xp-fill').style.width = xpPct + "%";
         document.getElementById('xp-text').innerText = `XP: ${curXp} / ${nextXp}`;
+
+        const hpRatio = maxHp > 0 ? (Number(c.hp) || 0) / maxHp : 1;
+        const blockLow = hpRatio <= 0.3;
+        ['btn-side-kampany', 'btn-side-teamkampany', 'btn-side-arena'].forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            if (blockLow) {
+                el.dataset.lowHpBlock = '1';
+                el.style.opacity = '0.38';
+                el.style.pointerEvents = 'none';
+                el.title = 'Legalább 30% HP szükséges a harc indításához (csalás elkerülése).';
+            } else {
+                el.dataset.lowHpBlock = '0';
+                el.style.opacity = '';
+                el.style.pointerEvents = '';
+                el.title = '';
+            }
+        });
         
         const listOnline = document.getElementById('list-online');
         const listArena = document.getElementById('list-arena');
