@@ -884,6 +884,22 @@ function setWinScreenButtons(primaryText, showSecondary) {
     document.getElementById('win-screen-secondary-btn').style.display = showSecondary ? 'block' : 'none';
 }
 
+function applySoulEaterWinBonus() {
+    // Kárhozott lelkek baltája: +2 max HP győzelem után, max 20 stack
+    if (!myHero || myHero.equip_fegyver !== 'lelkek_ore_01') {
+        return { addedMaxHp: 0, stacks: Number(myHero?.soulEaterStacks || 0) };
+    }
+    const prevStacks = Number(myHero.soulEaterStacks || 0);
+    if (prevStacks >= 20) {
+        return { addedMaxHp: 0, stacks: 20 };
+    }
+    const nextStacks = prevStacks + 1;
+    myHero.soulEaterStacks = nextStacks;
+    myHero.maxHp = (Number(myHero.maxHp) || 100) + 2;
+    myHero.hp = Math.min(myHero.maxHp, (Number(myHero.hp) || 1) + 2);
+    return { addedMaxHp: 2, stacks: nextStacks };
+}
+
 function showChallengeStepUI() {
     document.getElementById('battlefield').style.display = 'none';
     winScreenMode = 'challenge_step';
@@ -905,6 +921,10 @@ function afterChallengeWin(xpGain, goldGain) {
     document.getElementById('battlefield').style.display = 'none';
     myHero.xp = (Number(myHero.xp) || 0) + xpGain;
     myHero.gold = (Number(myHero.gold) || 0) + goldGain;
+    const soulEater = applySoulEaterWinBonus();
+    if (soulEater.addedMaxHp > 0) {
+        addLog(`🪓 Lélekfaló: +${soulEater.addedMaxHp} max HP (Stack: ${soulEater.stacks}/20)`);
+    }
     const justCompleted = challengeLevel;
     challengeLevel++;
     persistChallengeState();
@@ -929,7 +949,9 @@ function finishChallengeFullSuccess() {
         xp: Math.max(0, Math.ceil(myHero.xp)),
         gold: Math.max(0, Math.ceil(myHero.gold)),
         hp: finalHp,
+        maxHp: Math.max(1, Math.ceil(myHero.maxHp || 100)),
         mp: finalMp,
+        soulEaterStacks: Number(myHero.soulEaterStacks || 0),
         challengeBestLevel: CHALLENGE_TOTAL,
         lastUpdate: Date.now()
     }).then(() => {
@@ -952,7 +974,9 @@ function challengeCashOutAndExit() {
         xp: Math.max(0, Math.ceil(myHero.xp)),
         gold: Math.max(0, Math.ceil(myHero.gold)),
         hp: Math.max(1, Math.ceil(myHero.hp)),
+        maxHp: Math.max(1, Math.ceil(myHero.maxHp || 100)),
         mp: Math.max(0, Math.ceil(myHero.mp)),
+        soulEaterStacks: Number(myHero.soulEaterStacks || 0),
         lastUpdate: Date.now()
     }).finally(() => {
         try { sessionStorage.removeItem(CHALLENGE_KEY); } catch (e) {}
@@ -1020,17 +1044,23 @@ function endBattle(win) {
     if (win) {
         const xp = currentMonster.xp;
         const gold = currentMonster.gold;
+        const soulEater = applySoulEaterWinBonus();
         const finalHp = Math.max(1, Math.ceil(myHero.hp));
         const finalMp = Math.max(0, Math.ceil(myHero.mp));
         document.getElementById('reward-xp').innerText = `+${xp} XP`;
         document.getElementById('reward-gold').innerText = `+${gold} Arany`;
-        document.getElementById('reward-hp').innerText = `Maradék HP: ${finalHp}`;
+        const soulTxt = soulEater.addedMaxHp > 0
+            ? ` · Lélekfaló: +${soulEater.addedMaxHp} max HP (${soulEater.stacks}/20)`
+            : '';
+        document.getElementById('reward-hp').innerText = `Maradék HP: ${finalHp}${soulTxt}`;
         setWinScreenButtons('🏰 Vissza a városba', false);
         db.ref(`characters/${myId}`).update({
             xp: (Number(myHero.xp) || 0) + xp,
             gold: Math.max(0, (Number(myHero.gold) || 0) + gold),
             hp: finalHp,
+            maxHp: Math.max(1, Math.ceil(myHero.maxHp || 100)),
             mp: finalMp,
+            soulEaterStacks: Number(myHero.soulEaterStacks || 0),
             lastUpdate: Date.now()
         });
         return;

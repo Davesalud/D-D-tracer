@@ -303,12 +303,15 @@
 
         const actionText = item.type === "consumable" ? "Megiszod" : "Felveszed";
         let stackNote = "";
-        if (item.type === "consumable") {
-            const invValues = Object.values(currentCharData.inventory || {});
-            const stackCount = invValues.filter(v => v === itemId).length;
-            stackNote = `\nStack: ${stackCount} db`;
-        }
-        if (confirm(`${actionText}: ${item.name}?${stackNote}`)) {
+        const invValues = Object.values(currentCharData.inventory || {});
+        const stackCount = invValues.filter(v => v === itemId).length;
+        if (item.type === "consumable") stackNote = `\nStack: ${stackCount} db`;
+        const statsLine = item.type === "consumable"
+            ? `Heal: +${Number(item.heal) || 0}${item.mana ? ` | Mana: +${Number(item.mana) || 0}` : ""}`
+            : `ATK: +${Number(item.atk) || 0} | DEF: +${Number(item.def) || 0}`;
+        const effectLine = item.effect ? `\nHatás: ${item.effect}` : "";
+
+        if (confirm(`${actionText}: ${item.name}?\n${statsLine}${effectLine}${stackNote}`)) {
             if (item.type === "consumable") {
                 useConsumable(itemId, fbKey);
             } else {
