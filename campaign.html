@@ -26,6 +26,21 @@
         .cd-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.65); display: flex; align-items: center; justify-content: center; color: red; font-size: 1.2em; border-radius: 4px; }
 .btn:hover { background: #b30000; }
         .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .heal-particle {
+            position: absolute;
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 14;
+            background: radial-gradient(circle, #d8ff9e 0%, #5bffa0 70%, rgba(91,255,160,0) 100%);
+            box-shadow: 0 0 12px rgba(120,255,170,0.95);
+            animation: healFloatBattle 900ms ease-out forwards;
+        }
+        @keyframes healFloatBattle {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(0.5); opacity: 0; }
+        }
 
         #monster-ability-box { font-size: 0.8em; color: #ddd; text-align: center; padding: 8px; background: rgba(0,0,0,0.5); border-radius: 4px; min-height: 80px; margin-top: 10px; border: 1px solid #444; }
         .passive-label { color: #aaa; font-size: 0.85em; }
@@ -268,6 +283,23 @@ function playSkillAnim(id) {
         el.classList.add('anim-skill');
         setTimeout(() => { el.classList.remove('anim-skill'); resolve(); }, 350);
     });
+}
+
+function playHealParticlesBattle(targetId) {
+    const host = document.getElementById(targetId);
+    if (!host) return;
+    if (getComputedStyle(host).position === 'static') host.style.position = 'relative';
+    for (let i = 0; i < 20; i++) {
+        const p = document.createElement('span');
+        p.className = 'heal-particle';
+        p.style.left = `${44 + Math.random() * 12}%`;
+        p.style.top = `${60 + Math.random() * 25}%`;
+        p.style.setProperty('--tx', `${(Math.random() - 0.5) * 100}px`);
+        p.style.setProperty('--ty', `${-50 - Math.random() * 100}px`);
+        p.style.animationDelay = `${Math.random() * 140}ms`;
+        host.appendChild(p);
+        setTimeout(() => p.remove(), 980);
+    }
 }
 
 function flashMonsterAbility() {
@@ -748,7 +780,10 @@ async function playerSkill(idx) {
     if (currentMonster._mirrorNext) { const mirror = Math.floor(dmg * 0.5); myHero.hp -= mirror; currentMonster._mirrorNext = false; }
     dmg = applyMonsterPassive(dmg, false);
     currentMonster.hp -= dmg;
-    if (res.healing > 0) { myHero.hp = Math.min(myHero.maxHp, myHero.hp + res.healing); }
+    if (res.healing > 0) {
+        myHero.hp = Math.min(myHero.maxHp, myHero.hp + res.healing);
+        playHealParticlesBattle('p-img');
+    }
     document.getElementById('dice').innerText = "✨";
     addLog(`✨ ${s.name}: ${dmg}`);
     await playSkillAnim('p-img');

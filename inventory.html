@@ -74,6 +74,21 @@
             overflow-y: auto;
             padding-right: 4px;
         }
+.heal-particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 12;
+            background: radial-gradient(circle, #c7ff7a 0%, #57ff9f 70%, rgba(87,255,159,0) 100%);
+            box-shadow: 0 0 10px rgba(135, 255, 170, 0.9);
+            animation: healFloat 820ms ease-out forwards;
+        }
+@keyframes healFloat {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(0.45); opacity: 0; }
+        }
 .btn-back:hover { background: var(--gold); color: black; }
     </style>
 </head>
@@ -235,6 +250,9 @@
         if (effect.includes("1 sebzés a támadónak")) totals.thornsDamage += 1;
         if (effect.includes("első ütésed +3")) totals.openingStrikeDamage += 3;
         if (effect.includes("2 sebzést okoz az ellenfélnek minden körben")) totals.dotDamagePerRound += 2;
+        // Fegyver passzívok (balanszolt, limitált értékekkel)
+        if (effect.includes("vérzés: +1 sebzés kör végén")) totals.dotDamagePerRound += 1;
+        if (effect.includes("parázs: 10% esély égetésre")) totals.dotDamagePerRound += 1;
     }
 
     function buildDerivedFromEquips(equips) {
@@ -253,6 +271,7 @@
             openingStrikeDamage: 0,
             dotDamagePerRound: 0
         };
+        const clamp = (v, min, max) => Math.min(max, Math.max(min, Number(v) || 0));
         EQUIP_SLOTS.forEach(slot => {
             const itemId = equips[slot];
             const item = itemId ? ITEMS[itemId] : null;
@@ -261,6 +280,19 @@
             out.bonusDef += Number(item.def) || 0;
             parsePassiveFromItem(item, out);
         });
+        // Anti-boost / balansz cap-ek
+        out.bonusAtk = clamp(out.bonusAtk, 0, 12);
+        out.bonusDef = clamp(out.bonusDef, 0, 14);
+        out.bonusHitChance = clamp(out.bonusHitChance, 0, 8);
+        out.armorPenPercent = clamp(out.armorPenPercent, 0, 10);
+        out.blockChance = clamp(out.blockChance, 0, 8);
+        out.dodgeChance = clamp(out.dodgeChance, 0, 10);
+        out.flatDamageReduction = clamp(out.flatDamageReduction, 0, 2);
+        out.hpRegenPerTurn = clamp(out.hpRegenPerTurn, 0, 2);
+        out.mpRegenPerTurn = clamp(out.mpRegenPerTurn, 0, 5);
+        out.thornsDamage = clamp(out.thornsDamage, 0, 1);
+        out.openingStrikeDamage = clamp(out.openingStrikeDamage, 0, 3);
+        out.dotDamagePerRound = clamp(out.dotDamagePerRound, 0, 2);
         return out;
     }
 
@@ -335,13 +367,33 @@
         isProcessing = true;
         const item = ITEMS[itemId];
         const updates = { lastUpdate: Date.now() };
+        const didHeal = !!item.heal;
         
         if (item.heal) updates.hp = Math.min(currentCharData.maxHp, (Number(currentCharData.hp) || 0) + item.heal);
         if (item.mana) updates.mp = Math.min(100, (Number(currentCharData.mp) || 0) + item.mana);
 
         db.ref(`characters/${myId}`).update(updates).then(() => {
             return db.ref(`characters/${myId}/inventory/${fbKey}`).remove();
+        }).then(() => {
+            if (didHeal) playHealParticles('hero-img');
         }).finally(() => isProcessing = false);
+    }
+
+    function playHealParticles(targetId) {
+        const host = document.getElementById(targetId);
+        if (!host) return;
+        if (getComputedStyle(host).position === "static") host.style.position = "relative";
+        for (let i = 0; i < 18; i++) {
+            const p = document.createElement('span');
+            p.className = 'heal-particle';
+            p.style.left = `${45 + Math.random() * 10}%`;
+            p.style.top = `${58 + Math.random() * 22}%`;
+            p.style.setProperty('--tx', `${(Math.random() - 0.5) * 90}px`);
+            p.style.setProperty('--ty', `${-40 - Math.random() * 90}px`);
+            p.style.animationDelay = `${Math.random() * 120}ms`;
+            host.appendChild(p);
+            setTimeout(() => p.remove(), 950);
+        }
     }
 </script>
 </body>

@@ -30,11 +30,11 @@ const ITEMS = {
         atk: 12, 
         def: 1, 
         rarity: "rare", 
-        img: "https://i.ibb.co/LDcq0LQp/Copilot-20260405-040230.png" 
+        img: "https://i.ibb.co/gZ65Dqcc/Copilot-20260413-170315.png" 
     },
     "rozsdas_penge_01": {
         id: "rozsdas_penge_01",
-        name: "Sírrablók rozsdás pengéje",
+        name: "Sírrablók rozsdás lándzsája",
         type: "fegyver",
         price: 80,
         sellPrice: 20,
@@ -42,11 +42,11 @@ const ITEMS = {
         def: 0,
         rarity: "common",
         effect: "Nincs",
-        img: ""
+        img: "https://i.ibb.co/21hKcryN/Copilot-20260413-171216.png"
     },
     "vaskard_03": {
         id: "vaskard_03",
-        name: "Kárhozott fattyúkard",
+        name: "Kárhozott fattyútör",
         type: "fegyver",
         price: 180,
         sellPrice: 50,
@@ -54,11 +54,11 @@ const ITEMS = {
         def: 0,
         rarity: "common",
         effect: "Nincs",
-        img: ""
+        img: "https://i.ibb.co/6RD3W7M6/Copilot-20260413-170859.png"
     },
     "vandor_penge_01": {
         id: "vandor_penge_01",
-        name: "Száműzött lovag vándorpenge",
+        name: "Száműzött lovag nyíl és nyilvesző",
         type: "fegyver",
         price: 650,
         sellPrice: 180,
@@ -66,7 +66,7 @@ const ITEMS = {
         def: 1,
         rarity: "uncommon",
         effect: "Hárítás: +1 DEF",
-        img: ""
+        img: "https://i.ibb.co/GvKD7LXD/Copilot-20260413-172102.png"
     },
     "orulet_tore_02": {
         id: "orulet_tore_02",
@@ -78,11 +78,11 @@ const ITEMS = {
         def: 0,
         rarity: "uncommon",
         effect: "Vérzés: +1 sebzés kör végén",
-        img: ""
+        img: "https://i.ibb.co/21QwV8PF/Copilot-20260413-171805.png"
     },
     "lelkek_ore_01": {
         id: "lelkek_ore_01",
-        name: "Kárhozott lelkek őrzője",
+        name: "Kárhozott lelkek baltája",
         type: "fegyver",
         price: 2200,
         sellPrice: 550,
@@ -90,7 +90,7 @@ const ITEMS = {
         def: 2,
         rarity: "rare",
         effect: "Lélekfaló: +2 HP győzelem után (max 20 stack)",
-        img: ""
+        img: "https://i.ibb.co/HZ8SfKB/Copilot-20260413-171942.png"
     },
     "kripta_kard_03": {
         id: "kripta_kard_03",
@@ -102,7 +102,7 @@ const ITEMS = {
         def: 1,
         rarity: "rare",
         effect: "Kincskereső: +2 arany győzelem után",
-        img: ""
+        img: "https://i.ibb.co/PZPyKCYd/Copilot-20260413-171528.png"
     },
     "langnyelv_01": {
         id: "langnyelv_01",
@@ -114,7 +114,7 @@ const ITEMS = {
         def: 1,
         rarity: "epic",
         effect: "Parázs: 10% esély égetésre (2 HP/kör)",
-        img: ""
+        img: "https://i.ibb.co/vvMvPMTz/Copilot-20260413-170232.png"
     },
     "vihar_penge_04": {
         id: "vihar_penge_04",
@@ -138,7 +138,7 @@ const ITEMS = {
         def: 2,
         rarity: "legendary",
         effect: "Skill: Sújtás (8 dmg) | Passzív: +5 HP",
-        img: ""
+        img: "https://i.ibb.co/Z6qJgmw5/Copilot-20260413-170617.png"
     },
     "halal_erintese_03": {
         id: "halal_erintese_03",
@@ -150,7 +150,7 @@ const ITEMS = {
         def: 1,
         rarity: "legendary",
         effect: "Skill: Életaratás (4 HP szívás) | Passzív: +3% Krit",
-        img: ""
+        img: "https://i.ibb.co/7dRP8XLC/Copilot-20260413-170536.png"
     },
     "szakadtfelso_01": { 
         id: "szakadtfelso_01", 

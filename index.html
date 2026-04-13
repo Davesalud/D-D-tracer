@@ -146,9 +146,51 @@
         #dm-pin-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 10000; }
         #dm-pin-overlay input#dm-pin-input { user-select: text; -webkit-user-select: text; width: 100%; box-sizing: border-box; padding: 10px; margin-top: 10px; background: #000; border: 1px solid var(--gold); color: #eee; font-family: 'MedievalSharp', serif; font-size: 1em; border-radius: 4px; }
         #dm-pin-overlay .dm-pin-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
-        .lvl-card { background: #111; border: 2px solid var(--gold); padding: 30px; border-radius: 8px; text-align: center; }
-        .stat-option { background: rgba(255,255,255,0.05); border: 1px solid #444; color: #fff; padding: 12px; margin: 8px 0; border-radius: 4px; cursor: pointer; width: 100%; font-family: 'MedievalSharp'; }
-        .stat-option:hover { background: var(--gold); color: #000; }
+        .lvl-card {
+            background: radial-gradient(circle at top, rgba(255, 215, 64, 0.12), rgba(17, 17, 17, 0.98) 45%);
+            border: 2px solid var(--gold);
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            min-width: 360px;
+            box-shadow: 0 0 24px rgba(197, 160, 89, 0.45), inset 0 0 30px rgba(197, 160, 89, 0.1);
+            animation: lvlPulse 1.6s ease-in-out infinite alternate;
+        }
+        .lvl-title {
+            margin: 0 0 4px;
+            color: #ffe08a;
+            text-shadow: 0 0 12px rgba(255, 226, 120, 0.8);
+            letter-spacing: 1px;
+        }
+        .lvl-sub {
+            margin: 0 0 12px;
+            color: #cfcfcf;
+            font-size: 0.9em;
+        }
+        .stat-option {
+            background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(0,0,0,0.45));
+            border: 1px solid #6f5a2a;
+            color: #fff;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            font-family: 'MedievalSharp';
+            text-align: left;
+            transition: 0.2s ease;
+        }
+        .stat-option:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 0 12px rgba(197,160,89,0.5);
+            border-color: var(--gold);
+        }
+        .lvl-line-main { font-size: 1em; color: #ffeab0; }
+        .lvl-line-preview { font-size: 0.82em; color: #d1f7d1; margin-top: 2px; }
+        @keyframes lvlPulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.01); }
+        }
 
         .side-group-left  { margin-right: 8px; }
         .side-group-right { margin-left: 8px; }
@@ -182,11 +224,11 @@
 
 <div id="lvl-up-overlay">
     <div class="lvl-card">
-        <h2>SZINTLÉPÉS!</h2>
-        <p>Válassz bónuszt:</p>
-        <button class="stat-option" onclick="chooseStat('def', 1)">🛡️ Páncél +1</button>
-        <button class="stat-option" onclick="chooseStat('maxHp', 10)">❤️ Életerő +10</button>
-        <button class="stat-option" onclick="chooseStat('atk', 1)">⚔️ Támadás +1</button>
+        <h2 class="lvl-title">SZINTLÉPÉS!</h2>
+        <p class="lvl-sub">Válassz bónuszt — előnézettel</p>
+        <button id="lvl-opt-def" class="stat-option" onclick="chooseStat('def', 1)"></button>
+        <button id="lvl-opt-hp" class="stat-option" onclick="chooseStat('maxHp', 10)"></button>
+        <button id="lvl-opt-atk" class="stat-option" onclick="chooseStat('atk', 1)"></button>
     </div>
 </div>
 
@@ -330,11 +372,26 @@
     }
 
     function checkLevelUp(c) {
-        if (Number(c.level || 1) >= 30 || isLeveling) return;
+        if (Number(c.level || 1) >= 30) return;
         if (Number(c.xp || 0) >= Number(c.nextLvlXp || 100)) {
             isLeveling = true;
+            renderLevelUpOptions(c);
             document.getElementById('lvl-up-overlay').style.display = 'flex';
         }
+    }
+
+    function renderLevelUpOptions(c) {
+        const baseAtk = Number(c.atk) || 0;
+        const baseDef = Number(c.def) || 0;
+        const baseHp = Number(c.maxHp) || 100;
+        const elDef = document.getElementById('lvl-opt-def');
+        const elHp = document.getElementById('lvl-opt-hp');
+        const elAtk = document.getElementById('lvl-opt-atk');
+        if (!elDef || !elHp || !elAtk) return;
+
+        elDef.innerHTML = `<div class="lvl-line-main">🛡️ Páncél +1</div><div class="lvl-line-preview">DEF: ${baseDef} → ${baseDef + 1}</div>`;
+        elHp.innerHTML = `<div class="lvl-line-main">❤️ Életerő +10</div><div class="lvl-line-preview">HP: ${baseHp} → ${baseHp + 10}</div>`;
+        elAtk.innerHTML = `<div class="lvl-line-main">⚔️ Támadás +1</div><div class="lvl-line-preview">ATK: ${baseAtk} → ${baseAtk + 1}</div>`;
     }
 
     function chooseStat(statField, amount) {
