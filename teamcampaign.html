@@ -611,12 +611,18 @@ function executeMonsterActiveAbility() {
         case "stun_immune":
         case "stun_on_d20": {
             const k = pickStunTargetIdx();
-            if (k >= 0) party[k].status.stun = Math.max(party[k].status.stun, 1);
+            if (k >= 0) {
+                if (party[k].stunImmune) addLog(`🛡️ ${party[k].name} immunis a kábításra!`);
+                else party[k].status.stun = Math.max(party[k].status.stun, 1);
+            }
             break;
         }
         case "silence_3": {
             const k = pickStunTargetIdx();
-            if (k >= 0) party[k].status.stun = Math.max(party[k].status.stun, 2);
+            if (k >= 0) {
+                if (party[k].stunImmune) addLog(`🛡️ ${party[k].name} immunis a némításra!`);
+                else party[k].status.stun = Math.max(party[k].status.stun, 2);
+            }
             break;
         }
         case "steal_gold": {
@@ -862,6 +868,16 @@ async function performHeroAction(h, kind, skillIdx) {
     }
     if (kind === 'attack') {
         const result = CombatEngine.calculatePhysicalDamage(h, currentMonster);
+        if (result.missed) {
+            addLog(`💨 ${h.name} melléütött!`);
+            document.getElementById('dice-team').innerText = result.roll;
+            return;
+        }
+        if (result.dodged) {
+            addLog(`🦇 A szörny kitért!`);
+            document.getElementById('dice-team').innerText = '💨';
+            return;
+        }
         let dmg = result.damage;
         const isCrit = result.isCrit;
         if (currentMonster.passiveLogic === 'hard_skin_15' && parseInt(String(result.roll), 10) < 15) {
@@ -1203,6 +1219,8 @@ async function monsterTurnTeam() {
         const t = randomAliveHeroIdx();
         if (t >= 0) {
             const result = CombatEngine.calculatePhysicalDamage(currentMonster, party[t]);
+            if (result.missed) addLog(`👹 A szörny támadása célt tévesztett!`);
+            if (result.dodged) addLog(`💨 ${party[t].name} kitért!`);
             party[t].hp -= result.damage;
             document.getElementById('dice-team').innerText = result.roll;
             addLog(`👹 ${currentMonster.name} → ${party[t].name}: ${result.damage}`);
@@ -1214,6 +1232,24 @@ async function monsterTurnTeam() {
     }
 
     if (monsterAbilityCooldown > 0) monsterAbilityCooldown--;
+    party.forEach(h => {
+        if (h.hp <= 0) return;
+        const hpRegen = Number(h.hpRegenPerTurn) || 0;
+        const mpRegen = Number(h.mpRegenPerTurn) || 0;
+        const dot = Number(h.dotDamagePerRound) || 0;
+        if (hpRegen > 0) {
+            h.hp = Math.min(h.maxHp, h.hp + hpRegen);
+            addLog(`💚 ${h.name} passzív gyógyulás: +${hpRegen} HP`);
+        }
+        if (mpRegen > 0) {
+            h.mp = Math.min(h.maxMp || 100, h.mp + mpRegen);
+            addLog(`🔷 ${h.name} passzív mana: +${mpRegen} MP`);
+        }
+        if (dot > 0) {
+            currentMonster.hp -= dot;
+            addLog(`🔥 ${h.name} passzív sebzés: -${dot} HP`);
+        }
+    });
     tickHeroCooldownsEndRound();
     updateBattleUI();
     if (onlineSession && onlineSession.isHost) pushBattleStateToRoom();

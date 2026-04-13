@@ -315,6 +315,8 @@ async function startChallengeRun() {
         challengeBestLevelReached = Math.max(0, Math.min(CHALLENGE_TOTAL, Number(myHero.challengeBestLevel) || 0));
 
         myClassData = SKILLS_DATA[myHero.charClass];
+        myHero.atk = (Number(myHero.atk) || 0) + (Number(myHero.bonusAtk) || 0);
+        myHero.def = (Number(myHero.def) || 0) + (Number(myHero.bonusDef) || 0);
         applyHeroHpMpFromDb(myHero);
         myHero.isDefending = false;
 
@@ -514,6 +516,8 @@ async function startCampaign(difficulty) {
         document.getElementById('challenge-lineup-wrap').style.display = 'none';
 
         myClassData = SKILLS_DATA[myHero.charClass];
+        myHero.atk = (Number(myHero.atk) || 0) + (Number(myHero.bonusAtk) || 0);
+        myHero.def = (Number(myHero.def) || 0) + (Number(myHero.bonusDef) || 0);
         applyHeroHpMpFromDb(myHero);
         soloStartGold = Number(myHero.gold) || 0;
         soloStartXp = Number(myHero.xp) || 0;
@@ -684,8 +688,16 @@ function executeMonsterActiveAbility() {
         case "enrage_20": case "low_hp_crit": case "d12_enrage": { const d = Math.max(1, Math.floor(currentMonster.atk * 1.5) - myHero.def); myHero.hp -= d; playAttackAnim('e-img','p-img',d,true); break; }
         case "double_attack": { const d1 = Math.max(1, currentMonster.atk - myHero.def); const d2 = Math.max(1, Math.floor(currentMonster.atk*0.7) - myHero.def); myHero.hp -= (d1+d2); playAttackAnim('e-img','p-img',d1+d2,false); break; }
         case "burn_aura": case "burn_dot_5": { const t = logic==="burn_dot_5"?5:3; playerStatus.burn = t; updateStatusBadges(); break; }
-        case "web_trap": case "stun_immune": case "stun_on_d20": playerStatus.stun = 1; updateStatusBadges(); break;
-        case "silence_3": playerStatus.stun = 2; updateStatusBadges(); break;
+        case "web_trap": case "stun_immune": case "stun_on_d20":
+            if (myHero.stunImmune) addLog(`🛡️ Sárkánypikkely: immunis vagy a kábításra!`);
+            else playerStatus.stun = 1;
+            updateStatusBadges();
+            break;
+        case "silence_3":
+            if (myHero.stunImmune) addLog(`🛡️ Sárkánypikkely: immunis vagy a némításra!`);
+            else playerStatus.stun = 2;
+            updateStatusBadges();
+            break;
         case "steal_gold": { const s = Math.min(myHero.gold||0, 5); myHero.gold = Math.max(0,(myHero.gold||0)-s); break; }
         case "regen_5": currentMonster.hp = Math.min(currentMonster.maxHp, currentMonster.hp+20); break;
         case "mana_only_dmg": myHero.mp = Math.max(0, myHero.mp-20); updateBars(); break;
@@ -708,6 +720,8 @@ async function playerAction(type) {
     isMyTurn = false; toggleBtns(true); myHero.isDefending = false;
     if (type === 'attack') {
         const result = CombatEngine.calculatePhysicalDamage(myHero, currentMonster);
+        if (result.missed) { addLog(`💨 Melléütöttél!`); document.getElementById('dice').innerText = result.roll; updateBars(); checkTurnEnd(); return; }
+        if (result.dodged) { addLog(`🦇 Az ellenfél kitért!`); document.getElementById('dice').innerText = "💨"; updateBars(); checkTurnEnd(); return; }
         let dmg = result.damage;
         const isCrit = result.isCrit;
         if (currentMonster.passiveLogic === "hard_skin_15" && parseInt(result.roll) < 15) { dmg = 1; addLog(`🪨 Sziklabőr!`); }
@@ -760,9 +774,26 @@ function enemyTurn() {
     else {
         if (Math.random() > 0.15) {
             const result = CombatEngine.calculatePhysicalDamage(currentMonster, myHero);
+            if (result.missed) addLog(`👹 A szörny támadása célt tévesztett!`);
+            if (result.dodged) addLog(`💨 Kitértél a támadás elől!`);
             myHero.hp -= result.damage; document.getElementById('dice').innerText = result.roll;
             playAttackAnim('e-img', 'p-img', result.damage, result.isCrit);
         } else { currentMonster.isDefending = true; addLog(`🛡️ Szörny véd!`); }
+    }
+    if (myHero.hpRegenPerTurn > 0) {
+        const regen = Number(myHero.hpRegenPerTurn) || 0;
+        myHero.hp = Math.min(myHero.maxHp, myHero.hp + regen);
+        addLog(`💚 Passzív gyógyulás: +${regen} HP`);
+    }
+    if (myHero.mpRegenPerTurn > 0) {
+        const regenMp = Number(myHero.mpRegenPerTurn) || 0;
+        myHero.mp = Math.min(myHero.maxMp || 100, myHero.mp + regenMp);
+        addLog(`🔷 Passzív mana: +${regenMp} MP`);
+    }
+    if (myHero.dotDamagePerRound > 0) {
+        const dot = Number(myHero.dotDamagePerRound) || 0;
+        currentMonster.hp -= dot;
+        addLog(`🔥 Tűzléptek: -${dot} HP az ellenfélnek`);
     }
     if (monsterAbilityCooldown > 0) monsterAbilityCooldown--;
     myCooldowns = myCooldowns.map(c => c > 0 ? c-1 : 0);

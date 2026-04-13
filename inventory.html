@@ -66,6 +66,14 @@
         }
         .inv-slot:hover { border-color: var(--gold); }
         .item-icon { width: 85%; height: 85%; object-fit: contain; }
+.bag-container #inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 8px;
+            max-height: 420px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
 .btn-back:hover { background: var(--gold); color: black; }
     </style>
 </head>
@@ -118,6 +126,21 @@
 <script>
     const db = window.initFirebaseDb();
     const myId = localStorage.getItem('selectedCharId');
+    const TYPE_TO_SLOT = {
+        "helmet": "sisak",
+        "shield": "pajzs",
+        "leggings": "lábvért",
+        "boots": "cipő",
+        "weapon": "fegyver",
+        "armor": "páncél",
+        "pancel": "páncél",
+        "fegyver": "fegyver",
+        "páncél": "páncél",
+        "sisak": "sisak",
+        "pajzs": "pajzs",
+        "lábvért": "lábvért",
+        "cipő": "cipő"
+    };
 
     (function setupChallengeBackLink() {
         try {
@@ -133,6 +156,7 @@
 
     let isProcessing = false;
     let currentCharData = null;
+    const EQUIP_SLOTS = ["sisak", "fegyver", "páncél", "pajzs", "lábvért", "cipő"];
 
     const HERO_IMAGES = { "Harcos": "https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png", "Mágus": "https://i.ibb.co/yFz5bcXv/Copilot-20260403-033651.png", "Lovag": "https://i.ibb.co/Fk3n339M/Copilot-20260403-034043.png", "Íjász": "https://i.ibb.co/whd2jNpB/Copilot-20260403-034402.png", "Bérgyilkos": "https://i.ibb.co/b525CsLg/Copilot-20260403-032807.png", "Nekromanta": "https://i.ibb.co/NnCwwCbR/Copilot-20260403-033301.png" };
 
@@ -188,10 +212,56 @@
                 grid.appendChild(div);
             }
         });
-        // Üres helyek kitöltése (16 slot)
-        for(let i = Object.keys(inv).length; i < 16; i++) {
-            const div = document.createElement('div'); div.className = 'inv-slot'; grid.appendChild(div);
+        // Üres helyek kitöltése (28 slot)
+        for(let i = Object.keys(inv).length; i < 28; i++) {
+            const div = document.createElement('div');
+            div.className = 'inv-slot';
+            grid.appendChild(div);
         }
+    }
+
+    function parsePassiveFromItem(item, totals) {
+        const effect = String(item.effect || "").toLowerCase();
+        if (!effect || effect === "nincs") return;
+        if (effect.includes("+5% találati")) totals.bonusHitChance += 5;
+        if (effect.includes("10%-át áttöri")) totals.armorPenPercent += 10;
+        if (effect.includes("+5% blokkolási")) totals.blockChance += 5;
+        if (effect.includes("+3% kitérési")) totals.dodgeChance += 3;
+        if (effect.includes("+7% kitérési")) totals.dodgeChance += 7;
+        if (effect.includes("-1 bejövő sebzés")) totals.flatDamageReduction += 1;
+        if (effect.includes("+2 hp minden kör")) totals.hpRegenPerTurn += 2;
+        if (effect.includes("+5 mp körönként")) totals.mpRegenPerTurn += 5;
+        if (effect.includes("immunitás a kábításra")) totals.stunImmune = true;
+        if (effect.includes("1 sebzés a támadónak")) totals.thornsDamage += 1;
+        if (effect.includes("első ütésed +3")) totals.openingStrikeDamage += 3;
+        if (effect.includes("2 sebzést okoz az ellenfélnek minden körben")) totals.dotDamagePerRound += 2;
+    }
+
+    function buildDerivedFromEquips(equips) {
+        const out = {
+            bonusAtk: 0,
+            bonusDef: 0,
+            bonusHitChance: 0,
+            armorPenPercent: 0,
+            blockChance: 0,
+            dodgeChance: 0,
+            flatDamageReduction: 0,
+            hpRegenPerTurn: 0,
+            mpRegenPerTurn: 0,
+            stunImmune: false,
+            thornsDamage: 0,
+            openingStrikeDamage: 0,
+            dotDamagePerRound: 0
+        };
+        EQUIP_SLOTS.forEach(slot => {
+            const itemId = equips[slot];
+            const item = itemId ? ITEMS[itemId] : null;
+            if (!item) return;
+            out.bonusAtk += Number(item.atk) || 0;
+            out.bonusDef += Number(item.def) || 0;
+            parsePassiveFromItem(item, out);
+        });
+        return out;
     }
 
     function handleInventoryClick(itemId, fbKey) {
@@ -200,11 +270,21 @@
         if (!item) return;
 
         const actionText = item.type === "consumable" ? "Megiszod" : "Felveszed";
-        if (confirm(`${actionText}: ${item.name}?`)) {
+        let stackNote = "";
+        if (item.type === "consumable") {
+            const invValues = Object.values(currentCharData.inventory || {});
+            const stackCount = invValues.filter(v => v === itemId).length;
+            stackNote = `\nStack: ${stackCount} db`;
+        }
+        if (confirm(`${actionText}: ${item.name}?${stackNote}`)) {
             if (item.type === "consumable") {
                 useConsumable(itemId, fbKey);
             } else {
-                equipItem(itemId, fbKey, item.type);
+                const slotType = TYPE_TO_SLOT[item.type];
+                if (!slotType) {
+                    return alert(`Ehhez a tárgyhoz nincs felszerelési slot: ${item.type}`);
+                }
+                equipItem(itemId, fbKey, slotType);
             }
         }
     }
@@ -221,11 +301,13 @@
         if (currentCharData[`equip_${slotType}`]) return alert("Ebben a slotban már van valami!");
 
         isProcessing = true;
-        const item = ITEMS[itemId];
+        const nextEquips = {};
+        EQUIP_SLOTS.forEach(slot => { nextEquips[slot] = currentCharData[`equip_${slot}`] || null; });
+        nextEquips[slotType] = itemId;
+        const derived = buildDerivedFromEquips(nextEquips);
         const updates = {};
         updates[`equip_${slotType}`] = itemId;
-        updates.bonusAtk = (Number(currentCharData.bonusAtk) || 0) + (Number(item.atk) || 0);
-        updates.bonusDef = (Number(currentCharData.bonusDef) || 0) + (Number(item.def) || 0);
+        Object.assign(updates, derived);
         updates.lastUpdate = Date.now(); // Frissítés a regenhez
 
         db.ref(`characters/${myId}`).update(updates).then(() => {
@@ -235,12 +317,14 @@
 
     function unequipItem(slotType, itemId) {
         isProcessing = true;
-        const item = ITEMS[itemId];
         const newKey = db.ref(`characters/${myId}/inventory`).push().key;
+        const nextEquips = {};
+        EQUIP_SLOTS.forEach(slot => { nextEquips[slot] = currentCharData[`equip_${slot}`] || null; });
+        nextEquips[slotType] = null;
+        const derived = buildDerivedFromEquips(nextEquips);
         const updates = {};
         updates[`equip_${slotType}`] = null;
-        updates.bonusAtk = Math.max(0, (Number(currentCharData.bonusAtk) || 0) - (Number(item.atk) || 0));
-        updates.bonusDef = Math.max(0, (Number(currentCharData.bonusDef) || 0) - (Number(item.def) || 0));
+        Object.assign(updates, derived);
         updates[`inventory/${newKey}`] = itemId;
         updates.lastUpdate = Date.now();
 

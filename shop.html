@@ -19,39 +19,107 @@
 
         /* LAYOUT */
         .trade-layout { 
-            display: flex; justify-content: center; align-items: flex-start; 
-            padding: 20px; gap: 20px; max-width: 1400px; margin: 0 auto; 
+            display: flex; justify-content: center; align-items: stretch; 
+            padding: 20px; gap: 16px; max-width: 1800px; margin: 0 auto; 
         }
 
         .panel { 
             background: var(--panel-bg); border: 2px solid var(--gold); border-radius: 8px; 
             display: flex; flex-direction: column; align-items: center; padding: 15px; 
-            width: 340px; flex-shrink: 0;
+            width: 306px; flex-shrink: 0; /* kb. 10%-kal kisebb */
+            min-height: 640px;
+        }
+        .seller-panel {
+            width: 520px;
+            margin-left: -90px;
+        }
+        .bag-panel {
+            width: 520px;
+            margin-right: -90px;
+        }
+        .deal-zone {
+            width: 420px;
+            flex: 0 0 420px;
         }
         .panel-header { color: var(--gold); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; border-bottom: 1px solid var(--gold); width: 100%; text-align: center; padding-bottom: 5px; }
 
-        .avatar-box { width: 100%; aspect-ratio: 1/1; border: 3px solid var(--gold); border-radius: 4px; overflow: hidden; background: #000; margin-bottom: 10px; }
+        .avatar-box { width: 260px; max-width: 100%; aspect-ratio: 1/1; border: 3px solid var(--gold); border-radius: 4px; overflow: hidden; background: #000; margin-bottom: 10px; }
         .avatar-box img { width: 100%; height: 100%; object-fit: cover; object-position: center 20%; }
 
         /* ITEM GRID */
         .item-grid { 
-            width: 100%; height: 300px; display: grid; grid-template-columns: repeat(3, 1fr); 
-            gap: 8px; overflow-y: auto; padding: 10px 5px; border-top: 1px solid #444; 
+            width: 100%; height: 320px; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); 
+            gap: 12px; overflow-y: auto; padding: 10px 5px; border-top: 1px solid #444;
+            grid-auto-rows: 148px;
+            align-content: start;
         }
         .item-grid::-webkit-scrollbar { width: 4px; }
         .item-grid::-webkit-scrollbar-thumb { background: var(--gold); }
 
         .item-slot { 
-            background: rgba(0,0,0,0.5); border: 1px solid #444; padding: 5px; 
-            text-align: center; cursor: pointer; border-radius: 4px; transition: 0.2s; 
+            background: transparent; border: none; padding: 2px;
+            text-align: center; cursor: pointer; border-radius: 4px; transition: 0.2s;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            overflow: visible;
+            position: relative;
         }
-        .item-slot:hover { background: rgba(197, 160, 89, 0.2); }
-        .item-slot img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 4px; margin-bottom: 4px; }
-        .item-slot .name { font-size: 0.65em; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #eee; }
-        .item-slot .price-tag { font-size: 0.6em; color: var(--gold); }
+        .item-slot:hover { background: transparent; }
+        .item-slot .item-art {
+            width: 100%;
+            height: 78px;
+            background: rgba(0, 0, 0, 0.92);
+            border: 1px solid #222;
+            border-radius: 8px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 4px;
+            position: relative;
+        }
+        .item-slot img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            object-position: center top;
+            margin: 0;
+            display: block;
+        }
+        .item-slot .name {
+            width: 100%;
+            font-size: 0.58em;
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: #eee;
+            margin-top: 6px;
+            opacity: 0.9;
+            line-height: 1.15;
+            min-height: 12px;
+        }
+        .item-slot .price-tag {
+            width: auto;
+            max-width: 92%;
+            padding: 2px 8px;
+            font-size: 0.6em;
+            font-weight: bold;
+            color: #ffd24d;
+            background: rgba(0,0,0,0.92);
+            border: 1px solid #c5a059;
+            border-radius: 8px;
+            text-shadow: 0 0 8px rgba(255, 210, 77, 0.9);
+            box-shadow: inset 0 0 8px rgba(255, 210, 77, 0.15), 0 0 6px rgba(0,0,0,0.8);
+            position: relative;
+            margin-top: 4px;
+            white-space: nowrap;
+            z-index: 3;
+        }
 
         /* DEAL ZONE */
-        .deal-zone { flex: 0 1 400px; min-width: 300px; }
         .deal-display { 
             width: 100%; min-height: 250px; background: rgba(0,0,0,0.8); 
             border: 2px dashed var(--gold); border-radius: 15px; 
@@ -72,16 +140,17 @@
                 align-items: center; 
                 padding-bottom: 80px; 
             }
-            .panel { width: 100%; max-width: 500px; }
+            .panel { width: 100%; max-width: 500px; margin-left: 0; margin-right: 0; min-height: auto; }
+            .deal-zone { width: 100%; flex: 0 0 auto; }
             .deal-zone { order: -1; position: sticky; top: 70px; z-index: 90; margin-bottom: 10px; } /* Az alku zóna legyen szem előtt */
             .avatar-box { height: 200px; } /* Mobilon ne foglaljon annyi helyet a kép */
-            .item-grid { grid-template-columns: repeat(4, 1fr); height: auto; max-height: 400px; }
+            .item-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); height: auto; max-height: 400px; }
             .shop-header { padding: 10px; }
             .shop-header div:first-child { font-size: 1.2em; }
         }
 
         @media (max-width: 500px) {
-            .item-grid { grid-template-columns: repeat(3, 1fr); }
+            .item-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
             .avatar-box { display: none; } /* Nagyon kicsi telón kapcsoljuk ki az avatarokat a shopban, hogy elférjen a rács */
         }
     </style>
@@ -96,7 +165,7 @@
 </div>
 
 <div class="trade-layout">
-    <div class="panel">
+    <div class="panel seller-panel">
         <div class="panel-header">Kereskedő</div>
         <div class="avatar-box">
             <img src="https://i.ibb.co/LzMTVrSt/Copilot-20260405-024414.png" alt="Merchant">
@@ -111,7 +180,7 @@
         <div id="action-area" class="btn-group"></div>
     </div>
 
-    <div class="panel">
+    <div class="panel bag-panel">
         <div class="panel-header">Hátizsákod</div>
         <div class="avatar-box">
             <img id="player-img" src="" alt="Player Avatar">
@@ -125,17 +194,9 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="firebase-credentials.js"></script>
+<script src="items.js"></script>
 
 <script>
-    const ITEMS = {
-        "fakard_01": { id: "fakard_01", name: "Ócska Fakard", type: "fegyver", price: 150, sellPrice: 35, atk: 2, def: 0, rarity: "common", img: "https://i.ibb.co/twxWwxFJ/Copilot-20260405-035308.png" },
-        "rezkard_01": { id: "rezkard_01", name: "Réz Kard", type: "fegyver", price: 450, sellPrice: 120, atk: 5, def: 0, rarity: "uncommon", img: "https://i.ibb.co/nNFg9ps5/Copilot-20260405-040140.png" },
-        "vaskard_01": { id: "vaskard_01", name: "Harci Vas Kard", type: "fegyver", price: 1200, sellPrice: 400, atk: 12, def: 1, rarity: "rare", img: "https://i.ibb.co/LDcq0LQp/Copilot-20260405-040230.png" },
-        "szakadtfelso_01": { id: "szakadtfelso_01", name: "Szakadt Felső", type: "páncél", price: 80, sellPrice: 20, atk: 0, def: 2, rarity: "common", img: "https://i.ibb.co/dsr66j0L/Copilot-20260405-035126.png" },
-        "potion_01": { id: "potion_01", name: "Kisebb Életerő Ital", type: "consumable", heal: 25, price: 50, sellPrice: 15, rarity: "common", img: "https://i.ibb.co/3YChW7rk/Copilot-20260405-034109.png" },
-        "potion_02": { id: "potion_02", name: "Nagyobb Életerő Ital", type: "consumable", heal: 60, price: 150, sellPrice: 50, rarity: "uncommon", img: "https://i.ibb.co/fd2Jys7X/Copilot-20260405-035701.png" }
-    };
-
     const db = window.initFirebaseDb();
 
     const myId = localStorage.getItem('selectedCharId');
@@ -143,6 +204,9 @@
     let selectedItem = null;
     let selectedType = "";
     let currentInv = {};
+    const EQUIP_SLOTS = ["sisak", "fegyver", "páncél", "pajzs", "lábvért", "cipő"];
+    const STACKABLE_TYPES = new Set(["consumable"]);
+    const ITEM_FALLBACK_IMG = "https://via.placeholder.com/96/0b0b0b/3a3a3a?text=%20";
 
     const HERO_IMAGES = { "Harcos": "https://i.ibb.co/20BXyqpy/Copilot-20260403-032810.png", "Mágus": "https://i.ibb.co/yFz5bcXv/Copilot-20260403-033651.png", "Lovag": "https://i.ibb.co/Fk3n339M/Copilot-20260403-034043.png", "Íjász": "https://i.ibb.co/whd2jNpB/Copilot-20260403-034402.png", "Bérgyilkos": "https://i.ibb.co/b525CsLg/Copilot-20260403-032807.png", "Nekromanta": "https://i.ibb.co/NnCwwCbR/Copilot-20260403-033301.png" };
 
@@ -151,6 +215,7 @@
     db.ref(`characters/${myId}`).on('value', snap => {
         const data = snap.val();
         if (!data) return;
+        window.__latestCharData = data;
         myGold = data.gold || 0;
         document.getElementById('current-gold').innerText = myGold;
         document.getElementById('player-img').src = HERO_IMAGES[data.charClass] || "";
@@ -159,13 +224,18 @@
 
     function renderShop() {
         const shopItems = document.getElementById('shop-items');
-        shopItems.innerHTML = Object.keys(ITEMS).map(key => {
+        shopItems.innerHTML = Object.keys(ITEMS).filter(key => {
             const i = ITEMS[key];
+            const isWeapon = i.type === "fegyver" || i.type === "weapon";
+            return !(isWeapon && i.rarity === "legendary");
+        }).map(key => {
+            const i = ITEMS[key];
+            const imgSrc = (i.img && String(i.img).trim()) ? i.img : ITEM_FALLBACK_IMG;
             return `
                 <div class="item-slot ${i.rarity}" onclick="selectForDeal('${i.id}', 'buy')">
-                    <img src="${i.img}" alt="${i.name}">
-                    <span class="name">${i.name}</span>
+                    <div class="item-art"><img src="${imgSrc}" alt=""></div>
                     <div class="price-tag">💰 ${i.price}</div>
+                    <span class="name">${i.name}</span>
                 </div>
             `;
         }).join('');
@@ -179,11 +249,12 @@
             const itemId = inv[key];
             const itemData = ITEMS[itemId];
             if (itemData) {
+                const imgSrc = (itemData.img && String(itemData.img).trim()) ? itemData.img : ITEM_FALLBACK_IMG;
                 container.innerHTML += `
                     <div class="item-slot ${itemData.rarity}" onclick="selectForDeal('${key}', 'sell')">
-                        <img src="${itemData.img}" alt="${itemData.name}">
-                        <span class="name">${itemData.name}</span>
+                        <div class="item-art"><img src="${imgSrc}" alt=""></div>
                         <div class="price-tag">💰 ${itemData.sellPrice}</div>
+                        <span class="name">${itemData.name}</span>
                     </div>
                 `;
             }
@@ -207,11 +278,16 @@
         }
 
         const stats = itemData.type === "consumable" ? `Gyógyítás: +${itemData.heal}` : `Atk: +${itemData.atk || 0} | Def: +${itemData.def || 0}`;
+        const stackCount = Object.values(currentInv || {}).filter(v => v === itemData.id).length;
+        const stackInfo = STACKABLE_TYPES.has(itemData.type) ? `<div style="font-size: 0.8em; color: #85c1e9;">Stack nálad: ${stackCount} db</div>` : "";
+        const effectInfo = itemData.effect ? `<div style="font-size: 0.8em; color: #bbb; margin-top: 4px;">${itemData.effect}</div>` : "";
 
         container.innerHTML = `
             <img src="${selectedItem.img}" class="big-item-preview">
             <div style="font-size: 1.2em; color: white; margin-top: 5px;">${selectedItem.name}</div>
             <div style="font-size: 0.8em; color: #aaa;">${stats}</div>
+            ${effectInfo}
+            ${stackInfo}
             <div style="font-size: 1.5em; color: var(--gold); font-weight: bold;">💰 ${selectedItem.price}</div>
         `;
         
@@ -238,6 +314,15 @@
         if(!selectedItem) return;
         const charRef = db.ref(`characters/${myId}`);
         if(selectedType === 'buy') {
+            const invItems = Object.values(currentInv || {});
+            const isStackable = STACKABLE_TYPES.has(selectedItem.type);
+            if (!isStackable && invItems.includes(selectedItem.id)) return alert("Ez a tárgy már nálad van, nem halmozható!");
+            if (invItems.length >= 28) return alert("A hátizsák tele van (28/28)!");
+
+            const charData = window.__latestCharData || {};
+            const alreadyEquipped = EQUIP_SLOTS.some(slot => charData[`equip_${slot}`] === selectedItem.id);
+            if (!isStackable && alreadyEquipped) return alert("Ez a tárgy már fel van szerelve, nem vásárolható még egy!");
+
             if(myGold < selectedItem.price) return alert("Nincs elég pénzed!");
             charRef.update({ gold: myGold - selectedItem.price });
             charRef.child('inventory').push(selectedItem.id);
