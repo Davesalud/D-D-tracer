@@ -193,11 +193,14 @@
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-functions-compat.js"></script>
 <script src="firebase-credentials.js"></script>
 <script src="items.js"></script>
 
 <script>
     const db = window.initFirebaseDb();
+    const functionsClient = firebase.functions(undefined, 'europe-west1');
+    const secureShopTrade = functionsClient.httpsCallable('secureShopTrade');
 
     const myId = localStorage.getItem('selectedCharId');
     let myGold = 0;
@@ -310,9 +313,10 @@
         document.getElementById('action-area').innerHTML = "";
     }
 
-    function trade() {
+    async function trade() {
         if(!selectedItem) return;
-        const charRef = db.ref(`characters/${myId}`);
+        const pin = String((window.__latestCharData && window.__latestCharData.pin) || '');
+        if (!pin) return alert("Hiányzó PIN. Jelentkezz be újra.");
         if(selectedType === 'buy') {
             const invItems = Object.values(currentInv || {});
             const isStackable = STACKABLE_TYPES.has(selectedItem.type);
@@ -324,11 +328,29 @@
             if (!isStackable && alreadyEquipped) return alert("Ez a tárgy már fel van szerelve, nem vásárolható még egy!");
 
             if(myGold < selectedItem.price) return alert("Nincs elég pénzed!");
-            charRef.update({ gold: myGold - selectedItem.price });
-            charRef.child('inventory').push(selectedItem.id);
+            try {
+                await secureShopTrade({
+                    characterId: myId,
+                    pin,
+                    action: 'buy',
+                    itemId: selectedItem.id
+                });
+            } catch (e) {
+                alert("Vásárlás sikertelen: " + ((e && e.message) ? e.message : 'ismeretlen hiba'));
+                return;
+            }
         } else {
-            charRef.update({ gold: myGold + selectedItem.price });
-            charRef.child(`inventory/${selectedItem.key}`).remove();
+            try {
+                await secureShopTrade({
+                    characterId: myId,
+                    pin,
+                    action: 'sell',
+                    inventoryKey: selectedItem.key
+                });
+            } catch (e) {
+                alert("Eladás sikertelen: " + ((e && e.message) ? e.message : 'ismeretlen hiba'));
+                return;
+            }
         }
         resetDeal();
     }

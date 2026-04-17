@@ -1,0 +1,147 @@
+{
+  "rules": {
+    ".read": true,
+    ".write": false,
+
+    "characters": {
+      "$charId": {
+        ".read": true,
+        ".write": true,
+
+        "id": {
+          ".validate": "newData.isString() && newData.val() === $charId"
+        },
+        "name": {
+          ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 24"
+        },
+        "pin": {
+          ".validate": "newData.isString() && newData.val().matches(/^[0-9]{4}$/)"
+        },
+        "charClass": {
+          ".validate": "newData.isString() && newData.val().matches(/^(Harcos|Mágus|Lovag|Íjász|Bérgyilkos|Nekromanta)$/)"
+        },
+        "status": {
+          ".validate": "newData.isString() && newData.val().matches(/^(online|offline|searching|fighting)$/)"
+        },
+        "level": {
+          ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 30"
+        },
+        "gold": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9999999"
+        },
+        "xp": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9999999"
+        },
+        "nextLvlXp": {
+          ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 9999999"
+        },
+        "hp": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= (newData.parent().child('maxHp').isNumber() ? newData.parent().child('maxHp').val() : 9999)"
+        },
+        "maxHp": {
+          ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 9999"
+        },
+        "mp": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= (newData.parent().child('maxMp').isNumber() ? newData.parent().child('maxMp').val() : 9999)"
+        },
+        "maxMp": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9999"
+        },
+        "atk": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9999"
+        },
+        "def": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9999"
+        },
+        "bonusAtk": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9999"
+        },
+        "bonusDef": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9999"
+        },
+        "arenaWins": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 999999"
+        },
+        "arenaLosses": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 999999"
+        },
+        "lastUpdate": {
+          ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() <= now + 60000"
+        },
+
+        "equip_sisak": {
+          ".validate": "newData.val() === null || (newData.isString() && newData.val().matches(/^[A-Za-z0-9_]{1,80}$/))"
+        },
+        "equip_fegyver": {
+          ".validate": "newData.val() === null || (newData.isString() && newData.val().matches(/^[A-Za-z0-9_]{1,80}$/))"
+        },
+        "equip_páncél": {
+          ".validate": "newData.val() === null || (newData.isString() && newData.val().matches(/^[A-Za-z0-9_]{1,80}$/))"
+        },
+        "equip_pajzs": {
+          ".validate": "newData.val() === null || (newData.isString() && newData.val().matches(/^[A-Za-z0-9_]{1,80}$/))"
+        },
+        "equip_lábvért": {
+          ".validate": "newData.val() === null || (newData.isString() && newData.val().matches(/^[A-Za-z0-9_]{1,80}$/))"
+        },
+        "equip_cipő": {
+          ".validate": "newData.val() === null || (newData.isString() && newData.val().matches(/^[A-Za-z0-9_]{1,80}$/))"
+        },
+
+        "inventory": {
+          "$itemKey": {
+            ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z0-9_]{1,80}$/)"
+          }
+        },
+
+        "$other": {
+          ".validate": false
+        }
+      }
+    },
+
+    "settings": {
+      ".read": true,
+      "patchNotes": {
+        ".write": true,
+        ".validate": "newData.isString() && newData.val().length <= 5000"
+      },
+      "$other": {
+        ".write": false
+      }
+    },
+
+    "chat": {
+      ".read": true,
+      "$msgId": {
+        ".write": true,
+        "name": {
+          ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 40"
+        },
+        "text": {
+          ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 120"
+        },
+        "ts": {
+          ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() <= now + 60000"
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    },
+
+    "battles": {
+      ".read": true,
+      "$battleId": {
+        ".write": true
+      }
+    },
+
+    "teamCampaignRooms": {
+      ".read": true,
+      "$roomId": {
+        ".write": true
+      }
+    }
+  }
+}

@@ -46,6 +46,21 @@
         }
         .slot:hover { border-color: white; box-shadow: 0 0 10px var(--gold); }
         .slot img { width: 48px; height: 48px; object-fit: contain; }
+        .slot-stack {
+            position: absolute;
+            right: 4px;
+            bottom: 4px;
+            display: inline-flex;
+            align-items: center;
+            padding: 1px 5px;
+            border-radius: 8px;
+            border: 1px solid var(--gold);
+            background: rgba(0,0,0,0.88);
+            color: #ffe08a;
+            font-size: 0.58em;
+            line-height: 1;
+            white-space: nowrap;
+        }
 
         /* PONTOS POZÍCIÓK AZ EREDETI SZERINT */
         .slot[data-slot="sisak"] { top: 20px; left: 120px; }
@@ -62,10 +77,24 @@
 .inv-slot { 
             aspect-ratio: 1/1; border: 1px solid #444; 
             background: rgba(0,0,0,0.5); display: flex; 
-            align-items: center; justify-content: center; cursor: pointer; border-radius: 2px;
+            align-items: center; justify-content: center; cursor: pointer; border-radius: 2px; position: relative;
         }
         .inv-slot:hover { border-color: var(--gold); }
         .item-icon { width: 85%; height: 85%; object-fit: contain; }
+        .stack-badge {
+            position: absolute;
+            right: 3px;
+            bottom: 3px;
+            min-width: 18px;
+            padding: 1px 4px;
+            border-radius: 10px;
+            border: 1px solid var(--gold);
+            background: rgba(0,0,0,0.85);
+            color: #ffe08a;
+            font-size: 0.62em;
+            text-align: center;
+            line-height: 1.1;
+        }
 .bag-container #inventory-grid {
             display: grid;
             grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -201,13 +230,14 @@
         // Statisztikák (Alap + Bónusz)
         document.getElementById('stat-atk').innerText = (Number(c.atk) || 0) + (Number(c.bonusAtk) || 0);
         document.getElementById('stat-def').innerText = (Number(c.def) || 0) + (Number(c.bonusDef) || 0);
-
         // Felszerelt tárgyak slotjai
         ["sisak", "fegyver", "páncél", "pajzs", "lábvért", "cipő"].forEach(st => {
             const slotEl = document.querySelector(`.slot[data-slot="${st}"]`);
             const itemId = c[`equip_${st}`];
             if(itemId && ITEMS[itemId]) {
-                slotEl.innerHTML = `<img src="${ITEMS[itemId].img}">`;
+                const isSoulWeapon = st === "fegyver" && itemId === "lelkek_ore_01";
+                const soulStacks = Number(c.soulEaterStacks || 0);
+                slotEl.innerHTML = `<img src="${ITEMS[itemId].img}">${isSoulWeapon ? `<span class="slot-stack">${soulStacks}/20</span>` : ''}`;
             } else { 
                 slotEl.innerHTML = st.toUpperCase(); 
             }
@@ -217,13 +247,18 @@
         const grid = document.getElementById('inventory-grid');
         grid.innerHTML = '';
         const inv = c.inventory || {};
+        const invValues = Object.values(inv);
         Object.keys(inv).forEach(key => {
             const itemId = inv[key];
             if(ITEMS[itemId]) {
                 const div = document.createElement('div');
                 div.className = 'inv-slot';
                 div.onclick = () => handleInventoryClick(itemId, key);
-                div.innerHTML = `<img src="${ITEMS[itemId].img}" class="item-icon">`;
+                const stackCount = invValues.filter(v => v === itemId).length;
+                const showStack = stackCount > 1 || ITEMS[itemId].type === "consumable";
+                const isSoulEaterAxe = itemId === "lelkek_ore_01";
+                const badgeText = isSoulEaterAxe ? `${Number(c.soulEaterStacks || 0)}/20` : String(stackCount);
+                div.innerHTML = `<img src="${ITEMS[itemId].img}" class="item-icon">${(showStack || isSoulEaterAxe) ? `<span class="stack-badge">${badgeText}</span>` : ''}`;
                 grid.appendChild(div);
             }
         });
@@ -343,6 +378,20 @@
         const updates = {};
         updates[`equip_${slotType}`] = itemId;
         Object.assign(updates, derived);
+        if (itemId === "lelkek_ore_01") {
+            const totalStacks = Math.min(20, Math.max(0, Number(currentCharData.soulEaterStacks || 0)));
+            const appliedStacks = Math.min(totalStacks, Math.max(0, Number(currentCharData.soulEaterAppliedStacks || 0)));
+            const pendingStacks = Math.max(0, totalStacks - appliedStacks);
+            if (pendingStacks > 0) {
+                const hpGain = pendingStacks * 2;
+                const nextMaxHp = (Number(currentCharData.maxHp) || 100) + hpGain;
+                updates.maxHp = nextMaxHp;
+                updates.hp = Math.min(nextMaxHp, (Number(currentCharData.hp) || 1) + hpGain);
+                updates.soulEaterAppliedStacks = appliedStacks + pendingStacks;
+            } else {
+                updates.soulEaterAppliedStacks = appliedStacks;
+            }
+        }
         updates.lastUpdate = Date.now(); // Frissítés a regenhez
 
         db.ref(`characters/${myId}`).update(updates).then(() => {

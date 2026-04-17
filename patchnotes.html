@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Death's Armada - Krónikák</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,600;1,700&family=MedievalSharp&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="responsive.css">
+    <style>
+        :root { --gold: #c5a059; --bg: #050507; --card: rgba(15, 15, 18, 0.95); --text: #e0e0e0; --accent: #8b0000; }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            min-height: 100dvh;
+            font-family: 'Crimson Text', serif;
+            color: var(--text);
+            background: #050507;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .master-bg {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background-image: linear-gradient(rgba(0,0,0,0.52), rgba(0,0,0,0.82)), url('https://i.ibb.co/Kj5qftF7/Hatter.jpg');
+            background-size: cover, contain;
+            background-position: center, center;
+            background-repeat: no-repeat, no-repeat;
+        }
+        .top-right {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 8px;
+            z-index: 20;
+        }
+        .btn-top {
+            background: rgba(0, 0, 0, 0.5);
+            color: var(--gold);
+            border: 1px solid var(--gold);
+            padding: 8px 15px;
+            font-family: 'MedievalSharp';
+            text-decoration: none;
+            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .btn-top:hover { background: rgba(197, 160, 89, 0.16); color: #fff; }
+        .card {
+            width: min(760px, 95vw);
+            background: var(--card);
+            border: 1px solid var(--gold);
+            border-radius: 6px;
+            padding: 22px;
+            box-shadow: 0 10px 36px rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
+        }
+        h1 {
+            margin: 0 0 12px;
+            color: var(--gold);
+            font-family: 'MedievalSharp';
+            letter-spacing: 1px;
+        }
+        .patch-view {
+            white-space: pre-wrap;
+            line-height: 1.45;
+            color: #ddd;
+            font-size: 1.1rem;
+            min-height: 140px;
+            border: 1px solid rgba(197, 160, 89, 0.3);
+            border-radius: 4px;
+            background: rgba(0,0,0,0.45);
+            padding: 14px;
+        }
+        .dm-editor {
+            margin-top: 16px;
+            border-top: 1px solid rgba(197, 160, 89, 0.3);
+            padding-top: 12px;
+            display: none;
+        }
+        .dm-editor.active { display: block; }
+        .dm-label {
+            color: var(--gold);
+            font-family: 'MedievalSharp';
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            display: block;
+        }
+        #patch-editor-input {
+            width: 100%;
+            min-height: 120px;
+            padding: 10px;
+            resize: vertical;
+            border-radius: 4px;
+            border: 1px solid #555;
+            background: #0a0a0a;
+            color: #eee;
+            font-family: 'Crimson Text', serif;
+            font-size: 1rem;
+        }
+        #patch-save-btn {
+            margin-top: 10px;
+            background: rgba(139, 0, 0, 0.34);
+            color: #ffbdbd;
+            border: 1px solid var(--accent);
+            padding: 8px 15px;
+            border-radius: 4px;
+            font-family: 'MedievalSharp';
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="master-bg"></div>
+
+    <div class="top-right">
+        <a href="index.html" class="btn-top">Vissza a Lobbyba</a>
+        <a href="dm.html" class="btn-top">DM Panel</a>
+    </div>
+
+    <main class="card">
+        <h1>📜 Krónikák</h1>
+        <div id="patch-content" class="patch-view">Betöltés...</div>
+
+        <section id="dm-editor" class="dm-editor">
+            <span class="dm-label">DM szerkesztő</span>
+            <textarea id="patch-editor-input" placeholder="Írd ide a patch note tartalmát..."></textarea>
+            <button id="patch-save-btn" type="button" onclick="savePatchNotesDm()">Mentés</button>
+        </section>
+    </main>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBg2WzLqxt0QRDkDiUKYrGRCw0Kg-gr1OU",
+            authDomain: "dnd-tracker-4fe05.firebaseapp.com",
+            projectId: "dnd-tracker-4fe05",
+            databaseURL: "https://dnd-tracker-4fe05-default-rtdb.europe-west1.firebasedatabase.app"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        const patchContentEl = document.getElementById('patch-content');
+        const dmEditorEl = document.getElementById('dm-editor');
+        const dmInputEl = document.getElementById('patch-editor-input');
+
+        function isDmSession() {
+            try {
+                return sessionStorage.getItem('dmGate') === '1';
+            } catch (e) {
+                return false;
+            }
+        }
+
+        db.ref('settings/patchNotes').on('value', snap => {
+            const text = snap.val() || 'A birodalom békés.';
+            patchContentEl.textContent = text;
+            dmInputEl.value = text;
+        });
+
+        if (isDmSession()) {
+            dmEditorEl.classList.add('active');
+        }
+
+        function savePatchNotesDm() {
+            if (!isDmSession()) {
+                alert('Ehhez DM jogosultság kell.');
+                return;
+            }
+            const text = dmInputEl.value || '';
+            db.ref('settings/patchNotes').set(text).then(() => {
+                alert('Patch note mentve.');
+            });
+        }
+    </script>
+</body>
+</html>
